@@ -2,6 +2,7 @@
 
 #include "fs_constants.h"
 
+#include <unistd.h>
 #include <chrono>
 #include <cstring>
 #include <fcntl.h>
@@ -258,14 +259,6 @@ void RunTests() {
     TEST_CASE(GetSize("/data/therapist/tmp_open/nonexistent_rot.txt") == 0, "RO+TRUNC got truncated to 0", "RO+TRUNC untouched");
   }
 
-  TEST_CASE(int status = sceKernelOpen(
-                "/data/therapist/"
-                "thisisafilewithaverylongnameForrealthisfileissupposedtohaveareallylongnameforthistestcaseOtherwisewewontknowifitworkscorrectlyItsnotusedoftenb"
-                "utcanbeproblematicasthisbreaksdirentswhichcanstoreonly255charactersincludingnullterminatorThisisthelastsentence.goodluck",
-                O_RDONLY, 0777);
-            errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters", "( errno =", errno, ", should be", ENAMETOOLONG,
-            ")");
-
   //
 
   Log();
@@ -330,7 +323,7 @@ void RunTests() {
   const char* case_insensitive_path_upper     = "/DATA/THERAPIST/CASEINSENSITIVE.HWDP";
   const char* case_insensitive_path_upper_end = "/data/THERAPIST/CASEINSENSITIVE.HWDP";
   TEST_CASE(sceKernelClose(sceKernelOpen(case_insensitive_path, O_RDWR | O_TRUNC | O_CREAT, 0777)) == 0, "Test file created", "Test file not created");
- 
+
   TEST_CASE(stat(case_insensitive_path, &st) == 0, "Data: 1:1 case sensitivity passed", "Data: Can't resolve 1:1 name", "( ", case_insensitive_path, " )");
   TEST_CASE(stat(case_insensitive_path_lower, &st) != 0 && errno == ENOENT, "Data: Data: Lowercase sensitivity passed", "Data: Resolved name in lowercase",
             "( ", case_insensitive_path_lower, " )");
@@ -353,7 +346,7 @@ void RunTests() {
             "app0: Can't resolve (app0 path) name in uppercase", "( ", case_insensitive_path_app0_upper_end, " )");
 
   ///
-  /// Case sensitivity
+  /// Moving files
   ///
 
   Log();
@@ -398,6 +391,72 @@ void RunTests() {
   // not empty to empty, changed
   TEST_CASE(int status = sceKernelRename("/data/therapist/moves/yeet_dir", movingDirectoryD);
             status == 0, "Moved", "Not moved", "not empty dir->empty dir:", status);
+
+  ///
+  /// Long names (ENAMETOOLONG)
+  ///
+
+  Log();
+  Log("\tLong names (ENAMETOOLONG)");
+  Log();
+
+  sceKernelClose(sceKernelOpen("/data/therapist/dummy_target", O_CREAT | O_WRONLY, 0777));
+  OrbisKernelStat st_long_orbis {};
+  struct stat     st_long_posix {};
+
+  const char* very_long_path = "/data/therapist/"
+                               "thisisafilewithaverylongnameForrealthisfileissupposedtohaveareallylongnameforthistestcaseOtherwisewewontknowifitworkscorrec"
+                               "tlyItsnotusedoftenbutcanbepro"
+                               "blematicasthisbreaksdirentswhichcanstoreonly255charactersincludingnullterminatorThisisthelastsentence.goodluck";
+  // sceKernel*
+  TEST_CASE(int status = sceKernelOpen(very_long_path, O_RDONLY, 0777); errno == ENAMETOOLONG, "File name too long detected",
+                                                                        "Didn't detect file name >255 characters", "sceKernelOpen(RO) ( errno =", errno,
+                                                                        ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = sceKernelOpen(very_long_path, O_WRONLY | O_RDWR | O_RDONLY, 0777);
+            errno == EINVAL, "Cursed rw flags are more important than ENAMETOOLONG", "Didn't detect file name >255 characters",
+            "sceKernelOpen(RDO|WRO|RW) ( errno =", errno, ", should be", EINVAL, ")");
+  TEST_CASE(int status = sceKernelOpen(very_long_path, O_CREAT | O_RDONLY, 0777);
+            errno == ENAMETOOLONG, "File creation flags are less important than ENAMETOOLONG", "Didn't detect file name >255 characters",
+            "sceKernelOpen(CREAT|RDO) ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = sceKernelRename(very_long_path, "/data/therapist/dummy_target_2");
+            errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters", "sceKernelRename(long,normal) ( errno =", errno,
+            ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = sceKernelRename("/data/therapist/dummy_target", very_long_path);
+            errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters", "sceKernelRename(normal,long) ( errno =", errno,
+            ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = sceKernelCheckReachability(very_long_path); errno == ENAMETOOLONG, "File name too long detected",
+                                                                     "Didn't detect file name >255 characters", "sceKernelCheckReachability() ( errno =", errno,
+                                                                     ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = sceKernelMkdir(very_long_path, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+                                                               "sceKernelMkdir() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+
+  TEST_CASE(int status = sceKernelStat(very_long_path, &st_long_orbis); errno == ENAMETOOLONG, "File name too long detected",
+                                                                        "Didn't detect file name >255 characters", "sceKernelStat() ( errno =", errno,
+                                                                        ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = sceKernelUnlink(very_long_path); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+                                                          "sceKernelUnlink() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+
+  // posix_*
+  TEST_CASE(int status = open(very_long_path, O_RDONLY, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+                                                               "open(RO) ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = open(very_long_path, O_WRONLY | O_RDWR | O_RDONLY, 0777); errno == EINVAL, "Cursed rw flags are more important than ENAMETOOLONG",
+                                                                                   "Didn't detect file name >255 characters",
+                                                                                   "open(RDO|WRO|RW) ( errno =", errno, ", should be", EINVAL, ")");
+  TEST_CASE(int status = open(very_long_path, O_CREAT | O_RDONLY, 0777); errno == ENAMETOOLONG, "File creation flags are less important than ENAMETOOLONG",
+                                                                         "Didn't detect file name >255 characters", "open(CREAT|RDO) ( errno =", errno,
+                                                                         ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = rename(very_long_path, "/data/therapist/dummy_target_2"); errno == ENAMETOOLONG, "File name too long detected",
+                                                                                   "Didn't detect file name >255 characters",
+                                                                                   "rename(long,normal) ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = rename("/data/therapist/dummy_target", very_long_path); errno == ENAMETOOLONG, "File name too long detected",
+                                                                                 "Didn't detect file name >255 characters",
+                                                                                 "rename(normal,long) ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = mkdir(very_long_path, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+                                                      "mkdir() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = stat(very_long_path, &st_long_posix); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+                                                               "stat() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+  TEST_CASE(int status = unlink(very_long_path); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+                                                 "unlink() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
 }
 
 bool TestFileOps(const char* path) {
