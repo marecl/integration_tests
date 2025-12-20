@@ -2,7 +2,6 @@
 
 #include "fs_constants.h"
 
-#include <unistd.h>
 #include <chrono>
 #include <cstring>
 #include <fcntl.h>
@@ -10,6 +9,7 @@
 #include <orbis/UserService.h>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 
 namespace fs = std::filesystem;
 
@@ -85,6 +85,8 @@ void RunTests() {
   ElEsDashElAy("/app0");
 
   //
+  // Dirents
+  //
 
   Log();
   Log("\t<<<< DIRENTS >>>>");
@@ -96,6 +98,8 @@ void RunTests() {
     TEST_CASE(TestDirEnts(), "Test complete", "You won't see this, this test doesn't have a negative return");
   }
 
+  //
+  // Stat
   //
 
   Log();
@@ -123,6 +127,8 @@ void RunTests() {
   TEST_CASE(!TestLStat("/av_contents"), "Test complete", "LStat worked on /av_contents");
 
   //
+  // CURSED FILE CREATION
+  //
 
   Log();
   Log("\t<<<< CURSED FILE CREATION >>>>");
@@ -148,6 +154,8 @@ void RunTests() {
     TEST_CASE(!TestFileTouch("app0_file.txt"), "Test complete: File not", "Test failed: File", "written to (RO?) curdir");
   }
 
+  //
+  // File open tests
   //
 
   Log();
@@ -260,6 +268,8 @@ void RunTests() {
   }
 
   //
+  // File ops tests
+  //
 
   Log();
   Log("\t<<<< File ops tests >>>>");
@@ -275,6 +285,8 @@ void RunTests() {
     // TEST(TestFileOps("/app0/sce_sys/param.sfo", 0, "[No flags]"), "Pass", "Fail");
   }
 
+  //
+  // File R/W tests
   //
 
   Log();
@@ -346,53 +358,6 @@ void RunTests() {
             "app0: Can't resolve (app0 path) name in uppercase", "( ", case_insensitive_path_app0_upper_end, " )");
 
   ///
-  /// Moving files
-  ///
-
-  Log();
-  Log("\t<<<< Moving files >>>>");
-  Log();
-
-  const char* movingFileA = "/data/therapist/moves/fileA";
-  const char* movingFileB = "/data/therapist/moves/fileB";
-  const char* movingFileC = "/data/therapist/moves/fileC";
-
-  const char* movingDirectoryA = "/data/therapist/moves/dirA";
-  const char* movingDirectoryB = "/data/therapist/moves/dirB";
-  const char* movingDirectoryC = "/data/therapist/moves/dirC";
-  const char* movingDirectoryD = "/data/therapist/moves/dirC";
-
-  Obliterate("/data/therapist/moves");
-  sceKernelMkdir("/data/therapist/moves", 0777);
-  sceKernelMkdir(movingDirectoryA, 0777);
-  sceKernelMkdir(movingDirectoryB, 0777);
-  sceKernelMkdir(movingDirectoryC, 0777);
-  touch(movingFileA);
-  touch(movingFileB);
-  touch(movingFileC);
-
-  TEST_CASE(int status = sceKernelRename(movingFileA, movingFileB); status == 0, "Moved", "Not moved", "file->(existent)file:", status);
-  TEST_CASE(int status = sceKernelRename(movingFileC, "/data/therapist/moves/yeet"); status == 0, "Moved", "Not moved", "file->(nonexistent)file:", status);
-  TEST_CASE(int status = sceKernelRename(movingDirectoryA, movingDirectoryB); status == 0, "Moved", "Not moved", "dir->(existing)dir:", status);
-  TEST_CASE(int status = sceKernelRename(movingDirectoryC, "/data/therapist/moves/yeet_dir");
-            status == 0, "Moved", "Not moved", "dir->(nonexistent)dir:", status);
-  // no change in folder structure
-  TEST_CASE(int status = sceKernelRename("/data/therapist/moves/yeet", "/data/therapist/moves/yeet_dir");
-            errno == EISDIR, "Not moved", "Moved", "file->(existent)dir:", status);
-  // no change either
-  TEST_CASE(int status = sceKernelRename("/data/therapist/moves/yeet_dir", "/data/therapist/moves/yeet");
-            errno == ENOTDIR, "Not moved", "Moved", "dir->(existent)file:", status);
-  TEST_CASE(int status = sceKernelRename("/data/therapist/moves/yeet", "/data/therapist/moves/yeet_dir/yeeee");
-            status == 0, "Moved", "Not moved", "file->(into existent)dir:", status);
-  // move empty to not empty dir, no change
-  sceKernelMkdir(movingDirectoryD, 0777);
-  TEST_CASE(int status = sceKernelRename(movingDirectoryD, "/data/therapist/moves/yeet_dir");
-            errno == ENOTEMPTY, "Not moved", "Moved", "empty dir->not empty dir:", status);
-  // not empty to empty, changed
-  TEST_CASE(int status = sceKernelRename("/data/therapist/moves/yeet_dir", movingDirectoryD);
-            status == 0, "Moved", "Not moved", "not empty dir->empty dir:", status);
-
-  ///
   /// Long names (ENAMETOOLONG)
   ///
 
@@ -427,7 +392,7 @@ void RunTests() {
   TEST_CASE(int status = sceKernelCheckReachability(very_long_path); errno == ENAMETOOLONG, "File name too long detected",
                                                                      "Didn't detect file name >255 characters", "sceKernelCheckReachability() ( errno =", errno,
                                                                      ", should be", ENAMETOOLONG, ")");
-  TEST_CASE(int status = sceKernelMkdir(very_long_path, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+  TEST_CASE(int status = sceKernelMkdir(very_long_path, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters ",
                                                                "sceKernelMkdir() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
 
   TEST_CASE(int status = sceKernelStat(very_long_path, &st_long_orbis); errno == ENAMETOOLONG, "File name too long detected",
@@ -437,7 +402,7 @@ void RunTests() {
                                                           "sceKernelUnlink() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
 
   // posix_*
-  TEST_CASE(int status = open(very_long_path, O_RDONLY, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+  TEST_CASE(int status = open(very_long_path, O_RDONLY, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters ",
                                                                "open(RO) ( errno =", errno, ", should be", ENAMETOOLONG, ")");
   TEST_CASE(int status = open(very_long_path, O_WRONLY | O_RDWR | O_RDONLY, 0777); errno == EINVAL, "Cursed rw flags are more important than ENAMETOOLONG",
                                                                                    "Didn't detect file name >255 characters",
@@ -453,10 +418,125 @@ void RunTests() {
                                                                                  "rename(normal,long) ( errno =", errno, ", should be", ENAMETOOLONG, ")");
   TEST_CASE(int status = mkdir(very_long_path, 0777); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
                                                       "mkdir() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
-  TEST_CASE(int status = stat(very_long_path, &st_long_posix); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
+  TEST_CASE(int status = stat(very_long_path, &st_long_posix); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters ",
                                                                "stat() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
   TEST_CASE(int status = unlink(very_long_path); errno == ENAMETOOLONG, "File name too long detected", "Didn't detect file name >255 characters",
                                                  "unlink() ( errno =", errno, ", should be", ENAMETOOLONG, ")");
+
+  ///
+  /// Moving files
+  ///
+
+  Log();
+  Log("\t<<<< Moving files >>>>");
+  Log();
+
+  const char* movingFileA = "/data/therapist/moves/fileA";
+  const char* movingFileB = "/data/therapist/moves/fileB";
+  const char* movingFileC = "/data/therapist/moves/fileC";
+
+  const char* movingDirectoryA = "/data/therapist/moves/dirA";
+  const char* movingDirectoryB = "/data/therapist/moves/dirB";
+  const char* movingDirectoryC = "/data/therapist/moves/dirC";
+  const char* movingDirectoryD = "/data/therapist/moves/dirD";
+
+  Obliterate("/data/therapist/moves");
+  sceKernelMkdir("/data/therapist/moves", 0777);
+  sceKernelMkdir(movingDirectoryA, 0777);
+  sceKernelMkdir(movingDirectoryB, 0777);
+  sceKernelMkdir(movingDirectoryC, 0777);
+  sceKernelMkdir(movingDirectoryD, 0777);
+  touch(movingFileA);
+  touch(movingFileB);
+  touch(movingFileC);
+
+  ino_t fileno_movingDirectoryA = get_fileno(movingDirectoryA);
+  ino_t fileno_movingDirectoryB = get_fileno(movingDirectoryB);
+  ino_t fileno_movingDirectoryC = get_fileno(movingDirectoryC);
+  ino_t fileno_movingDirectoryD = get_fileno(movingDirectoryD);
+  ino_t fileno_movingFileA      = get_fileno(movingFileA);
+  ino_t fileno_movingFileB      = get_fileno(movingFileB);
+  ino_t fileno_movingFileC      = get_fileno(movingFileC);
+
+  Log("fileno of: movingDirectoryA:\t", fileno_movingDirectoryA);
+  Log("fileno of: movingDirectoryB:\t", fileno_movingDirectoryB);
+  Log("fileno of: movingDirectoryC:\t", fileno_movingDirectoryC);
+  Log("fileno of: movingDirectoryD:\t", fileno_movingDirectoryD);
+  Log("fileno of: movingFileA:\t", fileno_movingFileA);
+  Log("fileno of: movingFileB:\t", fileno_movingFileB);
+  Log("fileno of: movingFileC:\t", fileno_movingFileC);
+
+  const char* yeetFile = "/data/therapist/moves/yeet";
+  const char* yeetDir  = "/data/therapist/moves/yeet_dir";
+
+  TEST_CASE(int status = sceKernelRename(movingFileA, movingFileB);
+            status == 0 && get_fileno(movingFileB) == fileno_movingFileA, "Moved", "Not moved", "file->(existent)file:", status);
+  fileno_movingFileB = fileno_movingFileA;
+  TEST_CASE(int status = sceKernelRename(movingFileC, yeetFile);
+            status == 0 && get_fileno(yeetFile) == fileno_movingFileC, "Moved", "Not moved", "file->(nonexistent)file:", status);
+  ino_t fileno_movingFileYeet = fileno_movingFileC;
+  Log("fileno of: yeetFile:\t", fileno_movingFileYeet);
+
+  TEST_CASE(int status = sceKernelRename(movingDirectoryA, movingDirectoryB);
+            status == 0 && get_fileno(movingDirectoryB) == fileno_movingDirectoryA, "Moved", "Not moved", "dir->(existing)dir:", status);
+  fileno_movingDirectoryB = fileno_movingDirectoryA;
+  TEST_CASE(int status = sceKernelRename(movingDirectoryC, yeetDir);
+            status == 0 && get_fileno(yeetDir) == fileno_movingDirectoryC, "Moved", "Not moved", "dir->(nonexistent)dir:", status);
+  ino_t fileno_movingDirYeet = fileno_movingDirectoryC;
+  Log("fileno of: yeetDir:\t", fileno_movingDirYeet);
+
+  // no change in folder structure
+  TEST_CASE(int status = sceKernelRename(yeetFile, yeetDir); errno == EISDIR, "Not moved", "Moved", "file->(existent)dir:", status);
+  // no change either
+  TEST_CASE(int status = sceKernelRename(yeetDir, yeetFile); errno == ENOTDIR, "Not moved", "Moved", "dir->(existent)file:", status);
+  TEST_CASE(int status = sceKernelRename(yeetFile, "/data/therapist/moves/yeet_dir/yeeee");
+            status == 0 && get_fileno("/data/therapist/moves/yeet_dir/yeeee") == fileno_movingFileYeet, "Moved", "Not moved",
+            "file->(into existent)dir:", status);
+
+  // move empty to not empty dir, no change
+  sceKernelMkdir(movingDirectoryD, 0777);
+  TEST_CASE(int status = sceKernelRename(movingDirectoryD, yeetDir);
+            errno == ENOTEMPTY && get_fileno(yeetDir) == fileno_movingDirYeet, "Not moved", "Moved", "empty dir->not empty dir:", status);
+  // not empty to empty, changed
+  TEST_CASE(int status = sceKernelRename(yeetDir, movingDirectoryD);
+            status == 0 && get_fileno(movingDirectoryD) == fileno_movingDirYeet, "Moved", "Not moved", "not empty dir->empty dir:", status);
+  fileno_movingDirectoryD = fileno_movingDirYeet;
+
+  ///
+  /// Open fd abuse (moving/removing files with open fd)
+  ///
+
+  Log();
+  Log("\t<<<< Open fd abuse (moving/removing files with open fd) >>>>");
+  Log();
+
+  const char* abused_file         = "/data/therapist/abuse.txt";
+  const char* teststring1         = "0123456789\r\n";
+  const char* teststring2         = "9876543210\r\n";
+  const char* readback_string     = "0123456789\r\n9876543210\r\n";
+  int64_t     readback_string_len = strlen(readback_string);
+  char*       abused_buffer[256] {0};
+
+  touch(abused_file);
+  int  abused_fd     = sceKernelOpen(abused_file, O_RDWR, 0777);
+  auto abused_fileno = get_fileno(abused_file);
+
+  if (abused_fileno == 0) LogError("File not created");
+  TEST_CASE(abused_fd >= 0, "Test file opened", "Test file not opened", "status =", abused_fd);
+
+  if (int bw = sceKernelWrite(abused_fd, teststring1, strlen(teststring1)); bw < 0) LogError("Didn't write the whole string 1:", bw, "written");
+  TEST_CASE(int status = sceKernelUnlink(abused_file); status == 0, "File", "File not", "unlinked ( status =", status, ")");
+  if (get_fileno(abused_file) != 0) LogError("File not unlinked");
+
+  if (int bw = sceKernelWrite(abused_fd, teststring2, strlen(teststring2)); bw < 0) LogError("Didn't write the whole string 2:", bw, "written");
+  if (int lsr = sceKernelLseek(abused_fd, 0, 0); lsr != 0) LogError("Can't lseek:", lsr);
+  if (int br = sceKernelRead(abused_fd, abused_buffer, 256); br < 0) LogError("Didn't read the whole string:", br, "read");
+  TEST_CASE(memcmp(abused_buffer, readback_string, readback_string_len) == 0, "Readback string is correct", "Readback string is incorrect", "");
+
+  Log("fstat() Fileno before removal =", abused_fileno, "after =", get_fileno(abused_fd));
+  Log("stat() after removal =", exists(abused_file));
+
+  if (int status = sceKernelClose(abused_fd); status != 0) LogError("File didn't close properly ( status =", status, ")");
 }
 
 bool TestFileOps(const char* path) {

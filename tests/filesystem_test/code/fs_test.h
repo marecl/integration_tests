@@ -67,11 +67,14 @@ s8   GetDir(fs::path path, fs::path leaf, OrbisInternals::FolderDirent* dirent);
 s8   GetDir(fs::path path, fs::path leaf, OrbisInternals::PfsDirent* dirent);
 
 std::string file_mode(OrbisKernelMode mode);
+ino_t       get_fileno(const char* path);
+ino_t       get_fileno(int fd);
 void        Obliterate(const char* path);
 void        ElEsDashElAy(const char* path);
 int32_t     touch(const char* path);
 off_t       GetSize(const char* path);
 off_t       GetSize(int fd);
+int         exists(const char* path);
 
 } // namespace FS_Test
 #endif // FS_TEST_H

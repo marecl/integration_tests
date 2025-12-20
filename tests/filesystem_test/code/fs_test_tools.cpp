@@ -23,8 +23,27 @@ off_t GetSize(const char* path) {
 }
 
 int32_t touch(const char* path) {
-
   return sceKernelClose(sceKernelOpen(path, O_RDWR | O_CREAT | O_TRUNC, 0777));
+}
+
+ino_t get_fileno(int fd) {
+  struct OrbisKernelStat st {};
+  int                    status = sceKernelFstat(fd, &st);
+  return (status == 0) * st.st_ino;
+}
+
+ino_t get_fileno(const char* path) {
+  struct OrbisKernelStat st {};
+  int                    fd = sceKernelOpen(path, O_RDONLY, 0777);
+  if (fd < 0) return 0;
+  int status = sceKernelFstat(fd, &st);
+  sceKernelClose(fd);
+  return (status == 0) * st.st_ino;
+}
+
+int exists(const char* path) {
+  struct OrbisKernelStat ost {};
+  return sceKernelStat(path, &ost);
 }
 
 void Obliterate(const char* path) {
