@@ -12,7 +12,8 @@
 namespace fs = std::filesystem;
 
 namespace FS_Test {
-#define DIRENT_BUFFER_SIZE 512
+#define DIRENT_PFS_BUFFER_SIZE 65536
+#define DIRENT_BUFFER_SIZE     512
 
 using s8  = int8_t;
 using s16 = int16_t;

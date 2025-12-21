@@ -43,6 +43,12 @@ std::string right(const std::string& s, int width) {
   return std::string(left, ' ') + s;
 }
 
+std::string to_decimal(int value) {
+  std::ostringstream oss;
+  oss << std::dec << value;
+  return oss.str();
+}
+
 std::string to_octal(int value) {
   std::ostringstream oss;
   oss << std::oct << value;

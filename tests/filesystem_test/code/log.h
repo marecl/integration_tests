@@ -12,6 +12,7 @@ std::ostream& center(std::ostream& os, const std::string& s, int width);
 std::string   center(const std::string& s, int width);
 std::ostream& right(std::ostream& os, const std::string& s, int width);
 std::string   right(const std::string& s, int width);
+std::string   to_decimal(int value);
 std::string   to_octal(int value);
 std::string   to_hex(int value);
 

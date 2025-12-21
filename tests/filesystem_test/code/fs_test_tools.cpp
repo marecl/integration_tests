@@ -394,7 +394,7 @@ bool StatCmp(const OrbisKernelStat* lhs, const OrbisKernelStat* rhs) {
 s8 GetDir(fs::path path, fs::path leaf, oi::PfsDirent* dirent) {
   const char* target_file_name        = leaf.c_str();
   const u16   target_file_name_length = leaf.string().size();
-  char        buffer[DIRENT_BUFFER_SIZE];
+  char        buffer[DIRENT_PFS_BUFFER_SIZE];
   char*       bufptr;
   char*       bufend;
   u64         total_read {0};
@@ -407,7 +407,7 @@ s8 GetDir(fs::path path, fs::path leaf, oi::PfsDirent* dirent) {
     return -1;
   }
 
-  s64 read_bytes = sceKernelRead(fd, buffer, DIRENT_BUFFER_SIZE);
+  s64 read_bytes = sceKernelRead(fd, buffer, DIRENT_PFS_BUFFER_SIZE);
 
   // redundant
   while (read_bytes > 0 && !found) {
@@ -439,20 +439,11 @@ s8 GetDir(fs::path path, fs::path leaf, oi::PfsDirent* dirent) {
       }
     }
 
-    if (read_bytes < DIRENT_BUFFER_SIZE) break;
+    if (read_bytes < DIRENT_PFS_BUFFER_SIZE) break;
 
     if (found) break;
 
-    // move unread data to the beginning of the buffer
-    diff = bufend - bufptr;
-    // shouldn't, but shit happens
-    if (diff < 0) {
-      LogError("[PFS] Read", -diff, "bytes more than buffer was supposed to have");
-      diff = 0;
-    }
-    memmove(buffer, bufptr, diff);
-    // read into after saved remainder
-    read_bytes = sceKernelRead(fd, buffer + diff, DIRENT_BUFFER_SIZE) + diff;
+    read_bytes = sceKernelRead(fd, buffer, DIRENT_PFS_BUFFER_SIZE);
   }
 
   fd = sceKernelClose(fd);
@@ -513,13 +504,6 @@ s8 GetDir(fs::path path, fs::path leaf, oi::FolderDirent* dirent) {
 
     if (found) break;
 
-    // move unread data to the beginning of the buffer
-    diff = bufend - bufptr;
-    // shouldn't, but shit happens
-    if (diff < 0) {
-      LogError("[Normal] Read", -diff, "bytes more than buffer was supposed to have");
-      diff = 0;
-    }
     // read into after saved remainder
     read_bytes = sceKernelGetdirentries(fd, buffer, DIRENT_BUFFER_SIZE, nullptr);
   }
