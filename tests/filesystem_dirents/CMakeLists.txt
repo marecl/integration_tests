@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.24)
 
-set(PKG_TITLE "Therapist")
-set(PKG_VERSION "1.30")
-set(PKG_TITLE_ID "TEST21370") # Should be unique across all tests in project
-set(PKG_CONTENT_ID "IV0000-${PKG_TITLE_ID}_00-THERAPIST0000000")
+set(PKG_TITLE "Enderman")
+set(PKG_VERSION "1.00")
+set(PKG_TITLE_ID "TEST12345") # Should be unique across all tests in project
+set(PKG_CONTENT_ID "IV0000-${PKG_TITLE_ID}_00-ENDERMAN00000000")
 set(PKG_DOWNLOADSIZE 0)
 set(PKG_SYSVER 16777297)
 set(PKG_ATTRIBS1 0) # Known sfo attributes are stored in template/code/sfoparams.h

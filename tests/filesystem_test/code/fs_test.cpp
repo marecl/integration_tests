@@ -537,6 +537,10 @@ void RunTests() {
   Log("stat() after removal =", exists(abused_file));
 
   if (int status = sceKernelClose(abused_fd); status != 0) LogError("File didn't close properly ( status =", status, ")");
+
+  struct OrbisKernelStat ost;
+  Log(sceKernelStat("/download0", &ost));
+  Log(sceKernelMkdir("/download0/temp/", 0777));
 }
 
 bool TestFileOps(const char* path) {
