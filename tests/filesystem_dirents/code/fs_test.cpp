@@ -120,7 +120,7 @@ void RunTests() {
   Log("TEST: /data/enderman, 768 buffer, 5 offset");
   DumpDirents(fd, 768, 5);
   Log("TEST: /data/enderman, 768 buffer, 30 offset");
-  DumpDirents(fd, 768, 5);
+  DumpDirents(fd, 768, 30);
   Log("TEST: /data/enderman, 1024 buffer, 0 offset");
   DumpDirents(fd, 1024, 0);
   Log("TEST: /data/enderman, 1024 buffer, 5 offset");
