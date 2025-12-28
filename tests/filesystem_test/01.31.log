@@ -54,7 +54,7 @@
 <118>[      RunTests      ] [INFO] 	<<<< RELATIVE FILENO >>>>
 <118>[      RunTests      ] [INFO]
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ / ]
-<118>[   TestRelatives    ] [INFO] / sees itself with fileno= 787
+<118>[   TestRelatives    ] [INFO] / sees itself with fileno= 764
 <118>[   TestRelatives    ] [INFO] / sees its parent with fileno= 3
 <118>[   TestRelatives    ] [INFO] / is seen with fileno= -2
 <118>[   TestRelatives    ] [INFO] It's not a mountpoint
@@ -62,7 +62,7 @@
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /app0 ]
 <118>[   TestRelatives    ] [INFO] /app0 sees itself with fileno= 2
 <118>[   TestRelatives    ] [INFO] /app0 sees its parent with fileno= 2
-<118>[   TestRelatives    ] [INFO] /app0 is seen with fileno= 790
+<118>[   TestRelatives    ] [INFO] /app0 is seen with fileno= 769
 <118>[   TestRelatives    ] [SUCC] It's a mountpoint
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /app0/sce_sys ]
@@ -72,47 +72,47 @@
 <118>[   TestRelatives    ] [INFO] It's not a mountpoint
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /av_contents ]
-<118>[   TestRelatives    ] [INFO] /av_contents sees itself with fileno= 812
-<118>[   TestRelatives    ] [INFO] /av_contents sees its parent with fileno= 787
-<118>[   TestRelatives    ] [INFO] /av_contents is seen with fileno= 812
+<118>[   TestRelatives    ] [INFO] /av_contents sees itself with fileno= 791
+<118>[   TestRelatives    ] [INFO] /av_contents sees its parent with fileno= 764
+<118>[   TestRelatives    ] [INFO] /av_contents is seen with fileno= 791
 <118>[   TestRelatives    ] [INFO] It's not a mountpoint
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /data ]
 <118>[   TestRelatives    ] [INFO] /data sees itself with fileno= 15202560
 <118>[   TestRelatives    ] [INFO] /data sees its parent with fileno= 2
-<118>[   TestRelatives    ] [INFO] /data is seen with fileno= 794
+<118>[   TestRelatives    ] [INFO] /data is seen with fileno= 773
 <118>[   TestRelatives    ] [SUCC] It's a mountpoint
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /dev ]
-<118>[   TestRelatives    ] [FAIL] Cannot get [ . ] from /dev ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1032 )
-<118>[   TestRelatives    ] [FAIL] Cannot get [ .. ] from /dev ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1040 )
+<118>[   TestRelatives    ] [FAIL] Cannot get [ . ] from /dev ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1037 )
+<118>[   TestRelatives    ] [FAIL] Cannot get [ .. ] from /dev ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1045 )
 <118>[   TestRelatives    ] [INFO] /dev sees itself with fileno= -2
 <118>[   TestRelatives    ] [INFO] /dev sees its parent with fileno= -2
-<118>[   TestRelatives    ] [INFO] /dev is seen with fileno= 792
+<118>[   TestRelatives    ] [INFO] /dev is seen with fileno= 771
 <118>[   TestRelatives    ] [INFO] It's not a mountpoint
 <118>[      RunTests      ] [SUCC] Test complete. Expected values: -2, -2, ~800
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /host ]
 <118>[   TestRelatives    ] [INFO] /host sees itself with fileno= 9
 <118>[   TestRelatives    ] [INFO] /host sees its parent with fileno= 1
-<118>[   TestRelatives    ] [INFO] /host is seen with fileno= 795
+<118>[   TestRelatives    ] [INFO] /host is seen with fileno= 774
 <118>[   TestRelatives    ] [SUCC] It's a mountpoint
 <118>[      RunTests      ] [SUCC] /host is a superblock partition. Expected values: 9, 1, ~700
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /hostapp ]
 <118>[   TestRelatives    ] [INFO] /hostapp sees itself with fileno= 10
 <118>[   TestRelatives    ] [INFO] /hostapp sees its parent with fileno= 1
-<118>[   TestRelatives    ] [INFO] /hostapp is seen with fileno= 796
+<118>[   TestRelatives    ] [INFO] /hostapp is seen with fileno= 775
 <118>[   TestRelatives    ] [SUCC] It's a mountpoint
 <118>[      RunTests      ] [SUCC] /hostapp is a superblock partition. Expected values: 10, 1, ~700
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /system_tmp ]
 <118>[   TestRelatives    ] [INFO] /system_tmp sees itself with fileno= 2
 <118>[   TestRelatives    ] [INFO] /system_tmp sees its parent with fileno= 2
-<118>[   TestRelatives    ] [INFO] /system_tmp is seen with fileno= 793
+<118>[   TestRelatives    ] [INFO] /system_tmp is seen with fileno= 772
 <118>[   TestRelatives    ] [SUCC] It's a mountpoint
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[   TestRelatives    ] [TEST_CASE] Testing relative fileno perception of [ /this_should_fail ]
-<118>[       GetDir       ] [FAIL] [Normal] Cannot open [ . ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 470 )
-<118>[       GetDir       ] [FAIL] [Normal] Cannot open [ .. ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 470 )
-<118>[   TestRelatives    ] [FAIL] Cannot get [ this_should_fail ] from /this_should_fail ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1049 )
+<118>[       GetDir       ] [FAIL] [Normal] Cannot open [ . ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 471 )
+<118>[       GetDir       ] [FAIL] [Normal] Cannot open [ .. ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 471 )
+<118>[   TestRelatives    ] [FAIL] Cannot get [ this_should_fail ] from /this_should_fail ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1054 )
 <118>[   TestRelatives    ] [INFO] /this_should_fail sees itself with fileno= 0
 <118>[   TestRelatives    ] [INFO] /this_should_fail sees its parent with fileno= 0
 <118>[   TestRelatives    ] [INFO] /this_should_fail is seen with fileno= -2
@@ -125,26 +125,26 @@
 <118>[      RunTests      ] [INFO] 	so it can refer to a file, directory or relative entry [ . ], [ .. ]
 <118>[      RunTests      ] [INFO]
 <118>[ CompareNormalVsPFS ] [TEST_CASE] Compare Normal and PFS dirent for /.
-<118>[ CompareNormalVsPFS ] [FAIL] /. fileno 787 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1098 )
-<118>[ CompareNormalVsPFS ] [FAIL] /. namlen 1 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1106 )
-<118>[ CompareNormalVsPFS ] [FAIL] /. reclen 12 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1118 )
-<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1122 )
+<118>[ CompareNormalVsPFS ] [FAIL] /. fileno 764 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1103 )
+<118>[ CompareNormalVsPFS ] [FAIL] /. namlen 1 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1111 )
+<118>[ CompareNormalVsPFS ] [FAIL] /. reclen 12 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1123 )
+<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1127 )
 <118>[ CompareNormalVsPFS ] [INFO] Normal:	 .
 <118>[ CompareNormalVsPFS ] [INFO] PFS:	 
 <118>[      RunTests      ] [SUCC] Test complete [PFS should fail]
 <118>[ CompareNormalVsPFS ] [TEST_CASE] Compare Normal and PFS dirent for /app0
-<118>[ CompareNormalVsPFS ] [FAIL] /app0 fileno 790 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1098 )
-<118>[ CompareNormalVsPFS ] [FAIL] /app0 namlen 4 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1106 )
-<118>[ CompareNormalVsPFS ] [FAIL] /app0 reclen 16 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1118 )
-<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1122 )
+<118>[ CompareNormalVsPFS ] [FAIL] /app0 fileno 769 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1103 )
+<118>[ CompareNormalVsPFS ] [FAIL] /app0 namlen 4 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1111 )
+<118>[ CompareNormalVsPFS ] [FAIL] /app0 reclen 16 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1123 )
+<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1127 )
 <118>[ CompareNormalVsPFS ] [INFO] Normal:	 app0
 <118>[ CompareNormalVsPFS ] [INFO] PFS:	 
 <118>[      RunTests      ] [SUCC] Test complete [PFS should fail]
 <118>[ CompareNormalVsPFS ] [TEST_CASE] Compare Normal and PFS dirent for /data
-<118>[ CompareNormalVsPFS ] [FAIL] /data fileno 794 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1098 )
-<118>[ CompareNormalVsPFS ] [FAIL] /data namlen 4 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1106 )
-<118>[ CompareNormalVsPFS ] [FAIL] /data reclen 16 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1118 )
-<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1122 )
+<118>[ CompareNormalVsPFS ] [FAIL] /data fileno 773 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1103 )
+<118>[ CompareNormalVsPFS ] [FAIL] /data namlen 4 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1111 )
+<118>[ CompareNormalVsPFS ] [FAIL] /data reclen 16 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1123 )
+<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1127 )
 <118>[ CompareNormalVsPFS ] [INFO] Normal:	 data
 <118>[ CompareNormalVsPFS ] [INFO] PFS:	 
 <118>[      RunTests      ] [SUCC] Test complete [PFS should fail]
@@ -173,18 +173,18 @@
 <118>[ CompareNormalVsPFS ] [SUCC] Names are equal (memcmp)
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[ CompareNormalVsPFS ] [TEST_CASE] Compare Normal and PFS dirent for /data/therapist/.
-<118>[ CompareNormalVsPFS ] [FAIL] /data/therapist/. fileno 15581441 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1098 )
-<118>[ CompareNormalVsPFS ] [FAIL] /data/therapist/. namlen 1 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1106 )
-<118>[ CompareNormalVsPFS ] [FAIL] /data/therapist/. reclen 12 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1118 )
-<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1122 )
+<118>[ CompareNormalVsPFS ] [FAIL] /data/therapist/. fileno 15581444 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1103 )
+<118>[ CompareNormalVsPFS ] [FAIL] /data/therapist/. namlen 1 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1111 )
+<118>[ CompareNormalVsPFS ] [FAIL] /data/therapist/. reclen 12 != 0 ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1123 )
+<118>[ CompareNormalVsPFS ] [FAIL] Names are not equal (memcmp) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1127 )
 <118>[ CompareNormalVsPFS ] [INFO] Normal:	 .
 <118>[ CompareNormalVsPFS ] [INFO] PFS:	 
 <118>[      RunTests      ] [SUCC] Test complete [PFS should fail]
 <118>[ CompareNormalVsPFS ] [TEST_CASE] Compare Normal and PFS dirent for /this_should_fail/.
-<118>[       GetDir       ] [FAIL] [Normal] Cannot open [ . ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 470 )
-<118>[ CompareNormalVsPFS ] [FAIL] Can't open /this_should_fail/. as normal ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1080 )
-<118>[       GetDir       ] [FAIL] [PFS] Cannot open [ . ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 406 )
-<118>[ CompareNormalVsPFS ] [FAIL] Can't open /this_should_fail/. as PFS ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1083 )
+<118>[       GetDir       ] [FAIL] [Normal] Cannot open [ . ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 471 )
+<118>[ CompareNormalVsPFS ] [FAIL] Can't open /this_should_fail/. as normal ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1085 )
+<118>[       GetDir       ] [FAIL] [PFS] Cannot open [ . ] ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test_tools.cpp: 407 )
+<118>[ CompareNormalVsPFS ] [FAIL] Can't open /this_should_fail/. as PFS ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 1088 )
 <118>[      RunTests      ] [SUCC] Test complete [All should fail]
 <118>[      RunTests      ] [INFO]
 <118>[      RunTests      ] [INFO] 	<<<< Example directory listings >>>>
@@ -192,20 +192,20 @@
 <118>[      RunTests      ] [INFO] 	       UID, GID are always 0
 <118>[      RunTests      ] [INFO]
 <118>[    ElEsDashElAy    ] [INFO] << ls -la [ / ] >>
-<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    6 0 : 0    65536 2025-12-24 13:00 /app0
-<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    3 0 : 0      512 2025-12-25 18:42 /dev
-<118>[    ElEsDashElAy    ] [INFO] drwxr-xr-x   040755    2 0 : 0      320 2025-12-24 15:04 /system_tmp
-<118>[    ElEsDashElAy    ] [INFO] drwxrwxrwx   040777   13 0 : 0      512 2025-12-25 18:42 /data
+<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    6 0 : 0    65536 2025-12-28 14:25 /app0
+<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    3 0 : 0      512 2025-12-28 14:26 /dev
+<118>[    ElEsDashElAy    ] [INFO] drwxr-xr-x   040755    2 0 : 0      240 2025-12-28 14:02 /system_tmp
+<118>[    ElEsDashElAy    ] [INFO] drwxrwxrwx   040777   13 0 : 0      512 2025-12-28 14:26 /data
 <118>[    ElEsDashElAy    ] [INFO] drwxrwxrwx   040777    1 0 : 0     4096 2024-07-01 20:12 /host
 <118>[    ElEsDashElAy    ] [INFO] drwxrwxrwx   040777    1 0 : 0     4096 2024-07-01 20:12 /hostapp
-<118>[    ElEsDashElAy    ] [INFO] drwxrwxr-x   040775    5 0 : 0      120 2025-12-25 18:42 /ofZGn69RoA
-<118>[    ElEsDashElAy    ] [INFO] drwxrwxr-x   040775    6 0 : 0      160 2025-12-25 18:42 /av_contents
+<118>[    ElEsDashElAy    ] [INFO] drwxrwxr-x   040775    5 0 : 0      120 2025-12-28 14:26 /vCjSh8DpB3
+<118>[    ElEsDashElAy    ] [INFO] drwxrwxr-x   040775    6 0 : 0      160 2025-12-28 14:26 /av_contents
 <118>[    ElEsDashElAy    ] [SUCC] >> ls -la [ / ] <<
 <118>[    ElEsDashElAy    ] [INFO] << ls -la [ /app0 ] >>
-<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    7 0 : 0    65536 2025-12-24 13:00 /app0/assets
-<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    2 0 : 0    65536 2025-12-24 13:00 /app0/sce_module
-<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    3 0 : 0    65536 2025-12-24 13:00 /app0/sce_sys
-<118>[    ElEsDashElAy    ] [INFO] -r-xr-xr-x  0100555    1 0 : 0  1881984 2025-12-24 13:00 /app0/eboot.bin
+<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    7 0 : 0    65536 2025-12-28 14:25 /app0/assets
+<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    2 0 : 0    65536 2025-12-28 14:25 /app0/sce_module
+<118>[    ElEsDashElAy    ] [INFO] dr-xr-xr-x   040555    3 0 : 0    65536 2025-12-28 14:25 /app0/sce_sys
+<118>[    ElEsDashElAy    ] [INFO] -r-xr-xr-x  0100555    1 0 : 0  1898400 2025-12-28 14:25 /app0/eboot.bin
 <118>[    ElEsDashElAy    ] [SUCC] >> ls -la [ /app0 ] <<
 <118>[      RunTests      ] [INFO]
 <118>[      RunTests      ] [INFO] 	<<<< DIRENTS >>>>
@@ -222,28 +222,28 @@
 <118>[    TestDirEnts     ] [SUCC] Seek to start (dirents, pre) ( errno = 0 )
 <118>[    TestDirEnts     ] [SUCC] Direntries read correctly ( read bytes: 512 ) ( errno = 0 )
 <118>[    TestDirEnts     ] [SUCC] Seek to start (dump, pre) ( errno = 0 )
-<118>[      dumpDir       ] [INFO] [ DIR ][   15581443 ][   1 ][  12 ] |->.
-<118>[      dumpDir       ] [INFO] [ DIR ][   15581441 ][   2 ][  12 ] |->..
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581564 ][  12 ][  24 ] |->dummy_file_1
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581565 ][  12 ][  24 ] |->dummy_file_2
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581566 ][  12 ][  24 ] |->dummy_file_3
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581567 ][  12 ][ 416 ] |->dummy_file_4
+<118>[      dumpDir       ] [INFO] [ DIR ][   15581451 ][   1 ][  12 ] |->.
+<118>[      dumpDir       ] [INFO] [ DIR ][   15581444 ][   2 ][  12 ] |->..
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581457 ][  12 ][  24 ] |->dummy_file_1
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581459 ][  12 ][  24 ] |->dummy_file_2
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581460 ][  12 ][  24 ] |->dummy_file_3
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581466 ][  12 ][ 416 ] |->dummy_file_4
 <118>[    TestDirEnts     ] [SUCC] Read correct amount of data (dump, pre) ( last_reclen = 416 should be = 416 ) ( errno = 0 )
 <118>[    TestDirEnts     ] [INFO] You should see 4 dummy files here
 <118>[    TestDirEnts     ] [SUCC] Dummy files (5-8) created ( errno = 0 )
 <118>[    TestDirEnts     ] [SUCC] Seek to start (dirents, post) ( errno = 0 )
 <118>[    TestDirEnts     ] [SUCC] Direntries read correctly ( read bytes: 512 ) ( errno = 0 )
 <118>[    TestDirEnts     ] [SUCC] Seek to start (dump, post) ( errno = 0 )
-<118>[      dumpDir       ] [INFO] [ DIR ][   15581443 ][   1 ][  12 ] |->.
-<118>[      dumpDir       ] [INFO] [ DIR ][   15581441 ][   2 ][  12 ] |->..
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581564 ][  12 ][  24 ] |->dummy_file_1
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581565 ][  12 ][  24 ] |->dummy_file_2
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581566 ][  12 ][  24 ] |->dummy_file_3
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581567 ][  12 ][  24 ] |->dummy_file_4
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581568 ][  12 ][  24 ] |->dummy_file_5
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581569 ][  12 ][  24 ] |->dummy_file_6
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581570 ][  12 ][  24 ] |->dummy_file_7
-<118>[      dumpDir       ] [INFO] [ FIL ][   15581571 ][  12 ][ 320 ] |->dummy_file_8
+<118>[      dumpDir       ] [INFO] [ DIR ][   15581451 ][   1 ][  12 ] |->.
+<118>[      dumpDir       ] [INFO] [ DIR ][   15581444 ][   2 ][  12 ] |->..
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581457 ][  12 ][  24 ] |->dummy_file_1
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581459 ][  12 ][  24 ] |->dummy_file_2
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581460 ][  12 ][  24 ] |->dummy_file_3
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581466 ][  12 ][  24 ] |->dummy_file_4
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581467 ][  12 ][  24 ] |->dummy_file_5
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581469 ][  12 ][  24 ] |->dummy_file_6
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581488 ][  12 ][  24 ] |->dummy_file_7
+<118>[      dumpDir       ] [INFO] [ FIL ][   15581490 ][  12 ][ 320 ] |->dummy_file_8
 <118>[    TestDirEnts     ] [SUCC] Read correct amount of data (dump, post) ( last_reclen = 320 should be = 320 ) ( errno = 0 )
 <118>[    TestDirEnts     ] [INFO] You should see 8 dummy files here
 <118>[    TestDirEnts     ] [SUCC] Closed [ /data/therapist/tmp_dirent ] ( errno = 0 )
@@ -283,7 +283,7 @@
 <118>[      StatCmp       ] [INFO] st_nlink  	LHS =        0 	|	RHS =        0
 <118>[      StatCmp       ] [INFO] st_uid    	LHS =        0 	|	RHS =        0
 <118>[      StatCmp       ] [INFO] st_gid    	LHS =        0 	|	RHS =        0
-<118>[      StatCmp       ] [INFO] st_size   	LHS =  1881984 	|	RHS =  1645264
+<118>[      StatCmp       ] [INFO] st_size   	LHS =  1898400 	|	RHS =  1645264
 <118>[      StatCmp       ] [INFO] st_blocks 	LHS =     3712 	|	RHS =     3328
 <118>[      StatCmp       ] [INFO] st_blksize	LHS =    65536 	|	RHS =    65536
 <118>[      StatCmp       ] [INFO] st_flags  	LHS =        0 	|	RHS =        0
@@ -351,7 +351,7 @@
 <118>[      StatCmp       ] [INFO] st_flags  	LHS =        0 	|	RHS =        0
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[      TestStat      ] [TEST_CASE] Testing stat on [ "/dev/stdin" ]
-<118>[      TestStat      ] [FAIL] Stat failed [ "/dev/stdin" ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 822 )
+<118>[      TestStat      ] [FAIL] Stat failed [ "/dev/stdin" ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 827 )
 <118>[      TestStat      ] [INFO] No comparsiton target provided for [ "/dev/stdin" ]. Dumping your own :)
 <118>[   PrintStatInfo    ] [INFO] stat info.st_dev = 0
 <118>[   PrintStatInfo    ] [INFO] stat info.st_ino = 0
@@ -376,7 +376,7 @@
 <118>[   PrintStatInfo    ] [INFO] stat info.st_birthtim.tv_nsec = 0
 <118>[      RunTests      ] [SUCC] Test complete [stat should fail]
 <118>[      TestStat      ] [TEST_CASE] Testing stat on [ "/dev/stdout" ]
-<118>[      TestStat      ] [FAIL] Stat failed [ "/dev/stdout" ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 822 )
+<118>[      TestStat      ] [FAIL] Stat failed [ "/dev/stdout" ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 827 )
 <118>[      TestStat      ] [INFO] No comparsiton target provided for [ "/dev/stdout" ]. Dumping your own :)
 <118>[   PrintStatInfo    ] [INFO] stat info.st_dev = 0
 <118>[   PrintStatInfo    ] [INFO] stat info.st_ino = 0
@@ -497,17 +497,17 @@
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[      RunTests      ] [INFO] errno for tests below should equal 9 (EBADF) and 2 (ENOENT)
 <118>[   TestFileTouch    ] [TEST_CASE] Cursed file operations: [ /data/therapist/tmp_cursed/../tmp_cursed/../../././data/therapist/../data/therapist/././tmp_cursed/Cursed/../../../data/therapist/tmp_cursed/Cursed/idfk.txt ]
-<118>[   TestFileTouch    ] [FAIL] can'touch ( errno = 9 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 792 )
-<118>[   TestFileTouch    ] [FAIL] stat fail ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 795 )
+<118>[   TestFileTouch    ] [FAIL] can'touch ( errno = 9 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 797 )
+<118>[   TestFileTouch    ] [FAIL] stat fail ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 800 )
 <118>[      RunTests      ] [SUCC] Test complete
 <118>[      RunTests      ] [INFO] errno for tests below should equal 9 (EBADF) and 22 (EINVAL)
 <118>[   TestFileTouch    ] [TEST_CASE] Cursed file operations: [ ../../../data/therapist/tmp_cursed/escape_from_app0_file.txt ]
-<118>[   TestFileTouch    ] [FAIL] can'touch ( errno = 9 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 792 )
-<118>[   TestFileTouch    ] [FAIL] stat fail ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 795 )
+<118>[   TestFileTouch    ] [FAIL] can'touch ( errno = 9 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 797 )
+<118>[   TestFileTouch    ] [FAIL] stat fail ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 800 )
 <118>[      RunTests      ] [SUCC] Test complete: Can't escape from curdir with relatives
 <118>[   TestFileTouch    ] [TEST_CASE] Cursed file operations: [ app0_file.txt ]
-<118>[   TestFileTouch    ] [FAIL] can'touch ( errno = 9 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 792 )
-<118>[   TestFileTouch    ] [FAIL] stat fail ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 795 )
+<118>[   TestFileTouch    ] [FAIL] can'touch ( errno = 9 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 797 )
+<118>[   TestFileTouch    ] [FAIL] stat fail ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 800 )
 <118>[      RunTests      ] [SUCC] Test complete: File not written to (RO?) curdir
 <118>[      RunTests      ] [INFO]
 <118>[      RunTests      ] [INFO] 	<<<< File open tests >>>>
@@ -587,9 +587,11 @@
 <118>[   TestOpenFlags    ] [TEST_CASE] Testing open() on [  ] with flags: 0 ( O_RDONLY )
 <118>[      RunTests      ] [SUCC] Pass (ENOENT) ( errno = 22 should be = 22 )
 <118>[      RunTests      ] [INFO] RO+Truncate is undefined. Testing
-<118>[      RunTests      ] [SUCC] RO+TRUNC test file prepped
-<118>[   TestOpenFlags    ] [TEST_CASE] Testing open() on [ /data/therapist/tmp_open/nonexistent_rot.txt ] with flags: 400 ( O_RDONLY | O_TRUNC )
-<118>[      RunTests      ] [SUCC] RO+TRUNC got truncated to 0
+<118>[      RunTests      ] [SUCC] RO+TRUNC returned correct errno : 2 ( should be: 2 )
+<118>[      RunTests      ] [SUCC] RO+TRUNC file not created ( errno = 2 should be = 2 )
+<118>[      RunTests      ] [INFO] RO+Truncate+Append is undefined. Testing
+<118>[      RunTests      ] [SUCC] ROTA returned correct errno : 2 ( should be: 2 )
+<118>[      RunTests      ] [SUCC] ROTA file not created ( errno = 2 should be = 2 )
 <118>[      RunTests      ] [INFO]
 <118>[      RunTests      ] [INFO] 	<<<< File ops tests >>>>
 <118>[      RunTests      ] [INFO]
@@ -599,13 +601,13 @@
 <118>[    TestFileOps     ] [SUCC] Stat failed on nonexistent file ( errno = 22 )
 <118>[    TestFileOps     ] [SUCC] Truncate to 0 failed on nonexistent file ( errno = 22 )
 <118>[    TestFileOps     ] [SUCC] Truncate to 10 failed on nonexistent file ( errno = 22 )
-<118>[    TestFileOps     ] [FAIL] Can't open file [  ] ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 563 )
+<118>[    TestFileOps     ] [FAIL] Can't open file [  ] ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 568 )
 <118>[      RunTests      ] [SUCC] Pass [open() should fail with errno = 22]
 <118>[    TestFileOps     ] [TEST_CASE] Testing file operations on [ /app0/assets/misc/test.txt ]
 <118>[    TestFileOps     ] [SUCC] Stat failed on nonexistent file ( errno = 2 )
 <118>[    TestFileOps     ] [SUCC] Truncate to 0 failed on nonexistent file ( errno = 2 )
 <118>[    TestFileOps     ] [SUCC] Truncate to 10 failed on nonexistent file ( errno = 2 )
-<118>[    TestFileOps     ] [FAIL] Can't open file [ /app0/assets/misc/test.txt ] ( errno = 30 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 563 )
+<118>[    TestFileOps     ] [FAIL] Can't open file [ /app0/assets/misc/test.txt ] ( errno = 30 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 568 )
 <118>[      RunTests      ] [SUCC] Pass [open should fail with errno = 30]
 <118>[    TestFileOps     ] [TEST_CASE] Testing file operations on [ /data/therapist/tmp_rw2/test.txt ]
 <118>[    TestFileOps     ] [SUCC] Stat failed on nonexistent file ( errno = 2 )
@@ -655,7 +657,7 @@
 <118>[     Obliterate     ] [INFO] << rm -rf [ /data/therapist/tmp_rw3 ] >>
 <118>[     Obliterate     ] [SUCC] >> rm -rf [ /data/therapist/tmp_rw3 ] <<
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [  ]
-<118>[     TestFileRW     ] [FAIL] Can't open [  ] ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 730 )
+<118>[     TestFileRW     ] [FAIL] Can't open [  ] ( errno = 22 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 735 )
 <118>[      RunTests      ] [SUCC] Test complete [empty path, should fail with errno = 22 (EINVAL)]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /data/therapist/tmp_rw3/rwtest.txt ]
 <118>[     TestFileRW     ] [SUCC] Opened [ /data/therapist/tmp_rw3/rwtest.txt ] ( errno = 0 )
@@ -674,16 +676,16 @@
 <118>[     TestFileRW     ] [INFO] Is reading buffer full of zeros? : no
 <118>[      RunTests      ] [SUCC] Test complete [both buffers should hold the same values]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /data/therapist/tmp_rw3 ]
-<118>[     TestFileRW     ] [FAIL] Can't open [ /data/therapist/tmp_rw3 ] ( errno = 21 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 730 )
+<118>[     TestFileRW     ] [FAIL] Can't open [ /data/therapist/tmp_rw3 ] ( errno = 21 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 735 )
 <118>[      RunTests      ] [SUCC] Test complete: [R/W on a directory should fail with errno = 21 (EISDIR)]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /app0/assets/misc/file_empty.txt ]
-<118>[     TestFileRW     ] [FAIL] Can't open [ /app0/assets/misc/file_empty.txt ] ( errno = 30 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 730 )
+<118>[     TestFileRW     ] [FAIL] Can't open [ /app0/assets/misc/file_empty.txt ] ( errno = 30 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 735 )
 <118>[      RunTests      ] [SUCC] Test complete: [R/W on a file in RO directory should fail with errno = 30 (EROFS)]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /dev/stdin ]
-<118>[     TestFileRW     ] [FAIL] Can't open [ /dev/stdin ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 730 )
+<118>[     TestFileRW     ] [FAIL] Can't open [ /dev/stdin ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 735 )
 <118>[      RunTests      ] [SUCC] Test complete [Should fail with errno = 2 (ENOENT)]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /dev/stdout ]
-<118>[     TestFileRW     ] [FAIL] Can't open [ /dev/stdout ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 730 )
+<118>[     TestFileRW     ] [FAIL] Can't open [ /dev/stdout ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 735 )
 <118>[      RunTests      ] [SUCC] Test complete [Should fail with errno = 2 (ENOENT)]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /dev/null ]
 <118>[     TestFileRW     ] [SUCC] Opened [ /dev/null ] ( errno = 0 )
@@ -695,7 +697,7 @@
 <118>[     TestFileRW     ] [SUCC]  Lseek END-1 val = 0 should be 0 ( errno = 0 )
 <118>[     TestFileRW     ] [SUCC]  Lseek END+1 val = 1 should be 1 ( errno = 0 )
 <118>[     TestFileRW     ] [SUCC]  Lseek ORIGIN+0 val = 0 should be 0 ( errno = 0 )
-<118>[     TestFileRW     ] [FAIL] Read failed ( 0  bytes read) ( errno = 0 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 765 )
+<118>[     TestFileRW     ] [FAIL] Read failed ( 0  bytes read) ( errno = 0 ) ( /home/mledworo/github/integration_tests/tests/filesystem_test/code/fs_test.cpp: 770 )
 <118>[     TestFileRW     ] [INFO] Buffers are equal? : no
 <118>[     TestFileRW     ] [INFO] Write preview:  97  98  99 100
 <118>[     TestFileRW     ] [INFO] Is reading buffer full of zeros? : no
@@ -713,7 +715,7 @@
 <118>[     TestFileRW     ] [SUCC] Read succeded ( 32  bytes read) ( errno = 0 )
 <118>[     TestFileRW     ] [INFO] Buffers are equal? : no
 <118>[     TestFileRW     ] [INFO] Write preview:  97  98  99 100
-<118>[     TestFileRW     ] [INFO] Read  preview: 175  63  91  80
+<118>[     TestFileRW     ] [INFO] Read  preview:  68 163 104  33
 <118>[     TestFileRW     ] [INFO] Is reading buffer full of zeros? : no
 <118>[      RunTests      ] [SUCC] Test complete [All should pass, random reads]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /dev/urandom ]
@@ -729,7 +731,7 @@
 <118>[     TestFileRW     ] [SUCC] Read succeded ( 32  bytes read) ( errno = 0 )
 <118>[     TestFileRW     ] [INFO] Buffers are equal? : no
 <118>[     TestFileRW     ] [INFO] Write preview:  97  98  99 100
-<118>[     TestFileRW     ] [INFO] Read  preview:  18 250   1  95
+<118>[     TestFileRW     ] [INFO] Read  preview: 199  56   5  91
 <118>[     TestFileRW     ] [INFO] Is reading buffer full of zeros? : no
 <118>[      RunTests      ] [SUCC] Test complete [All should pass, random reads]
 <118>[     TestFileRW     ] [TEST_CASE] Testing r/w on [ /dev/zero ]
@@ -751,88 +753,89 @@
 <118>[     Obliterate     ] [INFO] << rm -rf [ /data/therapist/tmd ] >>
 <118>[     Obliterate     ] [SUCC] >> rm -rf [ /data/therapist/tmd ] <<
 <118>[  dumpDirRecursive  ] [INFO] Listing dirents of [ /data/therapist/tmd ]
-<118>[  dumpDirRecursive  ] [INFO] [ DIR ][   15581597 ][   1 ][  12 ] |->.
-<118>[  dumpDirRecursive  ] [INFO] [ DIR ][   15581441 ][   2 ][  12 ] |->..
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581598 ][  26 ][  36 ] |->AFileWithAReallyLongName-0
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581599 ][  26 ][  36 ] |->AFileWithAReallyLongName-1
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581600 ][  26 ][  36 ] |->AFileWithAReallyLongName-2
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581601 ][  26 ][  36 ] |->AFileWithAReallyLongName-3
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581602 ][  26 ][  36 ] |->AFileWithAReallyLongName-4
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581603 ][  26 ][  36 ] |->AFileWithAReallyLongName-5
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581604 ][  26 ][  36 ] |->AFileWithAReallyLongName-6
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581605 ][  26 ][  36 ] |->AFileWithAReallyLongName-7
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581606 ][  26 ][  36 ] |->AFileWithAReallyLongName-8
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581607 ][  26 ][  36 ] |->AFileWithAReallyLongName-9
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581608 ][  27 ][  36 ] |->AFileWithAReallyLongName-10
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581609 ][  27 ][  36 ] |->AFileWithAReallyLongName-11
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581610 ][  27 ][  36 ] |->AFileWithAReallyLongName-12
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581614 ][   4 ][  20 ] |->SN-0
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581611 ][  27 ][  36 ] |->AFileWithAReallyLongName-13
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581612 ][  27 ][  36 ] |->AFileWithAReallyLongName-14
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581613 ][  27 ][  36 ] |->AFileWithAReallyLongName-15
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581615 ][   4 ][  16 ] |->SN-1
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581616 ][   4 ][  16 ] |->SN-2
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581617 ][   4 ][  16 ] |->SN-3
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581618 ][   4 ][  16 ] |->SN-4
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581619 ][   4 ][  16 ] |->SN-5
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581620 ][   4 ][  16 ] |->SN-6
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581621 ][   4 ][  16 ] |->SN-7
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581622 ][   4 ][  16 ] |->SN-8
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581623 ][   4 ][  16 ] |->SN-9
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581624 ][   5 ][  16 ] |->SN-10
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581625 ][   5 ][  16 ] |->SN-11
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581626 ][   5 ][  16 ] |->SN-12
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581627 ][   5 ][  16 ] |->SN-13
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581628 ][   5 ][  16 ] |->SN-14
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581629 ][   5 ][  16 ] |->SN-15
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581630 ][   5 ][  16 ] |->SN-16
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581631 ][   5 ][  16 ] |->SN-17
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581632 ][   5 ][  16 ] |->SN-18
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581633 ][   5 ][  16 ] |->SN-19
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581634 ][   5 ][  16 ] |->SN-20
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581635 ][   5 ][  16 ] |->SN-21
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581636 ][   5 ][  16 ] |->SN-22
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581637 ][   5 ][  16 ] |->SN-23
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581638 ][   5 ][  16 ] |->SN-24
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581639 ][   5 ][  20 ] |->SN-25
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581640 ][   5 ][  16 ] |->SN-26
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581641 ][   5 ][  16 ] |->SN-27
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581642 ][   5 ][  16 ] |->SN-28
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581643 ][   5 ][  16 ] |->SN-29
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581644 ][   5 ][  16 ] |->SN-30
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581645 ][   5 ][  16 ] |->SN-31
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581646 ][   5 ][  16 ] |->SN-32
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581647 ][   5 ][  16 ] |->SN-33
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581648 ][   5 ][  16 ] |->SN-34
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581649 ][   5 ][  16 ] |->SN-35
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581650 ][   5 ][  16 ] |->SN-36
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581651 ][   5 ][  16 ] |->SN-37
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581652 ][   5 ][  16 ] |->SN-38
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581653 ][   5 ][  16 ] |->SN-39
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581654 ][   5 ][  16 ] |->SN-40
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581655 ][   5 ][  16 ] |->SN-41
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581656 ][   5 ][  16 ] |->SN-42
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581657 ][   5 ][  16 ] |->SN-43
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581658 ][   5 ][  16 ] |->SN-44
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581659 ][   5 ][  16 ] |->SN-45
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581660 ][   5 ][  16 ] |->SN-46
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581661 ][   5 ][  16 ] |->SN-47
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581662 ][   5 ][  16 ] |->SN-48
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581663 ][   5 ][  16 ] |->SN-49
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581664 ][   5 ][  16 ] |->SN-50
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581665 ][   5 ][  16 ] |->SN-51
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581666 ][   5 ][  16 ] |->SN-52
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581667 ][   5 ][  16 ] |->SN-53
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581668 ][   5 ][  16 ] |->SN-54
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581669 ][   5 ][  16 ] |->SN-55
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581670 ][   5 ][  16 ] |->SN-56
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581671 ][   5 ][  16 ] |->SN-57
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581672 ][   5 ][  16 ] |->SN-58
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581673 ][   5 ][  16 ] |->SN-59
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581674 ][   5 ][  16 ] |->SN-60
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581675 ][   5 ][  16 ] |->SN-61
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581676 ][   5 ][  16 ] |->SN-62
-<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581677 ][   5 ][ 432 ] |->SN-63
+<118>[  dumpDirRecursive  ] [INFO] [ DIR ][   15581555 ][   1 ][  12 ] |->.
+<118>[  dumpDirRecursive  ] [INFO] [ DIR ][   15581444 ][   2 ][  12 ] |->..
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581556 ][  26 ][  36 ] |->AFileWithAReallyLongName-0
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581557 ][  26 ][  36 ] |->AFileWithAReallyLongName-1
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581558 ][  26 ][  36 ] |->AFileWithAReallyLongName-2
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581559 ][  26 ][  36 ] |->AFileWithAReallyLongName-3
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581560 ][  26 ][  36 ] |->AFileWithAReallyLongName-4
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581563 ][  26 ][  36 ] |->AFileWithAReallyLongName-5
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581564 ][  26 ][  36 ] |->AFileWithAReallyLongName-6
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581565 ][  26 ][  36 ] |->AFileWithAReallyLongName-7
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581566 ][  26 ][  36 ] |->AFileWithAReallyLongName-8
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581689 ][  26 ][  36 ] |->AFileWithAReallyLongName-9
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581698 ][  27 ][  36 ] |->AFileWithAReallyLongName-10
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581699 ][  27 ][  36 ] |->AFileWithAReallyLongName-11
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581700 ][  27 ][  36 ] |->AFileWithAReallyLongName-12
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581704 ][   4 ][  20 ] |->SN-0
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581701 ][  27 ][  36 ] |->AFileWithAReallyLongName-13
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581702 ][  27 ][  36 ] |->AFileWithAReallyLongName-14
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581703 ][  27 ][  36 ] |->AFileWithAReallyLongName-15
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581705 ][   4 ][  16 ] |->SN-1
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581706 ][   4 ][  16 ] |->SN-2
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581707 ][   4 ][  16 ] |->SN-3
+<118>[  dumpDirRecursive  ] [INFO] [SL][00:00:00:000][Thread 0x00018845][INFO][TRACE][ALWAYS][MAIN STREAM][BEGIN][Heap]sanity OK, free 2291872 (37%), in-use 3934048 (63%), peak 4432128 (71%), when 1529 [sec]
+<118>[ FIL ][   15581708 ][   4 ][  16 ] |->SN-4
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581709 ][   4 ][  16 ] |->SN-5
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581710 ][   4 ][  16 ] |->SN-6
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581711 ][   4 ][  16 ] |->SN-7
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581712 ][   4 ][  16 ] |->SN-8
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581713 ][   4 ][  16 ] |->SN-9
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581714 ][   5 ][  16 ] |->SN-10
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581715 ][   5 ][  16 ] |->SN-11
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581716 ][   5 ][  16 ] |->SN-12
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581717 ][   5 ][  16 ] |->SN-13
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581718 ][   5 ][  16 ] |->SN-14
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581719 ][   5 ][  16 ] |->SN-15
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581720 ][   5 ][  16 ] |->SN-16
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581721 ][   5 ][  16 ] |->SN-17
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581722 ][   5 ][  16 ] |->SN-18
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581723 ][   5 ][  16 ] |->SN-19
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581724 ][   5 ][  16 ] |->SN-20
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581725 ][   5 ][  16 ] |->SN-21
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581726 ][   5 ][  16 ] |->SN-22
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581727 ][   5 ][  16 ] |->SN-23
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581728 ][   5 ][  16 ] |->SN-24
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581729 ][   5 ][  20 ] |->SN-25
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581730 ][   5 ][  16 ] |->SN-26
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581731 ][   5 ][  16 ] |->SN-27
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581732 ][   5 ][  16 ] |->SN-28
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581733 ][   5 ][  16 ] |->SN-29
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581734 ][   5 ][  16 ] |->SN-30
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581735 ][   5 ][  16 ] |->SN-31
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581736 ][   5 ][  16 ] |->SN-32
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581737 ][   5 ][  16 ] |->SN-33
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581738 ][   5 ][  16 ] |->SN-34
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581739 ][   5 ][  16 ] |->SN-35
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581740 ][   5 ][  16 ] |->SN-36
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581741 ][   5 ][  16 ] |->SN-37
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581742 ][   5 ][  16 ] |->SN-38
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581743 ][   5 ][  16 ] |->SN-39
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581744 ][   5 ][  16 ] |->SN-40
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581745 ][   5 ][  16 ] |->SN-41
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581746 ][   5 ][  16 ] |->SN-42
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581747 ][   5 ][  16 ] |->SN-43
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581748 ][   5 ][  16 ] |->SN-44
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581749 ][   5 ][  16 ] |->SN-45
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581750 ][   5 ][  16 ] |->SN-46
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581751 ][   5 ][  16 ] |->SN-47
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581752 ][   5 ][  16 ] |->SN-48
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581753 ][   5 ][  16 ] |->SN-49
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581754 ][   5 ][  16 ] |->SN-50
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581755 ][   5 ][  16 ] |->SN-51
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581756 ][   5 ][  16 ] |->SN-52
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581757 ][   5 ][  16 ] |->SN-53
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581758 ][   5 ][  16 ] |->SN-54
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581759 ][   5 ][  16 ] |->SN-55
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581760 ][   5 ][  16 ] |->SN-56
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581761 ][   5 ][  16 ] |->SN-57
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581762 ][   5 ][  16 ] |->SN-58
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581763 ][   5 ][  16 ] |->SN-59
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581764 ][   5 ][  16 ] |->SN-60
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581765 ][   5 ][  16 ] |->SN-61
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581766 ][   5 ][  16 ] |->SN-62
+<118>[  dumpDirRecursive  ] [INFO] [ FIL ][   15581767 ][   5 ][ 432 ] |->SN-63
 <118>[  dumpDirRecursive  ] [SUCC] Listing dirents of [ /data/therapist/tmd ]
 <118>[      RunTests      ] [INFO]
 <118>[      RunTests      ] [INFO] 	<<<< Case sensitivity tests >>>>
@@ -871,19 +874,19 @@
 <118>[      RunTests      ] [INFO]
 <118>[     Obliterate     ] [INFO] << rm -rf [ /data/therapist/moves ] >>
 <118>[     Obliterate     ] [SUCC] >> rm -rf [ /data/therapist/moves ] <<
-<118>[      RunTests      ] [INFO] fileno of: movingDirectoryA:	 15581681
-<118>[      RunTests      ] [INFO] fileno of: movingDirectoryB:	 15581682
-<118>[      RunTests      ] [INFO] fileno of: movingDirectoryC:	 15581683
-<118>[      RunTests      ] [INFO] fileno of: movingDirectoryD:	 15581684
-<118>[      RunTests      ] [INFO] fileno of: movingFileA:	 15581685
-<118>[      RunTests      ] [INFO] fileno of: movingFileB:	 15581686
-<118>[      RunTests      ] [INFO] fileno of: movingFileC:	 15581687
+<118>[      RunTests      ] [INFO] fileno of: movingDirectoryA:	 15581771
+<118>[      RunTests      ] [INFO] fileno of: movingDirectoryB:	 15581772
+<118>[      RunTests      ] [INFO] fileno of: movingDirectoryC:	 15581773
+<118>[      RunTests      ] [INFO] fileno of: movingDirectoryD:	 15581774
+<118>[      RunTests      ] [INFO] fileno of: movingFileA:	 15581775
+<118>[      RunTests      ] [INFO] fileno of: movingFileB:	 15581776
+<118>[      RunTests      ] [INFO] fileno of: movingFileC:	 15581777
 <118>[      RunTests      ] [SUCC] Moved file->(existent)file: 0
 <118>[      RunTests      ] [SUCC] Moved file->(nonexistent)file: 0
-<118>[      RunTests      ] [INFO] fileno of: yeetFile:	 15581687
+<118>[      RunTests      ] [INFO] fileno of: yeetFile:	 15581777
 <118>[      RunTests      ] [SUCC] Moved dir->(existing)dir: 0
 <118>[      RunTests      ] [SUCC] Moved dir->(nonexistent)dir: 0
-<118>[      RunTests      ] [INFO] fileno of: yeetDir:	 15581683
+<118>[      RunTests      ] [INFO] fileno of: yeetDir:	 15581773
 <118>[      RunTests      ] [SUCC] Not moved file->(existent)dir: -2147352555
 <118>[      RunTests      ] [SUCC] Not moved dir->(existent)file: -2147352556
 <118>[      RunTests      ] [SUCC] Moved file->(into existent)dir: 0
@@ -892,10 +895,10 @@
 <118>[      RunTests      ] [INFO]
 <118>[      RunTests      ] [INFO] 	<<<< Open fd abuse (moving/removing files with open fd) >>>>
 <118>[      RunTests      ] [INFO]
-<118>[      RunTests      ] [SUCC] Test file opened status = 19
+<118>[      RunTests      ] [SUCC] Test file opened status = 18
 <118>[      RunTests      ] [SUCC] File unlinked ( status = 0 )
 <118>[      RunTests      ] [SUCC] Readback string is correct 
-<118>[      RunTests      ] [INFO] fstat() Fileno before removal = 15581688 after = 15581688
+<118>[      RunTests      ] [INFO] fstat() Fileno before removal = 15581778 after = 15581778
 <118>[      RunTests      ] [INFO] stat() after removal = -2147352574
 <118>[      RunTests      ] [INFO] -2147352574
 <118>[      RunTests      ] [INFO] -2147352574

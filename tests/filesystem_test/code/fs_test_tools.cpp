@@ -17,9 +17,10 @@ off_t GetSize(int fd) {
 }
 
 off_t GetSize(const char* path) {
-  OrbisKernelStat st;
-  if (int status = sceKernelStat(path, &st); status < 0) return status;
-  return st.st_size;
+  int fd   = sceKernelOpen(path, O_RDONLY, 0777);
+  int size = GetSize(fd);
+  sceKernelClose(fd);
+  return size;
 }
 
 int32_t touch(const char* path) {
