@@ -47,13 +47,13 @@ typedef struct FolderDirent {
 void RunTests(void);
 void RegenerateDir(const char* path);
 
-ino_t       get_fileno(const char* path);
-ino_t       get_fileno(int fd);
-void        Obliterate(const char* path);
-int32_t     touch(const char* path);
-off_t       GetSize(const char* path);
-off_t       GetSize(int fd);
-int         exists(const char* path);
+ino_t   get_fileno(const char* path);
+ino_t   get_fileno(int fd);
+void    Obliterate(const char* path);
+int32_t touch(const char* path);
+off_t   GetSize(const char* path);
+off_t   GetSize(int fd);
+int     exists(const char* path);
 
 u64 tick();
 
