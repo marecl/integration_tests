@@ -2,14 +2,17 @@ import os
 import sys
 import re
 from dataclasses import dataclass
+import hashlib
 
-if len(sys.argv) != 3:
-    print(f"comparator.py [PS4] [Emulator]")
+if len(sys.argv) < 3:
+    print(f"comparator.py [PS4] [Emulator] [--debug]")
     print("Compare dirent dumps between console and dump")
+    print("Add `--debug` at the end for verbose output")
     sys.exit(0)
 
 dir_left = sys.argv[1]
 dir_right = sys.argv[2]
+debug_enabled = "--debug" in sys.argv
 
 dir_left_contents = None
 dir_right_contents = None
@@ -24,32 +27,30 @@ except:
 
 @dataclass(kw_only=True)
 class Dirent:
-    chk: str
+    chk: bytes
     offset: int
     end: int
-    fileno: str  # 4 for pfs, 4 for reg
-    entry_type: str  # 4 for pfs, 1 for reg
-    namelen: str  # 4 for pfs, 1 for reg
-    reclen: str  # 4 for pfs, 2 for reg
-    name: str  # up to 255 characters + null terminator
-    padding: str
+    entry_type: bytes  # 4 for pfs, 1 for reg
+    fileno: bytes  # 4 for pfs, 4 for reg
+    namelen: bytes  # 4 for pfs, 1 for reg
+    reclen: bytes  # 4 for pfs, 2 for reg
+    name: bytes  # up to 255 characters + null terminator
+    padding: bytes
 
-    def __repr__(self) -> str:
+    def hash(self) -> bytes:
+        if not self.chk:
+            self.chk = hashlib.md5(
+                self.entry_type + self.namelen + self.reclen + self.name
+            ).digest()
         return self.chk
+
+    def __repr__(self) -> bytes:
+        return self.hash()
 
     def __eq__(self, other):
         if isinstance(other, Dirent):
             return False
-        if (
-            (self.offset != other.offset)
-            # fileno is ignored, those can be different
-            or (self.entry_type != other.entry_type)
-            or (self.namelen != other.namelen)
-            or (self.reclen != other.reclen)
-            or (self.name != other.name)
-            or (len(self.padding) != len(other.padding))
-        ):
-            return False
+        return self.hash() == other.hash()
 
 
 find_buffer_end_re = re.compile(b"\x00+(\xaa+)")
@@ -108,9 +109,33 @@ for filename in dir_left_contents:
     ### Verify size
 
     if size_left == 0 and size_right == 0:
-        counter_completed += 1
-        print("Both are empty. Continuing...")
-        continue
+        left_last_read_size = 0
+        left_last_read_basep = 0
+        right_last_read_size = 0
+        right_last_read_basep = 0
+
+        if is_read:
+            left_last_read_size = content_left_cue[-8:]
+            right_last_read_size = content_right_cue[-8:]
+            pass
+        elif is_getdents:
+            left_last_read_size = content_left_cue[-16:-8]
+            left_last_read_basep = content_right_cue[-8:]
+            right_last_read_size = content_left_cue[-16:-8]
+            right_last_read_basep = content_right_cue[-8:]
+            pass
+
+        if debug_enabled:
+            print(f"Last read size L:{left_last_read_size} R:{right_last_read_size}")
+            if is_getdents:
+                print(f"Last basep L:{left_last_read_basep} R:{right_last_read_basep}")
+
+        if left_last_read_size != right_last_read_size:
+            print(f"Read ended with L:{left_last_read_size} R:{right_last_read_size}")
+            continue
+
+        if debug_enabled:
+            print("Read result seems OK")
 
     print(f"Size:\t{size_left}\t{size_right}")
 
@@ -137,11 +162,9 @@ for filename in dir_left_contents:
         dirent_init_dict = lsresult.groupdict()
         dirent_init_dict["offset"] = lsresult.start()
         dirent_init_dict["end"] = lsresult.end()
-        _name = dirent_init_dict["name"]
-        _reclen = dirent_init_dict["reclen"]
-        _offset = dirent_init_dict["offset"]
-        dirent_init_dict["chk"] = f"{_name[-2:]}{str(_offset)}{str(_reclen)}"
+        dirent_init_dict["chk"] = ""
         new_dirent = Dirent(**dirent_init_dict)
+        new_dirent.hash()
         left_dirent_list.append(new_dirent)
     if lsresult is None:
         print("Left: can't match file entries")
@@ -155,11 +178,9 @@ for filename in dir_left_contents:
         dirent_init_dict = lsresult.groupdict()
         dirent_init_dict["offset"] = lsresult.start()
         dirent_init_dict["end"] = lsresult.end()
-        _name = dirent_init_dict["name"]
-        _reclen = dirent_init_dict["reclen"]
-        _offset = dirent_init_dict["offset"]
-        dirent_init_dict["chk"] = f"{_name[-2:]}{str(_offset)}{str(_reclen)}"
+        dirent_init_dict["chk"] = ""
         new_dirent = Dirent(**dirent_init_dict)
+        new_dirent.hash()
         right_dirent_list.append(new_dirent)
     if lsresult is None:
         print("Right: can't match file entries")
@@ -173,14 +194,6 @@ for filename in dir_left_contents:
             f"Error: Different amount of dirents: L:{left_dirent_list_len} R:{right_dirent_list_len}. Continuing..."
         )
         continue
-
-    for idx, lval in enumerate(left_dirent_list):
-        rval = right_dirent_list[idx]
-        if repr(lval) == repr(rval):
-            continue
-        error_mismatch_order.append(filename)
-        print(f"Mismatch at\tL:{lval.offset}\tR:{rval.offset}")
-        print(f"\t{lval.name}\t{rval.name}")
 
     counter_completed += 1
     print("Tests complete")

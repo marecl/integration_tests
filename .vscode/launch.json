@@ -29,6 +29,19 @@
     ]
   },
     {
+    "name": "Compare&Debug dumps (current, macOS)",
+    "type": "python",
+    "request": "launch",
+    "program": "${workspaceFolder}/tests/code/filesystem_dirents/dumps/comparator.py",
+    "console": "integratedTerminal",
+    "args": [
+      // change accordingly
+      "${workspaceFolder}/tests/code/filesystem_dirents/dumps/1202",
+      "${userHome}/Library/Application Support/shadPS4/data/enderman/dumps",
+      "--debug"
+    ]
+  },
+    {
     "name": "Compare dumps (qfs)",
     "type": "python",
     "request": "launch",
