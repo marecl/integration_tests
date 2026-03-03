@@ -69,7 +69,9 @@ void RunTests() {
   Log("----------------------------------------");
   Log("Clone PFS (getdents) to /data/enderman/files");
   Log("----------------------------------------");
+  // getdirentries GUARANTEES there are no dirents cut
 
+  s64           read_start_position {0};
   constexpr int clone_buffer_size = 2048;
   char          clone_buffer[clone_buffer_size] {0};
   memset(clone_buffer, 0, clone_buffer_size);
@@ -82,17 +84,19 @@ void RunTests() {
   int fd_src = sceKernelOpen(directory_source.c_str(), O_RDONLY | O_DIRECTORY, 0777);
 
   do {
-    tbr = sceKernelGetdirentries(fd_src, clone_buffer, clone_buffer_size, &_idx);
+    read_start_position = sceKernelLseek(fd_src, 0, 1);
+    tbr                 = sceKernelGetdirentries(fd_src, clone_buffer, clone_buffer_size, &_idx);
+    Log("Read:", tbr, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
     if (tbr <= 0) break;
 
     dirent_normal = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
     for (idx = 0; (idx < tbr) && (dirent_normal->d_reclen > 0); idx += dirent_normal->d_reclen) {
       dirent_normal = reinterpret_cast<oi::FolderDirent*>(clone_buffer + idx);
-      Log("Entry:", dirent_normal->d_fileno, "name:", dirent_normal->d_name,
-          "type:", dirent_normal->d_type == 0x04 ? "dir" : (dirent_normal->d_type == 0x08 ? "reg" : "unk"),
-          "namelen:", static_cast<u16>(dirent_normal->d_namlen), "reclen:", dirent_normal->d_reclen);
+      Log("start:", read_start_position, "+", idx, "fileno:", dirent_normal->d_fileno, "name:", dirent_normal->d_name,
+          "type:", static_cast<u16>(dirent_normal->d_type), "namelen:", static_cast<u16>(dirent_normal->d_namlen), "reclen:", dirent_normal->d_reclen);
       entries_getdirentries.emplace_back(std::string(dirent_normal->d_name, dirent_normal->d_namlen));
     }
+    Log("End position:", idx, "/", clone_buffer_size);
   } while (--_canary);
 
   sceKernelClose(fd_src);
@@ -112,21 +116,20 @@ void RunTests() {
 
   fd_src = sceKernelOpen(directory_source.c_str(), O_RDONLY | O_DIRECTORY, 0777);
   do {
-    idx                     = 0;
-    s64 read_start_position = sceKernelLseek(fd_src, 0, 1);
-    tbr                     = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
+    idx                 = 0;
+    read_start_position = sceKernelLseek(fd_src, 0, 1);
+    tbr                 = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
     Log("Read:", tbr, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
     if (tbr <= 0) break;
 
     dirent_pfs = reinterpret_cast<oi::PfsDirent*>(clone_buffer);
+    // if less than 8 bytes is available, next dirent is 100% cut
     while (dirent_pfs->d_reclen > 0) {
-      // get current dirent
-      // any kind of info
-      Log("index:", idx, "fileno:", dirent_pfs->d_fileno, "name:", dirent_pfs->d_name,
-          "type:", dirent_pfs->d_type == 0x04 ? "dir" : (dirent_pfs->d_type == 0x02 ? "reg" : "unk"), "namelen:", static_cast<u16>(dirent_pfs->d_namlen),
-          "reclen:", dirent_pfs->d_reclen);
+      // get current dirent, see what we have
+      Log("start:", read_start_position, "+", idx, "fileno:", dirent_pfs->d_fileno, "name:", dirent_pfs->d_name, "type:", dirent_pfs->d_type,
+          "namelen:", static_cast<u16>(dirent_pfs->d_namlen), "reclen:", dirent_pfs->d_reclen);
 
-      // this means that current dirent goes OOB
+      // more than 8 bytes available, but not the whole thing
       if ((idx + dirent_pfs->d_reclen) > tbr) {
         Log("Long dirent at", idx, "goes OOB");
         // idx not modified, just break
@@ -134,9 +137,15 @@ void RunTests() {
       }
 
       // on a good run, this increments correctly
-      idx += dirent_pfs->d_reclen;
       entries_read.emplace_back(std::string(dirent_pfs->d_name, dirent_pfs->d_namlen));
+      idx += dirent_pfs->d_reclen;
       dirent_pfs = reinterpret_cast<oi::PfsDirent*>(clone_buffer + idx);
+
+      // next dirent won't fit (24 bytes minimum)
+      if ((tbr - idx) < 24) {
+        Log("Dirent at", idx, "goes OOB");
+        break;
+      }
     }
 
     if ((idx != tbr) && (idx > 0)) sceKernelLseek(fd_src, read_start_position + idx, 0);
