@@ -1,8 +1,7 @@
 import os
 import sys
 import re
-from dataclasses import dataclass
-import hashlib
+import comp_utils as cu
 
 if len(sys.argv) < 3:
     print(f"comparator.py [PS4] [Emulator] [--debug]")
@@ -24,42 +23,6 @@ except:
     print("Error during listing directories")
     sys.exit(-1)
 
-
-@dataclass(kw_only=True)
-class Dirent:
-    chk: bytes
-    offset: int
-    end: int
-    entry_type: bytes  # 4 for pfs, 1 for reg
-    fileno: bytes  # 4 for pfs, 4 for reg
-    namelen: bytes  # 4 for pfs, 1 for reg
-    reclen: bytes  # 4 for pfs, 2 for reg
-    name: bytes  # up to 255 characters + null terminator
-    padding: bytes
-
-    def hash(self) -> bytes:
-        if not self.chk:
-            self.chk = hashlib.md5(
-                self.entry_type + self.namelen + self.reclen + self.name
-            ).digest()
-        return self.chk
-
-    def __repr__(self) -> bytes:
-        return self.hash()
-
-    def __eq__(self, other):
-        if isinstance(other, Dirent):
-            return False
-        return self.hash() == other.hash()
-
-
-find_buffer_end_re = re.compile(b"\x00+(\xaa+)")
-regular_dirent_query_re = re.compile(
-    b"(?P<fileno>....)(?P<reclen>..)(?P<entry_type>[\x02\x04\x08])(?P<namelen>.)(?P<name>[ -~]{1,255})(?P<padding>\x00*)"
-)
-pfs_query_getdents_re = re.compile(
-    b"(?P<fileno>.{4})(?P<entry_type>[\x02\x04\x08]\x00{3})(?P<namelen>....)(?P<reclen>....)(?P<name>[ -~]{1,255})(?P<padding>\x00*)"
-)
 
 error_badf = []
 error_bad_size = []
@@ -83,6 +46,7 @@ for filename in dir_left_contents:
     is_getdents = "dirent" in filename
 
     if not (is_read or is_getdents):
+        print(f"File cannot be used: {filename}")
         error_badf.append(filename)
         continue
 
@@ -91,7 +55,6 @@ for filename in dir_left_contents:
 
     size_left = os.path.getsize(file_left_path)
     size_right = os.path.getsize(file_right_path)
-    size_match = size_left == size_right
 
     content_left = None
     content_left_cue = None
@@ -139,7 +102,7 @@ for filename in dir_left_contents:
 
     print(f"Size:\t{size_left}\t{size_right}")
 
-    if not size_match:
+    if size_left != size_right:
         print("Error: sizes don't match. Continuing...")
         error_bad_size.append(filename)
         continue
@@ -149,41 +112,42 @@ for filename in dir_left_contents:
     ### Search for entry offsets
     ### Search for skipped bytes (0-fills, cut off data)
     #
-    left_dirent_list: list[Dirent] = []
-    right_dirent_list: list[Dirent] = []
+    left_dirent_list: list[cu.Dirent] = []
+    right_dirent_list: list[cu.Dirent] = []
     search_query = None
 
     lsresult = None
     if is_pfs and is_read:
-        search_query = pfs_query_getdents_re.finditer(content_left)
+        search_query = cu.pfs_query_getdents_re.finditer(content_left)
     else:
-        search_query = regular_dirent_query_re.finditer(content_left)
+        search_query = cu.regular_dirent_query_re.finditer(content_left)
     for lsresult in search_query:
         dirent_init_dict = lsresult.groupdict()
         dirent_init_dict["offset"] = lsresult.start()
         dirent_init_dict["end"] = lsresult.end()
         dirent_init_dict["chk"] = ""
-        new_dirent = Dirent(**dirent_init_dict)
+        new_dirent = cu.Dirent(**dirent_init_dict)
         new_dirent.hash()
         left_dirent_list.append(new_dirent)
     if lsresult is None:
-        print("Left: can't match file entries")
+        print(f"Left: can't match dirents in {file_left_path}")
+        continue
 
     lsresult = None
     if is_pfs and is_read:
-        search_query = pfs_query_getdents_re.finditer(content_right)
+        search_query = cu.pfs_query_getdents_re.finditer(content_right)
     else:
-        search_query = regular_dirent_query_re.finditer(content_right)
+        search_query = cu.regular_dirent_query_re.finditer(content_right)
     for lsresult in search_query:
         dirent_init_dict = lsresult.groupdict()
         dirent_init_dict["offset"] = lsresult.start()
         dirent_init_dict["end"] = lsresult.end()
         dirent_init_dict["chk"] = ""
-        new_dirent = Dirent(**dirent_init_dict)
+        new_dirent = cu.Dirent(**dirent_init_dict)
         new_dirent.hash()
         right_dirent_list.append(new_dirent)
     if lsresult is None:
-        print("Right: can't match file entries")
+        print(f"Right: can't match dirents in {file_right_path}")
 
     left_dirent_list_len = len(left_dirent_list)
     right_dirent_list_len = len(right_dirent_list)
