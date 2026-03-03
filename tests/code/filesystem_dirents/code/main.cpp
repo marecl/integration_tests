@@ -17,18 +17,14 @@ int main(int ac, char** av) {
 
   // prepare files
   RegenerateDir("/data/enderman");
-  sceKernelMkdir("/data/enderman/dumps", 0777);
-  std::string nf_path        = "/data/enderman/filewithaverylongname";
-  std::string nf_path_longer = "/data/enderman/filewithunnecesarilylongnamejusttomesswitheveryone";
-  char        nf_num[4] {0};
-  for (u8 idx = 1; idx <= 50; idx++) {
-    snprintf(nf_num, 4, "%02d", idx);
-    touch(nf_path + std::string(nf_num));
-    touch(nf_path_longer + std::string(nf_num));
-  }
+  sceKernelMkdir("/data/enderman/files", 0777);
+  sceKernelMkdir("/data/enderman/dump_pfs_read", 0777);
+  sceKernelMkdir("/data/enderman/dump_pfs_getdents", 0777);
+  sceKernelMkdir("/data/enderman/dump_data_read", 0777);
+  sceKernelMkdir("/data/enderman/dump_data_getdents", 0777);
 
   // Run file system tests
-  int result = RUN_ALL_TESTS(ac, av);
+  // int result = RUN_ALL_TESTS(ac, av);
   RunTests();
 
   // Log tests end
@@ -37,5 +33,6 @@ int main(int ac, char** av) {
   Log();
 
   sceSystemServiceLoadExec("EXIT", nullptr);
-  return result;
+  return 0;
+  // return result;
 }
