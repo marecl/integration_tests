@@ -7,6 +7,11 @@
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
+bool is_directory_relatives(const char* data) {
+  const u32 dotfinder = *reinterpret_cast<const u32*>(data);
+  return ((dotfinder & 0x0000FFFF) == 0x002e) || ((dotfinder & 0x00FFFFFF) == 0x002e2e);
+}
+
 int32_t touch(const char* path) {
   return sceKernelClose(sceKernelOpen(path, O_CREAT | O_WRONLY | O_TRUNC, 0777));
 }

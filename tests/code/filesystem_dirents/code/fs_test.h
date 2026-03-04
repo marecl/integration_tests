@@ -43,4 +43,6 @@ void    Obliterate(const char* path);
 int32_t touch(const char* path);
 int32_t touch(const std::string& path);
 
+bool is_directory_relatives(const char* data);
+
 #endif // FS_TEST_H

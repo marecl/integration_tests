@@ -17,14 +17,9 @@ int main(int ac, char** av) {
 
   // prepare files
   RegenerateDir("/data/enderman");
-  sceKernelMkdir("/data/enderman/files", 0777);
-  sceKernelMkdir("/data/enderman/dump_pfs_read", 0777);
-  sceKernelMkdir("/data/enderman/dump_pfs_getdents", 0777);
-  sceKernelMkdir("/data/enderman/dump_data_read", 0777);
-  sceKernelMkdir("/data/enderman/dump_data_getdents", 0777);
 
   // Run file system tests
-  // int result = RUN_ALL_TESTS(ac, av);
+  int result = RUN_ALL_TESTS(ac, av);
   RunTests();
 
   // Log tests end
