@@ -234,6 +234,13 @@ s64 dump_clone_getdirentries(std::vector<std::string>& dump_vector, fs::path& du
   return 0;
 }
 
+s64 dirent_normal_aggregate(std::vector<std::string>& dump_vector, oi::FolderDirent* dirent) {
+  if (is_directory_relatives(dirent->d_name)) return 0;
+  std::string filename = std::string(dirent->d_name, dirent->d_namlen);
+  dump_vector.emplace_back(filename);
+  return 0;
+}
+
 void iterate_pfs_read(std::vector<std::string>& dump_vector, const char* source_path, fs::path& dump_path,
                       s64 (*dump_clone)(std::vector<std::string>& dump_vector, fs::path& dump_path, oi::PfsDirent* dirent) = nullptr) {
   constexpr int clone_buffer_size = 1024;
@@ -245,7 +252,7 @@ void iterate_pfs_read(std::vector<std::string>& dump_vector, const char* source_
   s64 bytes_read {0};
   u16 _canary {0};
 
-  oi::PfsDirent* dirent_pfs {0};
+  oi::PfsDirent* dirent {0};
 
   memset(clone_buffer, 0, clone_buffer_size);
 
@@ -259,23 +266,23 @@ void iterate_pfs_read(std::vector<std::string>& dump_vector, const char* source_
     //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
     if (bytes_read <= 0) break;
 
-    dirent_pfs = reinterpret_cast<oi::PfsDirent*>(clone_buffer);
-    while (dirent_pfs->d_reclen > 0) {
+    dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer);
+    while (dirent->d_reclen > 0) {
       // get current dirent, see what we have
-      // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent_pfs->d_fileno, "name:", dirent_pfs->d_name, "type:", dirent_pfs->d_type,
-      //     "namelen:", static_cast<u16>(dirent_pfs->d_namlen), "reclen:", dirent_pfs->d_reclen);
+      // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name, "type:", dirent->d_type,
+      //     "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
 
       // current dirent is >=24 bytes but OOB
-      if ((entry_offset + dirent_pfs->d_reclen) > bytes_read) {
+      if ((entry_offset + dirent->d_reclen) > bytes_read) {
         break;
       }
 
       // current dirent fits
-      if (dump_clone) dump_clone(dump_vector, dump_path, dirent_pfs);
-      entry_offset += dirent_pfs->d_reclen;
+      if (dump_clone) dump_clone(dump_vector, dump_path, dirent);
+      entry_offset += dirent->d_reclen;
 
       // peek at next entry, if less than 24 bytes are available, break
-      dirent_pfs = reinterpret_cast<oi::PfsDirent*>(clone_buffer + entry_offset);
+      dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer + entry_offset);
       if ((bytes_read - (entry_offset + 1)) < 24) {
         // Log("Not enough data available at", entry_offset);
         break;
@@ -295,7 +302,7 @@ void iterate_pfs_read(std::vector<std::string>& dump_vector, const char* source_
 }
 
 void iterate_pfs_getdirents(std::vector<std::string>& dump_vector, const char* source_path, fs::path& dump_path,
-                            s64 (*dump_clone)(std::vector<std::string>& dump_vector, fs::path& dump_path, oi::FolderDirent* dirent)) {
+                            s64 (*dump_clone)(std::vector<std::string>& dump_vector, fs::path& dump_path, oi::FolderDirent* dirent) = nullptr) {
   constexpr int clone_buffer_size = 1024;
   char          clone_buffer[clone_buffer_size] {0};
 
@@ -306,7 +313,7 @@ void iterate_pfs_getdirents(std::vector<std::string>& dump_vector, const char* s
   s64 basep {0};
   u16 _canary {0};
 
-  oi::FolderDirent* dirent_normal {0};
+  oi::FolderDirent* dirent {0};
 
   memset(clone_buffer, 0, clone_buffer_size);
 
@@ -318,13 +325,112 @@ void iterate_pfs_getdirents(std::vector<std::string>& dump_vector, const char* s
     // Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
     if (bytes_read <= 0) break;
 
-    dirent_normal = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
-    // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent_normal->d_fileno, "name:", dirent_normal->d_name,
-    //     "type:", static_cast<u16>(dirent_normal->d_type), "namelen:", static_cast<u16>(dirent_normal->d_namlen), "reclen:", dirent_normal->d_reclen);
-    for (entry_offset = 0; (entry_offset < bytes_read) && (dirent_normal->d_reclen > 0); entry_offset += dirent_normal->d_reclen) {
-      dirent_normal = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
+    dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
+    // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name,
+    //     "type:", static_cast<u16>(dirent->d_type), "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
+    for (entry_offset = 0; (entry_offset < bytes_read) && (dirent->d_reclen > 0); entry_offset += dirent->d_reclen) {
+      dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
 
-      if (dump_clone) dump_clone(dump_vector, dump_path, dirent_normal);
+      if (dump_clone) dump_clone(dump_vector, dump_path, dirent);
+    }
+    // Log("End position:", entry_offset, "/", clone_buffer_size);
+  } while (--_canary);
+
+  // Log("Dump ended with status", bytes_read);
+  sceKernelClose(fd_src);
+}
+
+void iterate_normal_read(std::vector<std::string>& dump_vector, const char* source_path,
+                         s64 (*dump_clone)(std::vector<std::string>& dump_vector, oi::FolderDirent* dirent) = nullptr) {
+  constexpr int clone_buffer_size = 1024;
+  char          clone_buffer[clone_buffer_size] {0};
+
+  int fd_src {0};
+  s64 read_start_position {0};
+  u32 entry_offset {0};
+  s64 bytes_read {0};
+  u16 _canary {0};
+
+  oi::FolderDirent* dirent {0};
+
+  memset(clone_buffer, 0, clone_buffer_size);
+
+  //
+
+  fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
+  do {
+    entry_offset        = 0;
+    read_start_position = sceKernelLseek(fd_src, 0, 1);
+    bytes_read          = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
+    //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
+    if (bytes_read <= 0) break;
+
+    dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
+    while (dirent->d_reclen > 0) {
+      // get current dirent, see what we have
+      // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent_pfs->d_fileno, "name:", dirent_pfs->d_name, "type:", dirent_pfs->d_type,
+      //     "namelen:", static_cast<u16>(dirent_pfs->d_namlen), "reclen:", dirent_pfs->d_reclen);
+
+      // current dirent is >=24 bytes but OOB
+      if ((entry_offset + dirent->d_reclen) > bytes_read) {
+        break;
+      }
+
+      // current dirent fits
+      if (dump_clone) dump_clone(dump_vector, dirent);
+      entry_offset += dirent->d_reclen;
+
+      // peek at next entry, if less than 24 bytes are available, break
+      dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
+      if ((bytes_read - (entry_offset + 1)) < 24) {
+        // Log("Not enough data available at", entry_offset);
+        break;
+      }
+    }
+
+    // unless entry offset moved by bytes read, we didn't consume the entire buffer
+    if (((entry_offset + 1) != bytes_read) && (entry_offset > 0)) {
+      // if we're here, then we did not. back off to the end of the last dirent
+      sceKernelLseek(fd_src, read_start_position + entry_offset, 0);
+    }
+    // Log("End position:", entry_offset, "/", clone_buffer_size);
+  } while (--_canary);
+
+  // Log("Dump ended with status", bytes_read);
+  sceKernelClose(fd_src);
+}
+
+void iterate_normal_getdirents(std::vector<std::string>& dump_vector, const char* source_path,
+                               s64 (*dump_clone)(std::vector<std::string>& dump_vector, oi::FolderDirent* dirent) = nullptr) {
+  constexpr int clone_buffer_size = 1024;
+  char          clone_buffer[clone_buffer_size] {0};
+
+  int fd_src {0};
+  s64 read_start_position {0};
+  u32 entry_offset {0};
+  s64 bytes_read {0};
+  s64 basep {0};
+  u16 _canary {0};
+
+  oi::FolderDirent* dirent {0};
+
+  memset(clone_buffer, 0, clone_buffer_size);
+
+  fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
+
+  do {
+    read_start_position = sceKernelLseek(fd_src, 0, 1);
+    bytes_read          = sceKernelGetdirentries(fd_src, clone_buffer, clone_buffer_size, &basep);
+    // Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
+    if (bytes_read <= 0) break;
+
+    dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
+    // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name,
+    //     "type:", static_cast<u16>(dirent->d_type), "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
+    for (entry_offset = 0; (entry_offset < bytes_read) && (dirent->d_reclen > 0); entry_offset += dirent->d_reclen) {
+      dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
+
+      if (dump_clone) dump_clone(dump_vector, dirent);
     }
     // Log("End position:", entry_offset, "/", clone_buffer_size);
   } while (--_canary);
@@ -352,10 +458,40 @@ TEST(DirentTests, CompareDirentsAPP0) {
 
   //
 
-  LogTest("Clone PFS (read) to", clone_target_read);
+  LogTest("Read entries from /app0 (read) and clone to", clone_target_read);
   iterate_pfs_read(entries_read, directory_source, clone_target_read, dump_clone_read);
-  LogTest("Clone PFS (getdirentries) to", clone_target_getdents);
+  LogTest("Read entries from /app0 (getdirentries) and clone to", clone_target_getdents);
   iterate_pfs_getdirents(entries_getdirentries, directory_source, clone_target_getdents, dump_clone_getdirentries);
+
+for(const auto& filename:entries_read){
+  
+}
+
+  std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
+  std::sort(entries_read.begin(), entries_read.end());
+
+  CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not equal");
+}
+
+TEST(DirentTests, CompareDirentsData) {
+  LogTest("Compare regular read&getdirentries");
+
+  ///
+  /// Setup dumping directory
+  ///
+
+  const char* clone_target_getdents = "/data/enderman/clone_getdents";
+  const char* clone_target_read     = "/data/enderman/clone_read";
+
+  std::vector<std::string> entries_read {};
+  std::vector<std::string> entries_getdirentries {};
+
+  //
+
+  LogTest("Read entries from /data (read)", clone_target_read);
+  iterate_normal_read(entries_read, clone_target_getdents, dirent_normal_aggregate);
+  LogTest("Read entries from /data (getdirentries)", clone_target_getdents);
+  iterate_normal_getdirents(entries_getdirentries, clone_target_getdents, dirent_normal_aggregate);
 
   std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
   std::sort(entries_read.begin(), entries_read.end());
