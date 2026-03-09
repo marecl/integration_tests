@@ -348,6 +348,149 @@ TEST(FilesystemTests, StatDumpTests) {
   CHECK_TRUE_TEXT(!TestLStat("/av_contents"), "LStat shouldn't work on /av_contents");
 }
 
+TEST(FilesystemTests, FileResolutionTests) {
+  Log();
+  Log("\t<<<< Reachability and path resolution >>>>");
+  Log("\tSymlinks are not functional yet i think");
+  Log();
+
+  const char* dir_main = "/data/therapist/resolve";
+  // base patterns
+  const char* dirA  = "/data/therapist/resolve/dirA";
+  const char* dirB  = "/data/therapist/resolve/dirB";
+  const char* fileA = "/data/therapist/resolve/fileA";
+  const char* fileB = "/data/therapist/resolve/fileB";
+  // const char* symlinkFileA = "/data/therapist/resolve/symlinkFileA";
+  // const char* symlinkDirA  = "/data/therapist/resolve/symlinkDirA";
+  // edge cases
+  const char* dirAslash  = "/data/therapist/resolve/dirA/";
+  const char* fileAslash = "/data/therapist/resolve/fileA/";
+  // const char* symlinkFileAslash = "/data/therapist/resolve/symlinkFileA/";
+  // const char* symlinkDirAslash  = "/data/therapist/resolve/symlinkDirA/";
+  //
+  const char* dirAslashd  = "/data/therapist/resolve/dirA/.";
+  const char* fileAslashd = "/data/therapist/resolve/fileA/.";
+  // const char* symlinkFileAslashd = "/data/therapist/resolve/symlinkFileA/.";
+  // const char* symlinkDirAslashd  = "/data/therapist/resolve/symlinkDirA/.";
+  //
+  const char* dirAslashdd  = "/data/therapist/resolve/dirA/..";
+  const char* fileAslashdd = "/data/therapist/resolve/fileA/..";
+  // const char* symlinkFileAslashdd = "/data/therapist/resolve/symlinkFileA/..";
+  // const char* symlinkDirAslashdd  = "/data/therapist/resolve/symlinkDirA/..";
+
+  RegenerateDir("/data/therapist/resolve");
+  CHECK_EQUAL_ZERO(sceKernelMkdir(dirA, 0777));
+  CHECK_EQUAL_ZERO(sceKernelMkdir(dirB, 0777));
+  CHECK_EQUAL_ZERO(touch(fileA));
+  CHECK_EQUAL_ZERO(touch(fileB));
+  // CHECK_EQUAL_ZERO(symlink(symlinkFileA, fileA));
+  // CHECK_EQUAL_ZERO(symlink(symlinkDirA, dirA));
+
+  struct stat dir_st {};
+  struct stat dirA_st {};
+  struct stat dirB_st {};
+  struct stat fileA_st {};
+  struct stat fileB_st {};
+  // struct stat symlinkFileA_st {};
+  // struct stat symlinkDirA_st {};
+
+  auto qcmp = [](const struct stat& left, const struct stat& right) -> bool {
+    return memcmp(&left, &right, 24) == 0; // basically everything that matters
+  };
+
+  // clang-format off
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dir_main, &dir_st));              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dirA, &dirA_st));                 CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dirB, &dirB_st));                 CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(fileA, &fileA_st));               CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(fileB, &fileB_st));               CHECK_EQUAL_ZERO(errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkFileA, &symlinkFileA_st));  CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkDirA, &symlinkDirA_st));    CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dirA));                               CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dirB));                               CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(fileA));                              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(fileB));                              CHECK_EQUAL_ZERO(errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkFileA)); CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkDirA));  CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dirAslash));          CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(fileAslash));         CHECK_EQUAL_ZERO(errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkFileAslash));  CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkDirAslash));   CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dirAslashd));                               CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(fileAslashd));        CHECK_EQUAL_ZERO(errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkFileAslashd)); CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkDirAslashd));  CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dirAslashdd));                                CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(fileAslashdd));         CHECK_EQUAL_ZERO(errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkFileAslashdd));  CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(symlinkDirAslashdd));   CHECK_EQUAL(ENOENT, errno);
+
+  struct stat st {};
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dirA, &st));                CHECK_EQUAL_ZERO(errno);    CHECK_TRUE(qcmp(st, dirA_st));
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dirB, &st));                CHECK_EQUAL_ZERO(errno);    CHECK_TRUE(qcmp(st, dirB_st));
+  errno = 0;  CHECK_EQUAL_ZERO(stat(fileA, &st));               CHECK_EQUAL_ZERO(errno);    CHECK_TRUE(qcmp(st, fileA_st));
+  errno = 0;  CHECK_EQUAL_ZERO(stat(fileB, &st));               CHECK_EQUAL_ZERO(errno);    CHECK_TRUE(qcmp(st, fileB_st));
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkFileA, &st));         CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkDirA, &st));          CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dirAslash, &st));           CHECK_EQUAL_ZERO(errno);    CHECK_TRUE(qcmp(st, dirA_st));
+  errno = 0;  CHECK_EQUAL(-1, stat(fileAslash, &st));           CHECK_EQUAL(ENOTDIR, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkFileAslash, &st));    CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkDirAslash, &st));     CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dirAslashd, &st));          CHECK_EQUAL_ZERO(errno);    CHECK_TRUE(qcmp(st, dirA_st));
+  errno = 0;  CHECK_EQUAL(-1, stat(fileAslashd, &st));          CHECK_EQUAL(ENOTDIR, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkFileAslashd, &st));   CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkDirAslashd, &st));    CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dirAslashdd, &st));         CHECK_EQUAL_ZERO(errno);    CHECK_TRUE(qcmp(st, dir_st));
+  errno = 0;  CHECK_EQUAL(-1, stat(fileAslashdd, &st));         CHECK_EQUAL(ENOTDIR, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkFileAslashdd, &st));  CHECK_EQUAL(ENOENT, errno);
+  // errno = 0;  CHECK_EQUAL(-1, stat(symlinkDirAslashdd, &st));   CHECK_EQUAL(ENOENT, errno);
+  // clang-format on
+}
+
+TEST(FilesystemTests, TestDevSymlinks) {
+  Log();
+  Log("\t<<<< Symlink reachability and path resolution for /dev >>>>");
+  Log("\tThis is a supplement to FileResolutionTests");
+  Log("\tAlso, apparently nothing in /dev/should be accessible");
+  Log();
+
+  const char* dev_stdin    = "/dev/stdin";
+  const char* dev_stdin_fd = "/dev/fd/0";
+
+  struct stat            dev_stdin_st {};
+  struct stat            dev_stdin_fd_st {};
+  struct OrbisKernelStat dev_stdin_ost {};
+  struct OrbisKernelStat dev_stdin_fd_ost {};
+
+  int fd;
+
+  // clang-format off
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdin));    CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdin_fd)); CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdin, &dev_stdin_st));        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdin_fd, &dev_stdin_fd_st));  CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdin, &dev_stdin_ost));       CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdin_fd, &dev_stdin_fd_ost)); CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdin, &dev_stdin_st));       CHECK_EQUAL(EPERM, errno);
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdin_fd, &dev_stdin_fd_st)); CHECK_EQUAL(EPERM, errno);
+
+  errno = 0;  fd    = sceKernelOpen(dev_stdin, O_RDONLY, 0777);     CHECK_EQUAL(fd, ORBIS_KERNEL_ERROR_EBADF);  CHECK_EQUAL(EBADF, errno);
+  errno = 0; CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdin_ost));
+  errno = 0; CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd)); CHECK_EQUAL(EBADF, errno);
+
+  errno = 0;  fd    = sceKernelOpen(dev_stdin_fd, O_RDONLY, 0777);  CHECK_EQUAL(fd, ORBIS_KERNEL_ERROR_EBADF);  CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdin_fd_ost));
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd)); CHECK_EQUAL(EBADF, errno);
+  // clang-format on
+}
+
 void RunTests() {
 
   Log();
