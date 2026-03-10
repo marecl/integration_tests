@@ -451,6 +451,268 @@ TEST(FilesystemTests, FileResolutionTests) {
   // clang-format on
 }
 
+TEST(FilesystemTests, InterMountRelations) {
+  Log();
+  Log("\t<<<< Intermount relations >>>>");
+  Log("\tPath resolution between mountpoints");
+  Log();
+
+  const char* dir_root     = "/";
+  const char* dir_data     = "/data";
+  const char* dir_data_s   = "/data/";
+  const char* dir_data_sd  = "/data/.";
+  const char* dir_data_sdd = "/data/..";
+
+  struct stat            dir_st {};
+  struct stat            dir_data_st {};
+  struct stat            dir_data_s_st {};
+  struct stat            dir_data_sd_st {};
+  struct stat            dir_data_sdd_st {};
+  struct OrbisKernelStat dir_ost {};
+  struct OrbisKernelStat dir_data_ost {};
+  struct OrbisKernelStat dir_data_s_ost {};
+  struct OrbisKernelStat dir_data_sd_ost {};
+  struct OrbisKernelStat dir_data_sdd_ost {};
+
+  int fd;
+
+  auto qcmp = [](const struct stat& left, const struct stat& right) -> bool {
+    return memcmp(&left, &right, 24) == 0; // basically everything that matters
+  };
+
+  // clang-format off
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dir_root, &dir_st));                                        CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dir_data, &dir_data_st));                                   CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dir_data_s, &dir_data_s_st));                               CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dir_data_sd, &dir_data_sd_st));                             CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(stat(dir_data_sdd, &dir_data_sdd_st));                           CHECK_EQUAL_ZERO(errno);
+
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelStat(dir_root, &dir_ost));                              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelStat(dir_data, &dir_data_ost));                         CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelStat(dir_data_s, &dir_data_s_ost));                     CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelStat(dir_data_sd, &dir_data_sd_ost));                   CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelStat(dir_data_sdd, &dir_data_sdd_ost));                 CHECK_EQUAL_ZERO(errno);
+  // clang-format on
+
+  LogSuccess("stat");
+  Log(dir_root, "\t\t", dir_st.st_ino, dir_ost.st_ino);
+  Log(dir_data, "\t\t", dir_data_st.st_ino, dir_data_ost.st_ino);
+  Log(dir_data_s, "\t\t", dir_data_s_st.st_ino, dir_data_s_ost.st_ino);
+  Log(dir_data_sd, "\t\t", dir_data_sd_st.st_ino, dir_data_sd_ost.st_ino);
+  Log(dir_data_sdd, "\t\t", dir_data_sdd_st.st_ino, dir_data_sdd_ost.st_ino);
+
+  // clang-format off
+  errno = 0;  fd    = sceKernelOpen(dir_root, O_RDONLY, 0777);          CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelFstat(fd, &dir_ost));           CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelClose(fd));                     CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = sceKernelOpen(dir_data, O_RDONLY, 0777);          CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelFstat(fd, &dir_data_ost));      CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelClose(fd));                     CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = sceKernelOpen(dir_data_s, O_RDONLY, 0777);        CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelFstat(fd, &dir_data_s_ost));    CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelClose(fd));                     CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = sceKernelOpen(dir_data_sd, O_RDONLY, 0777);       CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelFstat(fd, &dir_data_sd_ost));   CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelClose(fd));                     CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = sceKernelOpen(dir_data_sdd, O_RDONLY, 0777);      CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelFstat(fd, &dir_data_sdd_ost));  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelClose(fd));                     CHECK_EQUAL_ZERO(errno);
+
+  errno = 0;  fd    = open(dir_root, O_RDONLY, 0777);                   CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(fstat(fd, &dir_st));                     CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(close(fd));                              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = open(dir_data, O_RDONLY, 0777);                   CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(fstat(fd, &dir_data_st));                CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(close(fd));                              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = open(dir_data_s, O_RDONLY, 0777);                 CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(fstat(fd, &dir_data_s_st));              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(close(fd));                              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = open(dir_data_sd, O_RDONLY, 0777);                CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(fstat(fd, &dir_data_sd_st));             CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(close(fd));                              CHECK_EQUAL_ZERO(errno);
+  errno = 0;  fd    = open(dir_data_sdd, O_RDONLY, 0777);               CHECK_COMPARE(0, <, fd);  CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(fstat(fd, &dir_data_sdd_st));            CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(close(fd));                              CHECK_EQUAL_ZERO(errno);
+  // clang-format on
+
+  LogSuccess("fstat");
+  Log(dir_root, "\t\t", dir_st.st_ino, dir_ost.st_ino);
+  Log(dir_data, "\t\t", dir_data_st.st_ino, dir_data_ost.st_ino);
+  Log(dir_data_s, "\t\t", dir_data_s_st.st_ino, dir_data_s_ost.st_ino);
+  Log(dir_data_sd, "\t\t", dir_data_sd_st.st_ino, dir_data_sd_ost.st_ino);
+  Log(dir_data_sdd, "\t\t", dir_data_sdd_st.st_ino, dir_data_sdd_ost.st_ino);
+
+  // clang-format off
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dir_root));                           CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dir_data));                           CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dir_data_s));   CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dir_data_sd));                        CHECK_EQUAL_ZERO(errno);
+  errno = 0;  CHECK_EQUAL_ZERO(sceKernelCheckReachability(dir_data_sdd));                       CHECK_EQUAL_ZERO(errno);
+  // clang-format on
+}
+
+TEST(FilesystemTests, DirectoryRelatives) {
+  // relatives only, i.e. [.] and [..]
+  Log();
+  Log("\t<<<< Dirent relatives (Therapist abridged) >>>>");
+  Log("\tHow dirents see relations with their parents");
+  Log();
+
+  /**
+   * What i think it is, is that it always looks for the beginning of the dirent.
+   * So if it would be truncated from the front, it reads it from the beginning
+   * There is a guarantee that all dirents will not be cut off
+   */
+
+  const char* dir_root     = "/";
+  const char* dir_data     = "/data";
+  const char* dir_data_s   = "/data/";
+  const char* dir_data_sd  = "/data/.";
+  const char* dir_data_sdd = "/data/..";
+
+  oi::FolderDirent dirent_root_self {};
+  oi::FolderDirent dirent_root_parent {};
+  oi::FolderDirent dirent_data_self {};
+  oi::FolderDirent dirent_data_parent {};
+  oi::FolderDirent dirent_data_s_self {};
+  oi::FolderDirent dirent_data_s_parent {};
+  oi::FolderDirent dirent_data_sd_self {};
+  oi::FolderDirent dirent_data_sd_parent {};
+  oi::FolderDirent dirent_data_sdd_self {};
+  oi::FolderDirent dirent_data_sdd_parent {};
+
+  int           fd {};
+  s32           tbr {};
+  constexpr u32 buffer_size = 512;
+  constexpr u32 view_size   = 48;
+  char          buffer[buffer_size] {0};
+
+  auto quickprint = [vs = &view_size](std::string title, const void* array) -> void {
+    std::string out {title};
+    for (u32 idx = 0; idx < *vs; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex(*(reinterpret_cast<const u8*>(array) + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    Log(out);
+  };
+
+  auto divide12 = [](char* buffer, oi::FolderDirent* self, oi::FolderDirent* parent) -> void {
+    memcpy(reinterpret_cast<u8*>(self), buffer, 12);
+    memcpy(reinterpret_cast<u8*>(parent), buffer + 12, 12);
+  };
+
+  // clang-format off
+  errno = 0;  memset(buffer,0xAA,buffer_size);  fd = sceKernelOpen(dir_root, O_RDONLY, 0777); CHECK_COMPARE(0, <, fd); 
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(180,tbr);  CHECK_EQUAL_ZERO(errno);
+  quickprint("\t"+std::string{dir_root}, buffer); divide12(buffer, &dirent_root_self, &dirent_root_parent);
+  errno = 0;   CHECK_EQUAL_ZERO(sceKernelClose(fd));  CHECK_EQUAL_ZERO(errno);
+
+  errno = 0;  memset(buffer,0xAA,buffer_size);  fd = sceKernelOpen(dir_data, O_RDONLY, 0777); CHECK_COMPARE(0, <, fd); 
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(512,tbr);  CHECK_EQUAL_ZERO(errno);
+  quickprint("\t"+std::string{dir_data}, buffer); 
+  errno = 0;   CHECK_EQUAL_ZERO(sceKernelClose(fd));  CHECK_EQUAL_ZERO(errno);
+
+  errno = 0;  memset(buffer,0xAA,buffer_size);  fd = sceKernelOpen(dir_data_s, O_RDONLY, 0777); CHECK_COMPARE(0, <, fd); 
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(512,tbr);  CHECK_EQUAL_ZERO(errno);
+  quickprint("\t"+std::string{dir_data_s}, buffer); 
+  errno = 0;   CHECK_EQUAL_ZERO(sceKernelClose(fd));  CHECK_EQUAL_ZERO(errno);
+
+  errno = 0;  memset(buffer,0xAA,buffer_size);  fd = sceKernelOpen(dir_data_sd, O_RDONLY, 0777); CHECK_COMPARE(0, <, fd); 
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(512,tbr);  CHECK_EQUAL_ZERO(errno);
+  quickprint("\t"+std::string{dir_data_sd}, buffer);
+  errno = 0;   CHECK_EQUAL_ZERO(sceKernelClose(fd));  CHECK_EQUAL_ZERO(errno);
+
+  errno = 0;  memset(buffer,0xAA,buffer_size);  fd = sceKernelOpen(dir_data_sdd, O_RDONLY, 0777); CHECK_COMPARE(0, <, fd); 
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(180, tbr); CHECK_EQUAL_ZERO(errno);
+  quickprint("\t"+std::string{dir_data_sdd}, buffer);
+  errno = 0;   CHECK_EQUAL_ZERO(sceKernelClose(fd));  CHECK_EQUAL_ZERO(errno);
+  // clang-format on
+}
+
+TEST(FilesystemTests, PartialGetdirentries) {
+  // relatives only, i.e. [.] and [..]
+  Log();
+  Log("\t<<<< Dirent small read sizes >>>>");
+  Log("\tHow dirents see relations with their parents");
+  Log();
+
+  /**
+   * What i think it is, is that it always looks for the beginning of the dirent.
+   * So if it would be truncated from the front, it reads it from the beginning
+   * There is a guarantee that all dirents will not be cut off
+   */
+
+  const char* dir_test       = "/data/therapist/partialdirents";
+  const char* dir_shortDir   = "/data/therapist/partialdirents/d";
+  const char* dir_shortDir2  = "/data/therapist/partialdirents/ddddd";
+  const char* dir_shortFile  = "/data/therapist/partialdirents/f";
+  const char* dir_shortFile2 = "/data/therapist/partialdirents/fffff";
+  const char* dir_shortFile3 = "/data/therapist/partialdirents/fffffffff";
+  const char* dir_shortDir3  = "/data/therapist/partialdirents/ddddddddd";
+
+  RegenerateDir(dir_test);
+  CHECK_EQUAL_ZERO(sceKernelMkdir(dir_shortDir, 0777));
+  CHECK_EQUAL_ZERO(sceKernelMkdir(dir_shortDir2, 0777));
+  CHECK_EQUAL_ZERO(touch(dir_shortFile));
+  CHECK_EQUAL_ZERO(sceKernelMkdir(dir_shortDir3, 0777));
+  CHECK_EQUAL_ZERO(touch(dir_shortFile2));
+  CHECK_EQUAL_ZERO(touch(dir_shortFile3));
+
+  int           fd {};
+  s32           tbr {};
+  constexpr u32 buffer_size = 512;
+  constexpr u32 view_size   = 48;
+  char          buffer[buffer_size] {0};
+
+  auto quickprint = [vs = &view_size, bs = &buffer_size](std::string title, const void* array) -> void {
+    std::string out {title};
+    auto        lim = (*vs) / 2;
+    for (u32 idx = 0; idx < lim; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex(*(reinterpret_cast<const u8*>(array) + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    out += "\r\n\t\t\t\t\t\t----------";
+    for (u32 idx = 0; idx < lim; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex(*(reinterpret_cast<const u8*>(array) + *bs - lim + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    Log(out);
+  };
+
+  // clang-format off
+  errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);    CHECK_COMPARE(0, <, fd); 
+
+  errno = 0;  CHECK_EQUAL(0,sceKernelLseek(fd,0,0));                          CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(512,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+0:", buffer);
+  errno = 0;  CHECK_EQUAL(8,sceKernelLseek(fd,8,0));                          CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(504,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+8:", buffer);
+  errno = 0;  CHECK_EQUAL(11,sceKernelLseek(fd,11,0));                        CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(501,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+11:", buffer);
+  errno = 0;  CHECK_EQUAL(12,sceKernelLseek(fd,12,0));                        CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(500,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+12:", buffer);
+  errno = 0;  CHECK_EQUAL(13,sceKernelLseek(fd,13,0));                        CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(499,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+13:", buffer);
+  errno = 0;  CHECK_EQUAL(23,sceKernelLseek(fd,23,0));                        CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(489,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+23:", buffer);
+  errno = 0;  CHECK_EQUAL(24,sceKernelLseek(fd,24,0));                        CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(488,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+24:", buffer);
+  errno = 0;  CHECK_EQUAL(25,sceKernelLseek(fd,25,0));                        CHECK_EQUAL_ZERO(errno);  memset(buffer,0xAA,buffer_size);
+  errno = 0;  tbr = sceKernelGetdirentries(fd, buffer, buffer_size,nullptr);  CHECK_EQUAL(487,tbr);     CHECK_EQUAL_ZERO(errno);
+  quickprint("\tSTART+25:", buffer);
+  errno = 0;   CHECK_EQUAL_ZERO(sceKernelClose(fd));                CHECK_EQUAL_ZERO(errno);
+  // clang-format on
+}
+
 TEST(FilesystemTests, TestDevSymlinks) {
   Log();
   Log("\t<<<< Symlink reachability and path resolution for /dev >>>>");
@@ -458,36 +720,100 @@ TEST(FilesystemTests, TestDevSymlinks) {
   Log("\tAlso, apparently nothing in /dev/should be accessible");
   Log();
 
-  const char* dev_stdin    = "/dev/stdin";
-  const char* dev_stdin_fd = "/dev/fd/0";
+  const char* dev_stdin     = "/dev/stdin";
+  const char* dev_stdout    = "/dev/stdout";
+  const char* dev_stderr    = "/dev/stderr";
+  const char* dev_stdin_fd  = "/dev/fd/0";
+  const char* dev_stdout_fd = "/dev/fd/1";
+  const char* dev_stderr_fd = "/dev/fd/2";
 
-  struct stat            dev_stdin_st {};
-  struct stat            dev_stdin_fd_st {};
+  struct stat dev_stdin_st {};
+  struct stat dev_stdin_fd_st {};
+  struct stat dev_stdout_st {};
+  struct stat dev_stdout_fd_st {};
+  struct stat dev_stderr_st {};
+  struct stat dev_stderr_fd_st {};
+
   struct OrbisKernelStat dev_stdin_ost {};
   struct OrbisKernelStat dev_stdin_fd_ost {};
+  struct OrbisKernelStat dev_stdout_ost {};
+  struct OrbisKernelStat dev_stdout_fd_ost {};
+  struct OrbisKernelStat dev_stderr_ost {};
+  struct OrbisKernelStat dev_stderr_fd_ost {};
 
   int fd;
 
   // clang-format off
-  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdin));    CHECK_EQUAL(ENOENT, errno);
-  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdin_fd)); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdin));      CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdin_fd));   CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdout));     CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stdout_fd));  CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stderr));     CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelCheckReachability(dev_stderr_fd));  CHECK_EQUAL(ENOENT, errno);
 
-  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdin, &dev_stdin_st));        CHECK_EQUAL(ENOENT, errno);
-  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdin_fd, &dev_stdin_fd_st));  CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdin, &dev_stdin_ost));           CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdin_fd, &dev_stdin_fd_ost));     CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdout, &dev_stdout_ost));         CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdout_fd, &dev_stdout_fd_ost));   CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stderr, &dev_stderr_ost));         CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stderr_fd, &dev_stderr_fd_ost));   CHECK_EQUAL(ENOENT, errno);
 
-  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdin, &dev_stdin_ost));       CHECK_EQUAL(ENOENT, errno);
-  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, sceKernelStat(dev_stdin_fd, &dev_stdin_fd_ost)); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  fd    = sceKernelOpen(dev_stdin, O_RDONLY, 0777);       CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, fd); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdin_ost));                          CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd));                                          CHECK_EQUAL(EBADF, errno);
+  errno = 0;  fd    = sceKernelOpen(dev_stdin_fd, O_RDONLY, 0777);    CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, fd); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdin_fd_ost));                       CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd));                                          CHECK_EQUAL(EBADF, errno);
 
-  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdin, &dev_stdin_st));       CHECK_EQUAL(EPERM, errno);
-  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdin_fd, &dev_stdin_fd_st)); CHECK_EQUAL(EPERM, errno);
+  errno = 0;  fd    = sceKernelOpen(dev_stdout, O_RDONLY, 0777);      CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, fd); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdout_ost));                         CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd));                                          CHECK_EQUAL(EBADF, errno);
+  errno = 0;  fd    = sceKernelOpen(dev_stdout_fd, O_RDONLY, 0777);   CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, fd); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdout_fd_ost));                      CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd));                                          CHECK_EQUAL(EBADF, errno);
 
-  errno = 0;  fd    = sceKernelOpen(dev_stdin, O_RDONLY, 0777);     CHECK_EQUAL(fd, ORBIS_KERNEL_ERROR_EBADF);  CHECK_EQUAL(EBADF, errno);
-  errno = 0; CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdin_ost));
-  errno = 0; CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd)); CHECK_EQUAL(EBADF, errno);
+  errno = 0;  fd    = sceKernelOpen(dev_stderr, O_RDONLY, 0777);      CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, fd); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stderr_ost));                         CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd));                                          CHECK_EQUAL(EBADF, errno);
+  errno = 0;  fd    = sceKernelOpen(dev_stderr_fd, O_RDONLY, 0777);   CHECK_EQUAL(ORBIS_KERNEL_ERROR_ENOENT, fd); CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stderr_fd_ost));                      CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd));                                          CHECK_EQUAL(EBADF, errno);
 
-  errno = 0;  fd    = sceKernelOpen(dev_stdin_fd, O_RDONLY, 0777);  CHECK_EQUAL(fd, ORBIS_KERNEL_ERROR_EBADF);  CHECK_EQUAL(EBADF, errno);
-  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelFstat(fd, &dev_stdin_fd_ost));
-  errno = 0;  CHECK_EQUAL(ORBIS_KERNEL_ERROR_EBADF, sceKernelClose(fd)); CHECK_EQUAL(EBADF, errno);
+
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdin, &dev_stdin_st));          CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdin_fd, &dev_stdin_fd_st));    CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdout, &dev_stdout_st));        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stdout_fd, &dev_stdout_fd_st));  CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stderr, &dev_stderr_st));        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, stat(dev_stderr_fd, &dev_stderr_fd_st));  CHECK_EQUAL(ENOENT, errno);
+
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdin, &dev_stdin_st));         CHECK_EQUAL(EPERM, errno);
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdin_fd, &dev_stdin_fd_st));   CHECK_EQUAL(EPERM, errno);
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdout, &dev_stdout_st));       CHECK_EQUAL(EPERM, errno);
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stdout_fd, &dev_stdout_fd_st)); CHECK_EQUAL(EPERM, errno);
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stderr, &dev_stderr_st));       CHECK_EQUAL(EPERM, errno);
+  errno = 0;  CHECK_EQUAL(-1, lstat(dev_stderr_fd, &dev_stderr_fd_st)); CHECK_EQUAL(EPERM, errno);
+
+  errno = 0;  fd    = open(dev_stdin, O_RDONLY, 0777);        CHECK_EQUAL(-1, fd);        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, fstat(fd, &dev_stdin_st));      CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(-1, close(fd));                     CHECK_EQUAL(EBADF, errno);
+  errno = 0;  fd    = open(dev_stdin_fd, O_RDONLY, 0777);     CHECK_EQUAL(-1, fd);        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, fstat(fd, &dev_stdin_fd_st));   CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(-1, close(fd));                     CHECK_EQUAL(EBADF, errno);
+
+  errno = 0;  fd    = open(dev_stdout, O_RDONLY, 0777);       CHECK_EQUAL(-1, fd);        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, fstat(fd, &dev_stdout_st));     CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(-1, close(fd));                     CHECK_EQUAL(EBADF, errno);
+  errno = 0;  fd    = open(dev_stdout_fd, O_RDONLY, 0777);    CHECK_EQUAL(-1, fd);        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, fstat(fd, &dev_stdout_fd_st));  CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(-1, close(fd));                     CHECK_EQUAL(EBADF, errno);
+
+  errno = 0;  fd    = open(dev_stderr, O_RDONLY, 0777);       CHECK_EQUAL(-1, fd);        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, fstat(fd, &dev_stderr_st));     CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(-1, close(fd));                     CHECK_EQUAL(EBADF, errno);
+  errno = 0;  fd    = open(dev_stderr_fd, O_RDONLY, 0777);    CHECK_EQUAL(-1, fd);        CHECK_EQUAL(ENOENT, errno);
+  errno = 0;  CHECK_EQUAL(-1, fstat(fd, &dev_stderr_fd_st));  CHECK_EQUAL(EBADF, errno);
+  errno = 0;  CHECK_EQUAL(-1, close(fd));                     CHECK_EQUAL(EBADF, errno);
   // clang-format on
 }
 
