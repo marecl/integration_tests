@@ -5,6 +5,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 
 #define STR(x) std::to_string(x)
 
@@ -12,8 +13,20 @@ std::ostream& center(std::ostream& os, const std::string& s, int width);
 std::string   center(const std::string& s, int width);
 std::ostream& right(std::ostream& os, const std::string& s, int width);
 std::string   right(const std::string& s, int width);
-std::string   to_octal(int value);
-std::string   to_hex(int value);
+
+template <typename T>
+std::string to_octal(T value) {
+  std::ostringstream oss;
+  oss << std::oct << value;
+  return oss.str();
+}
+
+template <typename T>
+std::string to_hex(T value) {
+  std::ostringstream oss;
+  oss << std::hex << value;
+  return oss.str();
+}
 
 template <typename... Args>
 void LogCustom(const char* fn, const char* msg, Args&&... args) {

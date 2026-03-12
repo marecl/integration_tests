@@ -81,93 +81,93 @@ s64 DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx) {
   return tbr;
 }
 
-void DumpDirectory(int fd, int buffer_size, s64 offset) {
-  char* buffer = new char[buffer_size] {0};
+// void DumpDirectory(int fd, int buffer_size, s64 offset) {
+//   char* buffer = new char[buffer_size] {0};
 
-  std::string file_basename = "dump_" + std::to_string(buffer_size) + '+' + std::to_string(offset);
+//   std::string file_basename = "dump_" + std::to_string(buffer_size) + '+' + std::to_string(offset);
 
-  fs::path read_path       = "/data/enderman/dump_data_read/" + file_basename + ".bin";
-  fs::path dirent_path     = "/data/enderman/dump_data_getdents/" + file_basename + ".bin";
-  fs::path read_cue_path   = "/data/enderman/dump_data_read/" + file_basename + ".cue";
-  fs::path dirent_cue_path = "/data/enderman/dump_data_getdents/" + file_basename + ".cue";
+//   fs::path read_path       = "/data/enderman/dump_data_read/" + file_basename + ".bin";
+//   fs::path dirent_path     = "/data/enderman/dump_data_getdents/" + file_basename + ".bin";
+//   fs::path read_cue_path   = "/data/enderman/dump_data_read/" + file_basename + ".cue";
+//   fs::path dirent_cue_path = "/data/enderman/dump_data_getdents/" + file_basename + ".cue";
 
-  LogTest("normal", "directory, fd =", fd, "buffer size =", buffer_size, "starting offset =", offset);
+//   LogTest("normal", "directory, fd =", fd, "buffer size =", buffer_size, "starting offset =", offset);
 
-  s64 tbr         = 0;
-  u16 max_loops   = 0; // 65536 iterations lmao
-  int fd_read     = sceKernelOpen(read_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  int fd_read_cue = sceKernelOpen(read_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-  while (--max_loops) {
-    tbr = DumpByRead(fd, fd_read, buffer, buffer_size);
-    sceKernelWrite(fd_read_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-    if (tbr <= 0) break;
-  }
-  if (0 == max_loops) LogError("Aborted");
-  sceKernelClose(fd_read);
-  sceKernelClose(fd_read_cue);
+//   s64 tbr         = 0;
+//   u16 max_loops   = 0; // 65536 iterations lmao
+//   int fd_read     = sceKernelOpen(read_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   int fd_read_cue = sceKernelOpen(read_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
+//   while (--max_loops) {
+//     tbr = DumpByRead(fd, fd_read, buffer, buffer_size);
+//     sceKernelWrite(fd_read_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
+//     if (tbr <= 0) break;
+//   }
+//   if (0 == max_loops) LogError("Aborted");
+//   sceKernelClose(fd_read);
+//   sceKernelClose(fd_read_cue);
 
-  s64 idx           = 0;
-  max_loops         = 0;
-  int fd_dirent     = sceKernelOpen(dirent_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  int fd_dirent_cue = sceKernelOpen(dirent_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-  while (--max_loops) {
-    tbr = DumpByDirent(fd, fd_dirent, buffer, buffer_size, &idx);
-    sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-    sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&idx), sizeof(s64) / sizeof(u8));
-    if (tbr <= 0) break;
-  }
-  if (0 == max_loops) LogError("Aborted");
-  sceKernelClose(fd_dirent);
-  sceKernelClose(fd_dirent_cue);
+//   s64 idx           = 0;
+//   max_loops         = 0;
+//   int fd_dirent     = sceKernelOpen(dirent_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   int fd_dirent_cue = sceKernelOpen(dirent_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
+//   while (--max_loops) {
+//     tbr = DumpByDirent(fd, fd_dirent, buffer, buffer_size, &idx);
+//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
+//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&idx), sizeof(s64) / sizeof(u8));
+//     if (tbr <= 0) break;
+//   }
+//   if (0 == max_loops) LogError("Aborted");
+//   sceKernelClose(fd_dirent);
+//   sceKernelClose(fd_dirent_cue);
 
-  delete[] buffer;
-}
+//   delete[] buffer;
+// }
 
-void DumpDirectoryPFS(int fd, int buffer_size, s64 offset) {
-  char* buffer = new char[buffer_size] {0};
+// void DumpDirectoryPFS(int fd, int buffer_size, s64 offset) {
+//   char* buffer = new char[buffer_size] {0};
 
-  std::string file_basename = "dump_" + std::to_string(buffer_size) + '+' + std::to_string(offset);
+//   std::string file_basename = "dump_" + std::to_string(buffer_size) + '+' + std::to_string(offset);
 
-  fs::path read_path       = "/data/enderman/dump_pfs_read/read_" + file_basename + ".bin";
-  fs::path dirent_path     = "/data/enderman/dump_pfs_getdents/dirent_" + file_basename + ".bin";
-  fs::path read_cue_path   = "/data/enderman/dump_pfs_read/read_" + file_basename + ".cue";
-  fs::path dirent_cue_path = "/data/enderman/dump_pfs_getdents/dirent_" + file_basename + ".cue";
+//   fs::path read_path       = "/data/enderman/dump_pfs_read/read_" + file_basename + ".bin";
+//   fs::path dirent_path     = "/data/enderman/dump_pfs_getdents/dirent_" + file_basename + ".bin";
+//   fs::path read_cue_path   = "/data/enderman/dump_pfs_read/read_" + file_basename + ".cue";
+//   fs::path dirent_cue_path = "/data/enderman/dump_pfs_getdents/dirent_" + file_basename + ".cue";
 
-  LogTest("PFS directory, fd =", fd, "buffer size =", buffer_size, "starting offset =", offset);
+//   LogTest("PFS directory, fd =", fd, "buffer size =", buffer_size, "starting offset =", offset);
 
-  s64 tbr         = 0;
-  u16 max_loops   = 0; // 65536 iterations lmao
-  int fd_read     = sceKernelOpen(read_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  int fd_read_cue = sceKernelOpen(read_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-  while (--max_loops) {
-    tbr = DumpByRead(fd, fd_read, buffer, buffer_size);
-    sceKernelWrite(fd_read_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-    if (tbr <= 0) break;
-  }
-  if (0 == max_loops) LogError("Aborted");
-  sceKernelClose(fd_read);
-  sceKernelClose(fd_read_cue);
+//   s64 tbr         = 0;
+//   u16 max_loops   = 0; // 65536 iterations lmao
+//   int fd_read     = sceKernelOpen(read_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   int fd_read_cue = sceKernelOpen(read_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
+//   while (--max_loops) {
+//     tbr = DumpByRead(fd, fd_read, buffer, buffer_size);
+//     sceKernelWrite(fd_read_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
+//     if (tbr <= 0) break;
+//   }
+//   if (0 == max_loops) LogError("Aborted");
+//   sceKernelClose(fd_read);
+//   sceKernelClose(fd_read_cue);
 
-  s64 idx           = 0;
-  max_loops         = 0;
-  int fd_dirent     = sceKernelOpen(dirent_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  int fd_dirent_cue = sceKernelOpen(dirent_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-  if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-  while (--max_loops) {
-    tbr = DumpByDirent(fd, fd_dirent, buffer, buffer_size, &idx);
-    sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-    sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&idx), sizeof(s64) / sizeof(u8));
-    if (tbr <= 0) break;
-  }
-  if (0 == max_loops) LogError("Aborted");
-  sceKernelClose(fd_dirent);
-  sceKernelClose(fd_dirent_cue);
+//   s64 idx           = 0;
+//   max_loops         = 0;
+//   int fd_dirent     = sceKernelOpen(dirent_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   int fd_dirent_cue = sceKernelOpen(dirent_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
+//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
+//   while (--max_loops) {
+//     tbr = DumpByDirent(fd, fd_dirent, buffer, buffer_size, &idx);
+//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
+//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&idx), sizeof(s64) / sizeof(u8));
+//     if (tbr <= 0) break;
+//   }
+//   if (0 == max_loops) LogError("Aborted");
+//   sceKernelClose(fd_dirent);
+//   sceKernelClose(fd_dirent_cue);
 
-  delete[] buffer;
-}
+//   delete[] buffer;
+// }
 
 TEST_GROUP (DirentTests) {
   int  fd;
@@ -305,7 +305,7 @@ s64 iterate_normal_read(const char* source_path, const std::function<s64(oi::Fol
       //     "namelen:", static_cast<u16>(dirent_pfs->d_namlen), "reclen:", dirent_pfs->d_reclen);
 
       // current dirent is >=24 bytes but OOB
-      if ((entry_offset + dirent->d_reclen) > bytes_read) {
+      if ((entry_offset + dirent->d_reclen) >= bytes_read) {
         break;
       }
 
@@ -379,7 +379,7 @@ s64 iterate_getdirentries(const char* source_path, const std::function<s64(oi::F
 }
 
 TEST(DirentTests, CompareDirentsAPP0) {
-  LogTest("Compare PFS read&getdirentries, clone to /data");
+  LogTest("<<<< Compare PFS read&getdirentries, clone to /data >>>>");
 
   ///
   /// Setup dumping directory
@@ -415,7 +415,7 @@ TEST(DirentTests, CompareDirentsAPP0) {
 }
 
 TEST(DirentTests, CompareDirentsData) {
-  LogTest("Compare regular read&getdirentries");
+  LogTest("<<<< Compare regular read&getdirentries >>>>");
 
   ///
   /// Setup dumping directory
@@ -446,89 +446,375 @@ TEST(DirentTests, CompareDirentsData) {
   CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not equal");
 }
 
-TEST(DirentTests, DirentShortReadNormal) {
-  LogTest("Read small amount of data with dirents");
+bool fillcheck(const void* data, const u64 size, const u8 value) {
+  u64 longval = 0x0101010101010101 * value; // fills entire u64 with one value
+  u32 longs   = (size & ~0x7) >> 3;
+  u8  shorts  = size & 0x07;
+  u64 idx     = 0;
+  for (idx = 0; idx < longs; idx++) {
+    if (longval != *(static_cast<const u64*>(data) + idx)) return false;
+  }
+  for (idx = (longs << 3); idx < size; idx++) {
+    if (value != *(static_cast<const u8*>(data) + idx)) return false;
+  }
+  return true;
+};
 
-  // int fd = sceKernelOpen()
+s64 qmemcmp(const void* object, const void* reflection, s64 size) {
+  // watch out when debugging with logs, variable reads bytes the opposite way (little endian)
+  // certainly faster than regular memcmp, which reads individual bytes, here we try to operate on longlongs
+  u32        longs           = (size & ~0x7) >> 3;
+  u8         shorts          = size & 0x07;
+  const u64* object_ptr      = static_cast<const u64*>(object);
+  const u64* reflection_ptr  = static_cast<const u64*>(reflection);
+  const u8*  object_ptr8     = static_cast<const u8*>(object);
+  const u8*  reflection_ptr8 = static_cast<const u8*>(reflection);
+  u64        idx             = 0;
+  s64        val_o           = 0;
+  s64        val_r           = 0;
+
+  // Log(longs, static_cast<u16>(shorts) & 0xFF);
+  for (idx = 0; idx < longs; idx++) {
+    // target is 64bit, so one step is 8 bytes
+    val_o = *(object_ptr + idx);
+    val_r = *(reflection_ptr + idx);
+    // Log(idx, to_hex(val_o), to_hex(val_r));
+    if (val_o == val_r) continue;
+    // if different, skip the rest to compare shorts
+    longs = idx;
+    break;
+  }
+
+  // Log(longs, static_cast<u16>(shorts) & 0xFF);
+
+  // longlong->byte conversion
+  for (idx <<= 3; idx < size; idx++) {
+    val_o = *(object_ptr8 + idx);
+    val_r = *(reflection_ptr8 + idx);
+    // Log(idx, to_hex(val_o), to_hex(val_r));
+    if (val_o == val_r) {
+      continue;
+    }
+    return idx;
+  }
+
+  return -1;
 }
 
+TEST(DirentTests, DirentShortReadNormal) {
+  LogTest("<<<< Short normal reads >>>>");
+
+  const char* dir_test             = "/data/enderman/partialdirents";
+  char        file_placeholder[92] = "/data/enderman/partialdirents/tomakethingseasierthisfilenameshouldbeover40characterslong_aa";
+  char*       startchar            = file_placeholder + 90;
+  RegenerateDir(dir_test);
+
+  int           fd {};
+  s32           tbr {};
+  constexpr u32 buffer_size   = 4096;
+  u32           view_size     = 24;
+  u32           view_size_end = 24;
+  u32           zero          = 0;
+  char          buffer[buffer_size] {0};
+  char          reflection[buffer_size] {0};
+
+  auto quickprint = [&view_size, &view_size_end, bs = &buffer_size](std::string title, const void* array) -> void {
+    std::string out {title};
+    for (u32 idx = 0; idx < view_size; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    if (0 == view_size_end) {
+      Log(out);
+      return;
+    }
+    out += "\r\n\t\t\t\t\t\t----------";
+    for (u32 idx = 0; idx < view_size_end; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + *bs - view_size_end + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    Log(out);
+  };
+
+  auto rd = [](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
+    auto buffer_ptr = static_cast<char*>(buffer);
+    errno           = 0;
+    CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
+    CHECK_EQUAL_ZERO(errno);
+    memset(buffer_ptr, 0xAA, size);
+    errno = 0;
+    return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
+  };
+
+  // clang-format off
+  errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
+
+  LogTest("EINVAL when size+offset falls before first 512 bytes");
+  for(u16 len=0; len < 512; len+=1){
+    tbr = rd(fd,buffer, len, 511-len);
+    if(tbr >= 0)
+      LogError("Incorrect returns for read size", len, "with offset",511-len);
+    CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr); 
+    CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, len, 0xAA));
+  }
+
+  view_size  = 24;  view_size_end = 24;
+  tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
+  tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 512, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
+
+  view_size  = 24;  view_size_end = 24;
+  tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
+  tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 513, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
+
+  // create some dummy files
+  for (*startchar = 'a'; *startchar < 'z'; *startchar += 1) {
+    CHECK_EQUAL_ZERO(touch(file_placeholder));
+  }
+
+  view_size  = 24;  view_size_end = 24;
+  // view_size  = 24;  view_size_end = 64;
+  // for this test, only "shorter" tbr is taken into account. dirents return data for x sectors only when end of the read happens on the next sector
+  // so 1023+0 is still 512, but 1023 + 5 offset is 507 + 512
+  tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(512, tbr);    CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
+  tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(1019, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed");
+  tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed");
+  tbr = rd(fd, reflection, 1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, 512 - 7), "memory compare failed");
+ 
+  tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
+  tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
+  
+  tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
+  tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
+
+  // clang-format on
+
+  CHECK_EQUAL_ZERO(sceKernelClose(fd));
+}
+
+TEST(DirentTests, DirentShortReadPFS) {
+  LogTest("<<<< Short PFS reads >>>>");
+
+  const char* dir_test = "/app0/assets/misc";
+
+  int           fd {};
+  s32           tbr {};
+  constexpr u32 buffer_size   = 4096;
+  u32           view_size     = 24;
+  u32           view_size_end = 24;
+  u32           zero          = 0;
+  char          buffer[buffer_size] {0};
+  char          reflection[buffer_size] {0};
+
+  auto quickprint = [&view_size, &view_size_end, bs = &buffer_size](std::string title, const void* array) -> void {
+    std::string out {title};
+    for (u32 idx = 0; idx < view_size; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    if (0 == view_size_end) {
+      Log(out);
+      return;
+    }
+    out += "\r\n\t\t\t\t\t\t----------";
+    for (u32 idx = 0; idx < view_size_end; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + *bs - view_size_end + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    Log(out);
+  };
+
+  auto rd = [](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
+    auto buffer_ptr = static_cast<char*>(buffer);
+    errno           = 0;
+    CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
+    CHECK_EQUAL_ZERO(errno);
+    memset(buffer_ptr, 0xAA, size);
+    errno = 0;
+    return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
+  };
+
+  // clang-format off
+  errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
+
+  LogTest("EINVAL when size+offset falls before first 512 bytes");
+  for(u16 len=0; len < 512; len+=1){
+    tbr = rd(fd,buffer, len, 511-len);
+    if(tbr >= 0)
+      LogError("Incorrect returns for read size", len, "with offset",511-len);
+    CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr); 
+    CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, len, 0xAA));
+  }
+
+  view_size  = 48;  view_size_end = 48;
+  tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
+  tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 512, 7);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+
+  tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
+  tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+  tbr = rd(fd, reflection, 513, 7);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+
+  view_size  = 24;  view_size_end = 24;
+  // view_size  = 24;  view_size_end = 64;
+  // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be [..]
+  // this is subtracted in favour of possibly populating next dirent (doesn't happen here).
+  // differences between larger buffer and smaller occur between [..] and last entry, so real comparsion should happen between 24 and 496 (472 length)
+  tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
+  tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
+  tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
+  tbr = rd(fd, reflection, 1023, 7);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
+ 
+  tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
+  tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1024, 7);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+
+  tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
+  tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1025, 7);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+
+  // clang-format on
+
+  CHECK_EQUAL_ZERO(sceKernelClose(fd));
+}
+
+// TEST(DirentTests, DirentShortReadPFS) {
+//   LogTest("<<<< Short PFS reads >>>>");
+
+//   int           fd {};
+//   s32           tbr {};
+//   constexpr u32 buffer_size = 65536;
+//   u32           view_size   = 48;
+//   u32           view_start  = 48;
+//   char          buffer[buffer_size] {0};
+
+//   u32* view_start_set = &view_start;
+//   u32* view_size_set  = &view_size;
+
+//   auto quickprint = [vsi = &view_size, vs = &view_start, bs = &buffer_size](std::string title, const void* array) -> void {
+//     std::string out {title};
+//     if (*vsi == 0) return;
+//     auto lim = (*vsi) / 2;
+//     for (u32 idx = 0; idx < lim; ++idx) {
+//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+//       auto hexed = to_hex<u8>(*(reinterpret_cast<const u8*>(array) + idx));
+//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+//     }
+//     if (*vs == 0) {
+//       Log(out);
+//       return;
+//     }
+//     out += "\r\n\t\t\t\t\t\t----------";
+//     if (*vs > lim) Log("Read leaks from incident memory");
+//     for (u32 idx = 0; idx < lim; ++idx) {
+//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+//       auto hexed = to_hex<u8>(*(reinterpret_cast<const u8*>(array) + *vs + idx));
+//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+//     }
+//     Log(out);
+//   };
+
+//   auto rd = [bf = &buffer](s32 fd, s64 size) -> s64 {
+//     errno = 0;
+//     CHECK_EQUAL(0, sceKernelLseek(fd, 0, 0));
+//     CHECK_EQUAL_ZERO(errno);
+//     memset(bf, 0xAA, size);
+//     errno = 0;
+//     return sceKernelGetdirentries(fd, *bf, size, nullptr);
+//   };
+
+//   // clang-format off
+//   errno = 0;  fd = sceKernelOpen(dir_test, O_RDONLY, 0777); CHECK_COMPARE(0, <, fd);
+
+//   tbr = rd(fd, 16); LogError(512, tbr); LogError(errno);
+//   *view_size_set  = 32; *view_start_set = 0; quickprint("\tSTART+0:", buffer);
+//   // clang-format on
+
+//   CHECK_EQUAL_ZERO(sceKernelClose(fd));
+
+//   // int fd = sceKernelOpen()
+// }
+
 TEST(DirentTests, LseekRegularTests) {
-  LogTest("Testing lseek() on normal directory");
+  LogTest("<<<< Testing lseek() on normal directory >>>>");
 
   fd = sceKernelOpen("/data/enderman", O_DIRECTORY | O_RDONLY, 0777);
   CHECK_COMPARE_TEXT(fd, >, 0, "Unable to open /data/enderman");
 
   int status;
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 0, 0);
-  LONGLONGS_EQUAL_TEXT(0, status, "START+0");
-  UNSIGNED_INT_EQUALS(0, errno);
+  // clang-format off
+  LogTest("START+0 == 0");
+  errno  = 0; status = sceKernelLseek(fd, 0, 0);
+  LONGLONGS_EQUAL_TEXT(0, status, "START+0"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -123, 0);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123");
-  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  LogTest("START-123 == EINVAL");
+  errno  = 0; status = sceKernelLseek(fd, -123, 0);
+  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123"); UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 123456, 0);
-  LONGLONGS_EQUAL_TEXT(123456, status, "START+123456");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("START+123456 == 123456");
+  errno  = 0; status = sceKernelLseek(fd, 123456, 0);
+  LONGLONGS_EQUAL_TEXT(123456, status, "START+123456"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 60, 0);
-  LONGLONGS_EQUAL_TEXT(60, status, "START+60");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("START+60 == 60");
+  errno  = 0; status = sceKernelLseek(fd, 60, 0);
+  LONGLONGS_EQUAL_TEXT(60, status, "START+60"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 0, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR+0 == 60");
+  errno  = 0; status = sceKernelLseek(fd, 0, 1);
+  LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");  UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 24, 1);
-  LONGLONGS_EQUAL_TEXT(84, status, "CUR+24");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR+24 == 84");
+  errno  = 0; status = sceKernelLseek(fd, 24, 1);
+  LONGLONGS_EQUAL_TEXT(84, status, "CUR+24"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -24, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR-24");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR-24 == 60");
+  errno  = 0; status = sceKernelLseek(fd, -24, 1);
+  LONGLONGS_EQUAL_TEXT(60, status, "CUR-24"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -6666, 1);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");
-  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  LogTest("CUR-6666 == EINVAL");
+  errno  = 0; status = sceKernelLseek(fd, -6666, 1);
+  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");  UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 123456, 1);
-  LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR+123456 == 123516");
+  errno  = 0; status = sceKernelLseek(fd, 123456, 1);
+  LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 0, 2);
-  LONGLONGS_EQUAL_TEXT(512, status, "END+0");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END+0 == 512");
+  errno  = 0; status = sceKernelLseek(fd, 0, 2);
+  LONGLONGS_EQUAL_TEXT(512, status, "END+0"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 123456, 2);
-  LONGLONGS_EQUAL_TEXT(123968, status, "END+123456");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END+123456 == 123968");
+  errno  = 0; status = sceKernelLseek(fd, 123456, 2);
+  LONGLONGS_EQUAL_TEXT(123968, status, "END+123456"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 100, 2);
-  LONGLONGS_EQUAL_TEXT(612, status, "END+100");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END+100 == 612");
+  errno  = 0; status = sceKernelLseek(fd, 100, 2);
+  LONGLONGS_EQUAL_TEXT(612, status, "END+100"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -100, 2);
-  LONGLONGS_EQUAL_TEXT(412, status, "END-100");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END-100 == 412");
+  errno  = 0; status = sceKernelLseek(fd, -100, 2);
+  LONGLONGS_EQUAL_TEXT(412, status, "END-100"); UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -100000, 2);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");
-  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  LogTest("END-100000 == EINVAL");
+  errno  = 0; status = sceKernelLseek(fd, -100000, 2);
+  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  // clang-format off
 }
 
 TEST(DirentTests, LseekPFSTests) {
@@ -539,73 +825,61 @@ TEST(DirentTests, LseekPFSTests) {
 
   s64 status;
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 0, 0);
-  LONGLONGS_EQUAL_TEXT(0, status, "START+0");
-  UNSIGNED_INT_EQUALS(0, errno);
+  // clang-format off
+  LogTest("START+0 == ");
+  errno  = 0; status = sceKernelLseek(fd, 0, 0);
+  LONGLONGS_EQUAL_TEXT(0, status, "START+0");                               UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -123, 0);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123");
-  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  LogTest("START-123 == EINVAL");
+  errno  = 0; status = sceKernelLseek(fd, -123, 0);
+  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123"); UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 123456, 0);
-  LONGLONGS_EQUAL_TEXT(123456, status, "START+123456");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("START+123456 == 123456");
+  errno  = 0; status = sceKernelLseek(fd, 123456, 0);
+  LONGLONGS_EQUAL_TEXT(123456, status, "START+123456");                     UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 60, 0);
-  LONGLONGS_EQUAL_TEXT(60, status, "START+60");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("START+60 == 60");
+  errno  = 0; status = sceKernelLseek(fd, 60, 0);
+  LONGLONGS_EQUAL_TEXT(60, status, "START+60");                             UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 0, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR+0 == 60");
+  errno  = 0; status = sceKernelLseek(fd, 0, 1);
+  LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");                                UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 24, 1);
-  LONGLONGS_EQUAL_TEXT(84, status, "CUR+24");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR+24 == 84");
+  errno  = 0; status = sceKernelLseek(fd, 24, 1);
+  LONGLONGS_EQUAL_TEXT(84, status, "CUR+24");                               UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -24, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR-24");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR-24 == 60");
+  errno  = 0; status = sceKernelLseek(fd, -24, 1);
+  LONGLONGS_EQUAL_TEXT(60, status, "CUR-24");                               UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -6666, 1);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");
-  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  LogTest("CUR-6666 == EINVAL");
+  errno  = 0; status = sceKernelLseek(fd, -6666, 1);
+  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");  UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 123456, 1);
-  LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("CUR+123456 == 123516");
+  errno  = 0; status = sceKernelLseek(fd, 123456, 1);
+  LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456");                       UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 0, 2);
-  LONGLONGS_EQUAL_TEXT(65536, status, "END+0");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END+0 == 65536");
+  errno  = 0; status = sceKernelLseek(fd, 0, 2);
+  LONGLONGS_EQUAL_TEXT(65536, status, "END+0");                             UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 123456, 2);
-  LONGLONGS_EQUAL_TEXT(188992, status, "END+123456");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END+123456 == 188992");
+  errno  = 0; status = sceKernelLseek(fd, 123456, 2);
+  LONGLONGS_EQUAL_TEXT(188992, status, "END+123456");                       UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, 100, 2);
-  LONGLONGS_EQUAL_TEXT(65636, status, "END+100");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END+100 == 65636");
+  errno  = 0; status = sceKernelLseek(fd, 100, 2);
+  LONGLONGS_EQUAL_TEXT(65636, status, "END+100");                           UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -100, 2);
-  LONGLONGS_EQUAL_TEXT(65436, status, "END-100");
-  UNSIGNED_INT_EQUALS(0, errno);
+  LogTest("END-100 == 65436");
+  errno  = 0; status = sceKernelLseek(fd, -100, 2);
+  LONGLONGS_EQUAL_TEXT(65436, status, "END-100");                           UNSIGNED_INT_EQUALS(0, errno);
 
-  errno  = 0;
-  status = sceKernelLseek(fd, -100000, 2);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");
-  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  LogTest("END-100000 == EINVAL");
+  errno  = 0; status = sceKernelLseek(fd, -100000, 2);
+  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");  UNSIGNED_INT_EQUALS(EINVAL, errno);
+  // clang-format on
 }

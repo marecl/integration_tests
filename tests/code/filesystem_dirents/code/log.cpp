@@ -32,15 +32,3 @@ std::string right(const std::string& s, int width) {
   int left = (width - len);
   return std::string(left, ' ') + s;
 }
-
-std::string to_octal(int value) {
-  std::ostringstream oss;
-  oss << std::oct << value;
-  return oss.str();
-}
-
-std::string to_hex(int value) {
-  std::ostringstream oss;
-  oss << std::hex << value;
-  return oss.str();
-}
