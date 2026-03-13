@@ -26,7 +26,29 @@ namespace oi = OrbisInternals;
 // void DumpDirectory(int fd, int buffer_size, s64 offset);
 // void DumpDirectoryPFS(int fd, int buffer_size, s64 offset);
 
-void RunTests() {
+bool PrepareTests() {
+  fs::path clone_dir = "/data/enderman/clone";
+  fs::path target {};
+  s32      status {};
+
+  RegenerateDir("/data/enderman");
+  sceKernelMkdir(clone_dir.c_str(), 0777);
+
+  for (auto& dent: fs::directory_iterator("/app0/assets/misc")) {
+    target = clone_dir / dent.path().filename();
+    if (dent.is_regular_file()) {
+      status = touch(target.c_str());
+      continue;
+    }
+    if (dent.is_directory()) {
+      status = sceKernelMkdir(target.c_str(), 0777);
+      continue;
+    }
+    LogError("Can't create", target.string());
+    return false;
+  }
+  return true;
+
   // Log("---------------------");
   // Log("Dump normal directory");
   // Log("---------------------");
@@ -52,7 +74,17 @@ void RunTests() {
 }
 
 TEST_GROUP (DirentTests) {
-  int  fd;
+  const char* input_pfs                   = "/app0/assets/misc";
+  const char* input_normal                = "/data/enderman/clone";
+  const char* output_dir                  = "/data/enderman/dump";
+  const char* output_pfs_read             = "/data/enderman/dump/pfs_read.bin";
+  const char* output_pfs_getdirentries    = "/data/enderman/dump/pfs_getdirent.bin";
+  const char* output_normal_read          = "/data/enderman/dump/normal_read.bin";
+  const char* output_normal_getdirentries = "/data/enderman/dump/normal_getdirent.bin";
+
+  int fd;
+  s64 tbr;
+
   void setup() {}
   void teardown() {
     sceKernelClose(fd);
@@ -60,129 +92,230 @@ TEST_GROUP (DirentTests) {
   }
 };
 
-TEST(DirentTests, DirentPFSGetdirentries) {
-  LogTest("<<<< PFS getdirentries basic test >>>>");
+TEST(DirentTests, DumpEverythingRaw) {
+  LogTest("<<<< Dump everything >>>>");
 
-  const char* dir_test = "/app0/assets/misc";
+  int  fd_read {};
+  int  fd_dump {};
+  char buffer[65536];
 
-  s32           tbr {};
-  constexpr u32 buffer_size   = 65536;
-  u32           view_size     = 48;
-  u32           view_size_end = 24;
-  u32           zero          = 0;
-  char          buffer[buffer_size] {0};
-  char          reflection[buffer_size] {0};
-
-  auto quickprint = [&view_size, &view_size_end](std::string title, const void* array, size_t size) -> void {
-    std::string out {title};
-    for (u32 idx = 0; idx < view_size; ++idx) {
-      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
-      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-    }
-    if (0 == view_size_end) {
-      Log(out);
-      return;
-    }
-    out += "\r\n\t\t\t\t\t\t----------";
-    for (u32 idx = 0; idx < view_size_end; ++idx) {
-      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + size - view_size_end + idx));
-      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-    }
-    Log(out);
-  };
-
-  auto rd = [bs = &buffer_size](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
-    auto buffer_ptr = static_cast<char*>(buffer);
-    errno           = 0;
-    CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
-    CHECK_EQUAL_ZERO(errno);
-    memset(buffer_ptr, 0xAA, *bs);
-    errno = 0;
-    return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
-  };
-
-  // clang-format off
-  errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
-
-  LogTest("EINVAL when size+offset falls before first 512 bytes");
-  for(u16 len=0; len < 512; len+=1){
-    tbr = rd(fd,buffer, len, 511-len);
-    if(tbr >= 0)
-      LogError("Incorrect returns for read size", len, "with offset",511-len);
-    CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr); 
-    CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, 0xAA, len));
-  }
-
-  view_size  = 48;  view_size_end = 48;
-  tbr = rd(fd, buffer, 512, 0);
-  CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R512", buffer,512);
-  CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
-  *(reinterpret_cast<u32*>(buffer))=0;
-  *(reinterpret_cast<u32*>(buffer+24))=0;
-  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
-  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
-
-  for (auto idx = 1; idx < 24; idx++){
-    tbr = rd(fd, reflection, 512, idx); CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);
-    CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
-    *(reinterpret_cast<u32*>(reflection))=0;
-    CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-  }
-
-  view_size=32;view_size_end=32;
-  tbr = rd(fd, buffer, 600, 0); quickprint("\t+0 R600", buffer,600); CHECK_EQUAL(496, tbr);
-  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
-
-  tbr = rd(fd, buffer, 700, 0); quickprint("\t+0 R700", buffer,700); CHECK_EQUAL(496, tbr);
-  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
-
-  tbr = rd(fd, buffer, 800, 0); quickprint("\t+0 R800", buffer,800); CHECK_EQUAL(496, tbr);
-  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
-
-  tbr = rd(fd, buffer, 900, 0); quickprint("\t+0 R900", buffer,900); CHECK_EQUAL(496, tbr);
-  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+  RegenerateDir(output_dir);
 
   //
 
-  view_size  = 48;  view_size_end = 48;
-  tbr = rd(fd, buffer, 1023, 0);
-  CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R1023", buffer,1023);
-  CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
-  *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
-  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
+  fd_read = sceKernelOpen(input_pfs, O_DIRECTORY | O_RDONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_read, >, 0, "Can't open input dir");
 
-  for (auto idx = 1; idx < 24; idx++){
-    tbr = rd(fd, reflection, 1023, idx); CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
-    CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
-    *(reinterpret_cast<u32*>(reflection))=0;
-    CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
-  }
+  //
 
-  // comment below is unrelated to what's below that comment
+  fd_dump = sceKernelOpen(output_pfs_read, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  do {
+    memset(buffer, 0xAA, 65536);
+    tbr = sceKernelRead(fd_read, buffer, 65536);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS read failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
+  //
+  fd_dump = sceKernelOpen(output_pfs_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  CHECK_EQUAL_ZERO_TEXT(sceKernelLseek(fd_read, 0, 0), "Can't rewind directory");
+  do {
+    memset(buffer, 0xAA, 65536);
+    tbr = sceKernelGetdirentries(fd_read, buffer, 65536, nullptr);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS sceKernelGetdirentries failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
 
-  // view_size  = 24;  view_size_end = 64;
-  // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be [..]
-  // this is subtracted in favour of possibly populating next dirent (doesn't happen here).
-  // differences between larger buffer and smaller occur between [..] and last entry, so real comparsion should happen between 24 and 496 (472 length)
-  tbr = rd(fd, buffer, 1024, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer,1024);
-  *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-  tbr = rd(fd, reflection, 1024, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1024, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1024, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  //
 
-  tbr = rd(fd, buffer, 1025, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer,1025);
-  *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-  tbr = rd(fd, reflection, 1025, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1025, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1025, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
+  fd_read = sceKernelOpen(input_normal, O_DIRECTORY | O_RDONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_read, >, 0, "Can't open input dir");
 
-  // clang-format on
+  //
 
-  CHECK_EQUAL_ZERO(sceKernelClose(fd));
+  fd_dump = sceKernelOpen(output_normal_read, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  do {
+    memset(buffer, 0xAA, 65536);
+    tbr = sceKernelRead(fd_read, buffer, 65536);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelRead failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
+  //
+  fd_dump = sceKernelOpen(output_normal_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  CHECK_EQUAL_ZERO_TEXT(sceKernelLseek(fd_read, 0, 0), "Can't rewind directory");
+  do {
+    memset(buffer, 0xAA, 65536);
+    tbr = sceKernelGetdirentries(fd_read, buffer, 65536, nullptr);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelGetdirentries failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
+
+  //
+
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
 }
+
+TEST(DirentTests, NormalRead) {
+  LogTest("<<<< Normal read tests >>>>");
+
+  fs::path output_root = "/data/enderman/normal_read";
+  char     buffer[65536];
+
+  auto pattern = [](s64 size, s64 offset) -> fs::path { return "normal_read_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
+
+  RegenerateDir(output_root.c_str());
+
+  fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+  for (auto& spec: normal_read_variants) {
+    memset(buffer, 0xAA, 65536);
+    CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelRead(fd, buffer, spec.read_size);
+    CHECK_EQUAL(spec.expected_result, tbr);
+    CHECK_EQUAL(spec.expected_errno, errno);
+    // dump good ones to file
+  }
+}
+
+// TEST(DirentTests, DirentPFSGetdirentries) {
+//   LogTest("<<<< PFS getdirentries basic test >>>>");
+
+//   const char* dir_test = "/app0/assets/misc";
+
+//   s32           tbr {};
+//   constexpr u32 buffer_size   = 65536;
+//   u32           view_size     = 48;
+//   u32           view_size_end = 24;
+//   u32           zero          = 0;
+//   char          buffer[buffer_size] {0};
+//   char          reflection[buffer_size] {0};
+
+//   auto quickprint = [&view_size, &view_size_end](std::string title, const void* array, size_t size) -> void {
+//     std::string out {title};
+//     for (u32 idx = 0; idx < view_size; ++idx) {
+//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
+//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+//     }
+//     if (0 == view_size_end) {
+//       Log(out);
+//       return;
+//     }
+//     out += "\r\n\t\t\t\t\t\t----------";
+//     for (u32 idx = 0; idx < view_size_end; ++idx) {
+//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + size - view_size_end + idx));
+//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+//     }
+//     Log(out);
+//   };
+
+//   auto rd = [bs = &buffer_size](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
+//     auto buffer_ptr = static_cast<char*>(buffer);
+//     errno           = 0;
+//     CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
+//     CHECK_EQUAL_ZERO(errno);
+//     memset(buffer_ptr, 0xAA, *bs);
+//     errno = 0;
+//     return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
+//   };
+
+//   // clang-format off
+//   errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
+
+//   LogTest("EINVAL when size+offset falls before first 512 bytes");
+//   for(u16 len=0; len < 512; len+=1){
+//     tbr = rd(fd,buffer, len, 511-len);
+//     if(tbr >= 0)
+//       LogError("Incorrect returns for read size", len, "with offset",511-len);
+//     CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr);
+//     CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, 0xAA, len));
+//   }
+
+//   view_size  = 48;  view_size_end = 48;
+//   tbr = rd(fd, buffer, 512, 0);
+//   CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R512", buffer,512);
+//   CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
+//   *(reinterpret_cast<u32*>(buffer))=0;
+//   *(reinterpret_cast<u32*>(buffer+24))=0;
+//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
+//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
+
+//   for (auto idx = 1; idx < 24; idx++){
+//     tbr = rd(fd, reflection, 512, idx); CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);
+//     CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
+//     *(reinterpret_cast<u32*>(reflection))=0;
+//     CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+//   }
+
+//   view_size=32;view_size_end=32;
+//   tbr = rd(fd, buffer, 600, 0); quickprint("\t+0 R600", buffer,600); CHECK_EQUAL(496, tbr);
+//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+//   tbr = rd(fd, buffer, 700, 0); quickprint("\t+0 R700", buffer,700); CHECK_EQUAL(496, tbr);
+//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+//   tbr = rd(fd, buffer, 800, 0); quickprint("\t+0 R800", buffer,800); CHECK_EQUAL(496, tbr);
+//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+//   tbr = rd(fd, buffer, 900, 0); quickprint("\t+0 R900", buffer,900); CHECK_EQUAL(496, tbr);
+//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+//   //
+
+//   view_size  = 48;  view_size_end = 48;
+//   tbr = rd(fd, buffer, 1023, 0);
+//   CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R1023", buffer,1023);
+//   CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
+//   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
+//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
+//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
+
+//   for (auto idx = 1; idx < 24; idx++){
+//     tbr = rd(fd, reflection, 1023, idx); CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
+//     CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
+//     *(reinterpret_cast<u32*>(reflection))=0;
+//     CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
+//   }
+
+//   // comment below is unrelated to what's below that comment
+
+//   // view_size  = 24;  view_size_end = 64;
+//   // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be [..]
+//   // this is subtracted in favour of possibly populating next dirent (doesn't happen here).
+//   // differences between larger buffer and smaller occur between [..] and last entry, so real comparsion should happen between 24 and 496 (472 length)
+//   tbr = rd(fd, buffer, 1024, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer,1024);
+//   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
+//   tbr = rd(fd, reflection, 1024, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
+//   reflection, 1024, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+
+//   tbr = rd(fd, buffer, 1025, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer,1025);
+//   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
+//   tbr = rd(fd, reflection, 1025, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
+//   reflection, 1025, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+
+//   // clang-format on
+
+//   CHECK_EQUAL_ZERO(sceKernelClose(fd));
+// }
 
 // s64 DumpByRead(int dir_fd, int dump_fd, char* buffer, size_t size) {
 //   memset(buffer, 0xAA, size);

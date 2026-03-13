@@ -1,4 +1,16 @@
 #ifndef FS_TEST_CONST_H
+#define FS_TEST_CONST_H
+
+#include "fs_test.h"
+
+#include <vector>
+
+std::vector<OrbisInternals::DirentCombination> normal_read_variants = {
+    {0, 0, 0, 0}, {64, 0, 64, 0}, {128, 0, 128, 0}, {256, 0, 256, 0}, {511, 0, 511, 0}, {511, 1, 511, 0}, {511, 2, 511, 0}, {512, 0, 512, 0},
+};
+std::vector<OrbisInternals::DirentCombination> normal_dirent_variants = {};
+std::vector<OrbisInternals::DirentCombination> pfs_read_variants      = {};
+std::vector<OrbisInternals::DirentCombination> pfs_dirent_variants    = {};
 
 const unsigned char pfs_dirent_entry_dot[24] = {
     0x00, 0x00, 0x00, 0x00,                   // 4 fileno

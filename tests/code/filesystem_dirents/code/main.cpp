@@ -16,11 +16,14 @@ int main(int ac, char** av) {
   Log();
 
   // prepare files
-  RegenerateDir("/data/enderman");
+
+  if (!PrepareTests()) {
+    LogError("Can't setup tests");
+    return 0;
+  }
 
   // Run file system tests
   int result = RUN_ALL_TESTS(ac, av);
-  RunTests();
 
   // Log tests end
   Log();

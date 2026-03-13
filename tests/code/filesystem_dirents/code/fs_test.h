@@ -44,7 +44,7 @@ typedef struct FolderDirent {
 } FolderDirent;
 } // namespace OrbisInternals
 
-void    RunTests(void);
+bool    PrepareTests();
 void    RegenerateDir(const char* path);
 void    Obliterate(const char* path);
 int32_t touch(const char* path);
