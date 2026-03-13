@@ -1,5 +1,6 @@
 #include "fs_test.h"
 
+#include "fs_test_constants.h"
 #include "orbis/UserService.h"
 
 #include <CppUTest/TestHarness.h>
@@ -20,10 +21,10 @@ const char* clone_destination_getdirentries = "/data/enderman/clone_getdents";
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
-s64  DumpByRead(int dir_fd, int dump_fd, char* buffer, size_t size);
-s64  DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx);
-void DumpDirectory(int fd, int buffer_size, s64 offset);
-void DumpDirectoryPFS(int fd, int buffer_size, s64 offset);
+// s64  DumpByRead(int dir_fd, int dump_fd, char* buffer, size_t size);
+// s64  DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx);
+// void DumpDirectory(int fd, int buffer_size, s64 offset);
+// void DumpDirectoryPFS(int fd, int buffer_size, s64 offset);
 
 void RunTests() {
   // Log("---------------------");
@@ -50,36 +51,169 @@ void RunTests() {
   // sceKernelClose(fd);
 }
 
-s64 DumpByRead(int dir_fd, int dump_fd, char* buffer, size_t size) {
-  memset(buffer, 0xAA, size);
+TEST_GROUP (DirentTests) {
+  int  fd;
+  void setup() {}
+  void teardown() {
+    sceKernelClose(fd);
+    fd = -1;
+  }
+};
 
-  s64 tbr = sceKernelRead(dir_fd, buffer, size);
-  // Log("Read got", tbr, "/", size, "bytes, ptr =", sceKernelLseek(dir_fd, 0, 1));
+TEST(DirentTests, DirentPFSGetdirentries) {
+  LogTest("<<<< PFS getdirentries basic test >>>>");
 
-  if (tbr < 0) {
-    LogError("Read finished with error:", tbr);
-    return tbr;
+  const char* dir_test = "/app0/assets/misc";
+
+  s32           tbr {};
+  constexpr u32 buffer_size   = 65536;
+  u32           view_size     = 48;
+  u32           view_size_end = 24;
+  u32           zero          = 0;
+  char          buffer[buffer_size] {0};
+  char          reflection[buffer_size] {0};
+
+  auto quickprint = [&view_size, &view_size_end](std::string title, const void* array, size_t size) -> void {
+    std::string out {title};
+    for (u32 idx = 0; idx < view_size; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    if (0 == view_size_end) {
+      Log(out);
+      return;
+    }
+    out += "\r\n\t\t\t\t\t\t----------";
+    for (u32 idx = 0; idx < view_size_end; ++idx) {
+      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
+      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + size - view_size_end + idx));
+      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
+    }
+    Log(out);
+  };
+
+  auto rd = [bs = &buffer_size](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
+    auto buffer_ptr = static_cast<char*>(buffer);
+    errno           = 0;
+    CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
+    CHECK_EQUAL_ZERO(errno);
+    memset(buffer_ptr, 0xAA, *bs);
+    errno = 0;
+    return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
+  };
+
+  // clang-format off
+  errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
+
+  LogTest("EINVAL when size+offset falls before first 512 bytes");
+  for(u16 len=0; len < 512; len+=1){
+    tbr = rd(fd,buffer, len, 511-len);
+    if(tbr >= 0)
+      LogError("Incorrect returns for read size", len, "with offset",511-len);
+    CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr); 
+    CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, 0xAA, len));
   }
 
-  if (s64 tbw = sceKernelWrite(dump_fd, buffer, tbr); tbw != tbr) LogError("Written", tbw, "bytes out of", tbr, "bytes");
-  return tbr;
-}
+  view_size  = 48;  view_size_end = 48;
+  tbr = rd(fd, buffer, 512, 0);
+  CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R512", buffer,512);
+  CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
+  *(reinterpret_cast<u32*>(buffer))=0;
+  *(reinterpret_cast<u32*>(buffer+24))=0;
+  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
+  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
 
-s64 DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx) {
-  // magic to determine how many trailing elements were cut
-  memset(buffer, 0xAA, size);
-
-  s64 tbr = sceKernelGetdirentries(dir_fd, buffer, size, idx);
-  // Log("Dirent got", tbr, "/", size, "bytes, ptr =", sceKernelLseek(dir_fd, 0, 1), "idx =", *idx);
-
-  if (tbr < 0) {
-    LogError("Dirent finished with error:", tbr);
-    return tbr;
+  for (auto idx = 1; idx < 24; idx++){
+    tbr = rd(fd, reflection, 512, idx); CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);
+    CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
+    *(reinterpret_cast<u32*>(reflection))=0;
+    CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
   }
 
-  if (s64 tbw = sceKernelWrite(dump_fd, buffer, tbr); tbw != tbr) LogError("Written", tbw, "bytes out of", tbr, "bytes");
-  return tbr;
+  view_size=32;view_size_end=32;
+  tbr = rd(fd, buffer, 600, 0); quickprint("\t+0 R600", buffer,600); CHECK_EQUAL(496, tbr);
+  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+  tbr = rd(fd, buffer, 700, 0); quickprint("\t+0 R700", buffer,700); CHECK_EQUAL(496, tbr);
+  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+  tbr = rd(fd, buffer, 800, 0); quickprint("\t+0 R800", buffer,800); CHECK_EQUAL(496, tbr);
+  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+  tbr = rd(fd, buffer, 900, 0); quickprint("\t+0 R900", buffer,900); CHECK_EQUAL(496, tbr);
+  CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
+
+  //
+
+  view_size  = 48;  view_size_end = 48;
+  tbr = rd(fd, buffer, 1023, 0);
+  CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R1023", buffer,1023);
+  CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
+  *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
+  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
+  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
+
+  for (auto idx = 1; idx < 24; idx++){
+    tbr = rd(fd, reflection, 1023, idx); CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
+    CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
+    *(reinterpret_cast<u32*>(reflection))=0;
+    CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
+  }
+
+  // comment below is unrelated to what's below that comment
+
+  // view_size  = 24;  view_size_end = 64;
+  // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be [..]
+  // this is subtracted in favour of possibly populating next dirent (doesn't happen here).
+  // differences between larger buffer and smaller occur between [..] and last entry, so real comparsion should happen between 24 and 496 (472 length)
+  tbr = rd(fd, buffer, 1024, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer,1024);
+  *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
+  tbr = rd(fd, reflection, 1024, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1024, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1024, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+
+  tbr = rd(fd, buffer, 1025, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer,1025);
+  *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
+  tbr = rd(fd, reflection, 1025, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1025, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+  tbr = rd(fd, reflection, 1025, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+
+  // clang-format on
+
+  CHECK_EQUAL_ZERO(sceKernelClose(fd));
 }
+
+// s64 DumpByRead(int dir_fd, int dump_fd, char* buffer, size_t size) {
+//   memset(buffer, 0xAA, size);
+
+//   s64 tbr = sceKernelRead(dir_fd, buffer, size);
+//   // Log("Read got", tbr, "/", size, "bytes, ptr =", sceKernelLseek(dir_fd, 0, 1));
+
+//   if (tbr < 0) {
+//     LogError("Read finished with error:", tbr);
+//     return tbr;
+//   }
+
+//   if (s64 tbw = sceKernelWrite(dump_fd, buffer, tbr); tbw != tbr) LogError("Written", tbw, "bytes out of", tbr, "bytes");
+//   return tbr;
+// }
+
+// s64 DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx) {
+//   // magic to determine how many trailing elements were cut
+//   memset(buffer, 0xAA, size);
+
+//   s64 tbr = sceKernelGetdirentries(dir_fd, buffer, size, idx);
+//   // Log("Dirent got", tbr, "/", size, "bytes, ptr =", sceKernelLseek(dir_fd, 0, 1), "idx =", *idx);
+
+//   if (tbr < 0) {
+//     LogError("Dirent finished with error:", tbr);
+//     return tbr;
+//   }
+
+//   if (s64 tbw = sceKernelWrite(dump_fd, buffer, tbr); tbw != tbr) LogError("Written", tbw, "bytes out of", tbr, "bytes");
+//   return tbr;
+// }
 
 // void DumpDirectory(int fd, int buffer_size, s64 offset) {
 //   char* buffer = new char[buffer_size] {0};
@@ -169,717 +303,519 @@ s64 DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx) {
 //   delete[] buffer;
 // }
 
-TEST_GROUP (DirentTests) {
-  int  fd;
-  void setup() {}
-  void teardown() {
-    sceKernelClose(fd);
-    fd = -1;
-  }
-};
-
+// OK, whole block
 // applies for PFS read
-s64 dump_clone_pfs_read(const char* dump_path, oi::PfsDirent* dirent) {
-  std::string filename           = std::string(dirent->d_name, dirent->d_namlen);
-  fs::path    dump_path_full     = fs::path(dump_path) / filename;
-  const char* dump_path_full_ptr = dump_path_full.c_str();
-
-  if (dirent->d_type == 2) {
-    s64 fd_tmp = sceKernelOpen(dump_path_full_ptr, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-    if (fd_tmp < 0) return fd_tmp;
-    return sceKernelClose(fd_tmp);
-  } else if (dirent->d_type == 4)
-    return sceKernelMkdir(dump_path_full_ptr, 0777);
-  return 0;
-}
-
-// applies for normal read+getdirentries, PFS getdirentries
-s64 dump_clone_read(const char* dump_path, oi::FolderDirent* dirent) {
-  std::string filename           = std::string(dirent->d_name, dirent->d_namlen);
-  fs::path    dump_path_full     = fs::path(dump_path) / filename;
-  const char* dump_path_full_ptr = dump_path_full.c_str();
-
-  if (dirent->d_type == 8) {
-    s64 fd_tmp = sceKernelOpen(dump_path_full_ptr, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-    if (fd_tmp < 0) return fd_tmp;
-    return sceKernelClose(fd_tmp);
-  } else if (dirent->d_type == 4)
-    return sceKernelMkdir(dump_path_full_ptr, 0777);
-  return 0;
-}
-
-s64 iterate_pfs_read(const char* source_path, const std::function<s64(oi::PfsDirent*)>& entry_cb = nullptr) {
-  constexpr int clone_buffer_size = 1024;
-  char          clone_buffer[clone_buffer_size] {0};
-
-  int fd_src {0};
-  s64 read_start_position {0};
-  u32 entry_offset {0};
-  s64 bytes_read {0};
-  u16 _canary {0};
-
-  oi::PfsDirent* dirent {0};
-
-  memset(clone_buffer, 0, clone_buffer_size);
-
-  //
-
-  fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
-  if (fd_src < 0) return fd_src;
-
-  do {
-    entry_offset        = 0;
-    read_start_position = sceKernelLseek(fd_src, 0, 1);
-    if (read_start_position < 0) return read_start_position;
-    bytes_read = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
-    if (bytes_read < 0) return bytes_read;
-    //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
-    if (bytes_read <= 0) break;
-
-    dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer);
-    while (dirent->d_reclen > 0) {
-      // get current dirent, see what we have
-      // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name, "type:", dirent->d_type,
-      //     "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
-
-      // current dirent is >=24 bytes but OOB
-      if ((entry_offset + dirent->d_reclen) > bytes_read) {
-        break;
-      }
-
-      // current dirent fits
-      if (entry_cb) {
-        if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
-      }
-      entry_offset += dirent->d_reclen;
-
-      // peek at next entry, if less than 24 bytes are available, break
-      dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer + entry_offset);
-      if ((bytes_read - (entry_offset + 1)) < 24) {
-        // Log("Not enough data available at", entry_offset);
-        break;
-      }
-    }
-
-    // unless entry offset moved by bytes read, we didn't consume the entire buffer
-    if (((entry_offset + 1) != bytes_read) && (entry_offset > 0)) {
-      // if we're here, then we did not. back off to the end of the last dirent
-      sceKernelLseek(fd_src, read_start_position + entry_offset, 0);
-    }
-    // Log("End position:", entry_offset, "/", clone_buffer_size);
-  } while (--_canary);
-
-  // Log("Dump ended with status", bytes_read);
-  sceKernelClose(fd_src);
-  return 0;
-}
-
-s64 iterate_normal_read(const char* source_path, const std::function<s64(oi::FolderDirent*)>& entry_cb = nullptr) {
-  constexpr int clone_buffer_size = 1024;
-  char          clone_buffer[clone_buffer_size] {0};
-
-  int fd_src {0};
-  s64 read_start_position {0};
-  u32 entry_offset {0};
-  s64 bytes_read {0};
-  u16 _canary {0};
-
-  oi::FolderDirent* dirent {0};
-
-  memset(clone_buffer, 0, clone_buffer_size);
-
-  //
-
-  fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
-  do {
-    entry_offset        = 0;
-    read_start_position = sceKernelLseek(fd_src, 0, 1);
-    bytes_read          = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
-    //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
-    if (bytes_read <= 0) break;
-
-    dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
-    while (dirent->d_reclen > 0) {
-      // get current dirent, see what we have
-      // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent_pfs->d_fileno, "name:", dirent_pfs->d_name, "type:", dirent_pfs->d_type,
-      //     "namelen:", static_cast<u16>(dirent_pfs->d_namlen), "reclen:", dirent_pfs->d_reclen);
-
-      // current dirent is >=24 bytes but OOB
-      if ((entry_offset + dirent->d_reclen) >= bytes_read) {
-        break;
-      }
-
-      // current dirent fits
-      if (entry_cb) {
-        if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
-      }
-      entry_offset += dirent->d_reclen;
-
-      // peek at next entry, if less than 24 bytes are available, break
-      dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
-      if ((bytes_read - (entry_offset + 1)) < 24) {
-        // Log("Not enough data available at", entry_offset);
-        break;
-      }
-    }
-
-    // unless entry offset moved by bytes read, we didn't consume the entire buffer
-    if (((entry_offset + 1) != bytes_read) && (entry_offset > 0)) {
-      // if we're here, then we did not. back off to the end of the last dirent
-      sceKernelLseek(fd_src, read_start_position + entry_offset, 0);
-    }
-    // Log("End position:", entry_offset, "/", clone_buffer_size);
-  } while (--_canary);
-
-  // Log("Dump ended with status", bytes_read);
-  sceKernelClose(fd_src);
-  return 0;
-}
-
-s64 iterate_getdirentries(const char* source_path, const std::function<s64(oi::FolderDirent*)>& entry_cb = nullptr) {
-  constexpr int clone_buffer_size = 1024;
-  char          clone_buffer[clone_buffer_size] {0};
-
-  int fd_src {0};
-  s64 read_start_position {0};
-  u32 entry_offset {0};
-  s64 bytes_read {0};
-  s64 basep {0};
-  u16 _canary {0};
-
-  oi::FolderDirent* dirent {0};
-
-  memset(clone_buffer, 0, clone_buffer_size);
-
-  fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
-  if (fd_src < 0) return -1;
-
-  do {
-    read_start_position = sceKernelLseek(fd_src, 0, 1);
-    bytes_read          = sceKernelGetdirentries(fd_src, clone_buffer, clone_buffer_size, &basep);
-    // Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
-    if (bytes_read <= 0) break;
-
-    dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
-    // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name,
-    //     "type:", static_cast<u16>(dirent->d_type), "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
-    for (entry_offset = 0; (entry_offset < bytes_read) && (dirent->d_reclen > 0); entry_offset += dirent->d_reclen) {
-      dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
-
-      if (entry_cb) {
-        if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
-      }
-    }
-    // Log("End position:", entry_offset, "/", clone_buffer_size);
-  } while (--_canary);
-
-  // Log("Dump ended with status", bytes_read);
-  sceKernelClose(fd_src);
-  return 0;
-}
-
-TEST(DirentTests, CompareDirentsAPP0) {
-  LogTest("<<<< Compare PFS read&getdirentries, clone to /data >>>>");
-
-  ///
-  /// Setup dumping directory
-  ///
-
-  std::vector<std::string> entries_read {};
-  std::vector<std::string> entries_getdirentries {};
-
-  sceKernelMkdir(clone_destination_read, 0777);
-  sceKernelMkdir(clone_destination_getdirentries, 0777);
-
-  //
-
-  LogTest("Read entries from /app0 (read) and clone to", clone_destination_read);
-  iterate_pfs_read(clone_source_app0, [&entries_read, dest = &clone_destination_read, cb = dump_clone_pfs_read](oi::PfsDirent* dirent) -> s64 {
-    if (is_directory_relatives(dirent->d_name)) return 0;
-    entries_read.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-    return cb(clone_destination_read, dirent);
-  });
-
-  LogTest("Read entries from /app0 (getdirentries) and clone to", clone_destination_getdirentries);
-  iterate_getdirentries(clone_source_app0,
-                        [&entries_getdirentries, dest = &clone_destination_getdirentries, cb = dump_clone_read](oi::FolderDirent* dirent) -> s64 {
-                          if (is_directory_relatives(dirent->d_name)) return 0;
-                          entries_getdirentries.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-                          return cb(clone_destination_getdirentries, dirent);
-                        });
-
-  std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
-  std::sort(entries_read.begin(), entries_read.end());
-
-  CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not equal");
-}
-
-TEST(DirentTests, CompareDirentsData) {
-  LogTest("<<<< Compare regular read&getdirentries >>>>");
-
-  ///
-  /// Setup dumping directory
-  ///
-
-  std::vector<std::string> entries_read {};
-  std::vector<std::string> entries_getdirentries {};
-
-  //
-
-  LogTest("Read entries from /data (read)", clone_destination_read);
-  iterate_normal_read(clone_destination_read, [&entries_read](oi::FolderDirent* dirent) {
-    if (is_directory_relatives(dirent->d_name)) return 0;
-    entries_read.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-    return 0;
-  });
-
-  LogTest("Read entries from /data (getdirentries)", clone_destination_getdirentries);
-  iterate_getdirentries(clone_destination_getdirentries, [&entries_getdirentries](oi::FolderDirent* dirent) {
-    if (is_directory_relatives(dirent->d_name)) return 0;
-    entries_getdirentries.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-    return 0;
-  });
-
-  std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
-  std::sort(entries_read.begin(), entries_read.end());
-
-  CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not equal");
-}
-
-bool fillcheck(const void* data, const u64 size, const u8 value) {
-  u64 longval = 0x0101010101010101 * value; // fills entire u64 with one value
-  u32 longs   = (size & ~0x7) >> 3;
-  u8  shorts  = size & 0x07;
-  u64 idx     = 0;
-  for (idx = 0; idx < longs; idx++) {
-    if (longval != *(static_cast<const u64*>(data) + idx)) return false;
-  }
-  for (idx = (longs << 3); idx < size; idx++) {
-    if (value != *(static_cast<const u8*>(data) + idx)) return false;
-  }
-  return true;
-};
-
-s64 qmemcmp(const void* object, const void* reflection, s64 size) {
-  // watch out when debugging with logs, variable reads bytes the opposite way (little endian)
-  // certainly faster than regular memcmp, which reads individual bytes, here we try to operate on longlongs
-  u32        longs           = (size & ~0x7) >> 3;
-  u8         shorts          = size & 0x07;
-  const u64* object_ptr      = static_cast<const u64*>(object);
-  const u64* reflection_ptr  = static_cast<const u64*>(reflection);
-  const u8*  object_ptr8     = static_cast<const u8*>(object);
-  const u8*  reflection_ptr8 = static_cast<const u8*>(reflection);
-  u64        idx             = 0;
-  s64        val_o           = 0;
-  s64        val_r           = 0;
-
-  // Log(longs, static_cast<u16>(shorts) & 0xFF);
-  for (idx = 0; idx < longs; idx++) {
-    // target is 64bit, so one step is 8 bytes
-    val_o = *(object_ptr + idx);
-    val_r = *(reflection_ptr + idx);
-    // Log(idx, to_hex(val_o), to_hex(val_r));
-    if (val_o == val_r) continue;
-    // if different, skip the rest to compare shorts
-    longs = idx;
-    break;
-  }
-
-  // Log(longs, static_cast<u16>(shorts) & 0xFF);
-
-  // longlong->byte conversion
-  for (idx <<= 3; idx < size; idx++) {
-    val_o = *(object_ptr8 + idx);
-    val_r = *(reflection_ptr8 + idx);
-    // Log(idx, to_hex(val_o), to_hex(val_r));
-    if (val_o == val_r) {
-      continue;
-    }
-    return idx;
-  }
-
-  return -1;
-}
-
-TEST(DirentTests, DirentShortReadNormal) {
-  LogTest("<<<< Short normal reads >>>>");
-
-  const char* dir_test             = "/data/enderman/partialdirents";
-  char        file_placeholder[92] = "/data/enderman/partialdirents/tomakethingseasierthisfilenameshouldbeover40characterslong_aa";
-  char*       startchar            = file_placeholder + 90;
-  RegenerateDir(dir_test);
-
-  int           fd {};
-  s32           tbr {};
-  constexpr u32 buffer_size   = 4096;
-  u32           view_size     = 24;
-  u32           view_size_end = 24;
-  u32           zero          = 0;
-  char          buffer[buffer_size] {0};
-  char          reflection[buffer_size] {0};
-
-  auto quickprint = [&view_size, &view_size_end, bs = &buffer_size](std::string title, const void* array) -> void {
-    std::string out {title};
-    for (u32 idx = 0; idx < view_size; ++idx) {
-      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
-      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-    }
-    if (0 == view_size_end) {
-      Log(out);
-      return;
-    }
-    out += "\r\n\t\t\t\t\t\t----------";
-    for (u32 idx = 0; idx < view_size_end; ++idx) {
-      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + *bs - view_size_end + idx));
-      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-    }
-    Log(out);
-  };
-
-  auto rd = [](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
-    auto buffer_ptr = static_cast<char*>(buffer);
-    errno           = 0;
-    CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
-    CHECK_EQUAL_ZERO(errno);
-    memset(buffer_ptr, 0xAA, size);
-    errno = 0;
-    return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
-  };
-
-  // clang-format off
-  errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
-
-  LogTest("EINVAL when size+offset falls before first 512 bytes");
-  for(u16 len=0; len < 512; len+=1){
-    tbr = rd(fd,buffer, len, 511-len);
-    if(tbr >= 0)
-      LogError("Incorrect returns for read size", len, "with offset",511-len);
-    CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr); 
-    CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, len, 0xAA));
-  }
-
-  view_size  = 24;  view_size_end = 24;
-  tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
-  tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 512, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
-
-  view_size  = 24;  view_size_end = 24;
-  tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
-  tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 513, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
-
-  // create some dummy files
-  for (*startchar = 'a'; *startchar < 'z'; *startchar += 1) {
-    CHECK_EQUAL_ZERO(touch(file_placeholder));
-  }
-
-  view_size  = 24;  view_size_end = 24;
-  // view_size  = 24;  view_size_end = 64;
-  // for this test, only "shorter" tbr is taken into account. dirents return data for x sectors only when end of the read happens on the next sector
-  // so 1023+0 is still 512, but 1023 + 5 offset is 507 + 512
-  tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(512, tbr);    CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
-  tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(1019, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed");
-  tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed");
-  tbr = rd(fd, reflection, 1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, 512 - 7), "memory compare failed");
- 
-  tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
-  tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
-  
-  tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
-  tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 5, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr), "memory compare failed");
-
-  // clang-format on
-
-  CHECK_EQUAL_ZERO(sceKernelClose(fd));
-}
-
-TEST(DirentTests, DirentShortReadPFS) {
-  LogTest("<<<< Short PFS reads >>>>");
-
-  const char* dir_test = "/app0/assets/misc";
-
-  int           fd {};
-  s32           tbr {};
-  constexpr u32 buffer_size   = 4096;
-  u32           view_size     = 24;
-  u32           view_size_end = 24;
-  u32           zero          = 0;
-  char          buffer[buffer_size] {0};
-  char          reflection[buffer_size] {0};
-
-  auto quickprint = [&view_size, &view_size_end, bs = &buffer_size](std::string title, const void* array) -> void {
-    std::string out {title};
-    for (u32 idx = 0; idx < view_size; ++idx) {
-      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
-      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-    }
-    if (0 == view_size_end) {
-      Log(out);
-      return;
-    }
-    out += "\r\n\t\t\t\t\t\t----------";
-    for (u32 idx = 0; idx < view_size_end; ++idx) {
-      if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-      auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + *bs - view_size_end + idx));
-      out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-    }
-    Log(out);
-  };
-
-  auto rd = [](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
-    auto buffer_ptr = static_cast<char*>(buffer);
-    errno           = 0;
-    CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
-    CHECK_EQUAL_ZERO(errno);
-    memset(buffer_ptr, 0xAA, size);
-    errno = 0;
-    return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
-  };
-
-  // clang-format off
-  errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
-
-  LogTest("EINVAL when size+offset falls before first 512 bytes");
-  for(u16 len=0; len < 512; len+=1){
-    tbr = rd(fd,buffer, len, 511-len);
-    if(tbr >= 0)
-      LogError("Incorrect returns for read size", len, "with offset",511-len);
-    CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr); 
-    CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, len, 0xAA));
-  }
-
-  view_size  = 48;  view_size_end = 48;
-  tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
-  tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 512, 7);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-
-  tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
-  tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-  tbr = rd(fd, reflection, 513, 7);   CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-
-  view_size  = 24;  view_size_end = 24;
-  // view_size  = 24;  view_size_end = 64;
-  // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be [..]
-  // this is subtracted in favour of possibly populating next dirent (doesn't happen here).
-  // differences between larger buffer and smaller occur between [..] and last entry, so real comparsion should happen between 24 and 496 (472 length)
-  tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
-  tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
-  tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
-  tbr = rd(fd, reflection, 1023, 7);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
- 
-  tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
-  tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1024, 7);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-
-  tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
-  tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-  tbr = rd(fd, reflection, 1025, 7);  CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
-
-  // clang-format on
-
-  CHECK_EQUAL_ZERO(sceKernelClose(fd));
-}
-
-// TEST(DirentTests, DirentShortReadPFS) {
-//   LogTest("<<<< Short PFS reads >>>>");
+// s64 dump_clone_pfs_read(const char* dump_path, oi::PfsDirent* dirent) {
+//   std::string filename           = std::string(dirent->d_name, dirent->d_namlen);
+//   fs::path    dump_path_full     = fs::path(dump_path) / filename;
+//   const char* dump_path_full_ptr = dump_path_full.c_str();
+
+//   if (dirent->d_type == 2) {
+//     s64 fd_tmp = sceKernelOpen(dump_path_full_ptr, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+//     if (fd_tmp < 0) return fd_tmp;
+//     return sceKernelClose(fd_tmp);
+//   } else if (dirent->d_type == 4)
+//     return sceKernelMkdir(dump_path_full_ptr, 0777);
+//   return 0;
+// }
+
+// // applies for normal read+getdirentries, PFS getdirentries
+// s64 dump_clone_read(const char* dump_path, oi::FolderDirent* dirent) {
+//   std::string filename           = std::string(dirent->d_name, dirent->d_namlen);
+//   fs::path    dump_path_full     = fs::path(dump_path) / filename;
+//   const char* dump_path_full_ptr = dump_path_full.c_str();
+
+//   if (dirent->d_type == 8) {
+//     s64 fd_tmp = sceKernelOpen(dump_path_full_ptr, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+//     if (fd_tmp < 0) return fd_tmp;
+//     return sceKernelClose(fd_tmp);
+//   } else if (dirent->d_type == 4)
+//     return sceKernelMkdir(dump_path_full_ptr, 0777);
+//   return 0;
+// }
+
+// s64 iterate_pfs_read(const char* source_path, const std::function<s64(oi::PfsDirent*)>& entry_cb = nullptr) {
+//   constexpr int clone_buffer_size = 1024;
+//   char          clone_buffer[clone_buffer_size] {0};
+
+//   int fd_src {0};
+//   s64 read_start_position {0};
+//   u32 entry_offset {0};
+//   s64 bytes_read {0};
+//   u16 _canary {0};
+
+//   oi::PfsDirent* dirent {0};
+
+//   memset(clone_buffer, 0, clone_buffer_size);
+
+//   //
+
+//   fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
+//   if (fd_src < 0) return fd_src;
+
+//   do {
+//     entry_offset        = 0;
+//     read_start_position = sceKernelLseek(fd_src, 0, 1);
+//     if (read_start_position < 0) return read_start_position;
+//     bytes_read = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
+//     if (bytes_read < 0) return bytes_read;
+//     //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
+//     if (bytes_read <= 0) break;
+
+//     dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer);
+//     while (dirent->d_reclen > 0) {
+//       // get current dirent, see what we have
+//       // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name, "type:", dirent->d_type,
+//       //     "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
+
+//       // current dirent is >=24 bytes but OOB
+//       if ((entry_offset + dirent->d_reclen) > bytes_read) {
+//         break;
+//       }
+
+//       // current dirent fits
+//       if (entry_cb) {
+//         if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
+//       }
+//       entry_offset += dirent->d_reclen;
+
+//       // peek at next entry, if less than 24 bytes are available, break
+//       dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer + entry_offset);
+//       if ((bytes_read - (entry_offset + 1)) < 24) {
+//         // Log("Not enough data available at", entry_offset);
+//         break;
+//       }
+//     }
+
+//     // unless entry offset moved by bytes read, we didn't consume the entire buffer
+//     if (((entry_offset + 1) != bytes_read) && (entry_offset > 0)) {
+//       // if we're here, then we did not. back off to the end of the last dirent
+//       sceKernelLseek(fd_src, read_start_position + entry_offset, 0);
+//     }
+//     // Log("End position:", entry_offset, "/", clone_buffer_size);
+//   } while (--_canary);
+
+//   // Log("Dump ended with status", bytes_read);
+//   sceKernelClose(fd_src);
+//   return 0;
+// }
+
+// s64 iterate_normal_read(const char* source_path, const std::function<s64(oi::FolderDirent*)>& entry_cb = nullptr) {
+//   constexpr int clone_buffer_size = 1024;
+//   char          clone_buffer[clone_buffer_size] {0};
+
+//   int fd_src {0};
+//   s64 read_start_position {0};
+//   u32 entry_offset {0};
+//   s64 bytes_read {0};
+//   u16 _canary {0};
+
+//   oi::FolderDirent* dirent {0};
+
+//   memset(clone_buffer, 0, clone_buffer_size);
+
+//   //
+
+//   fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
+//   do {
+//     entry_offset        = 0;
+//     read_start_position = sceKernelLseek(fd_src, 0, 1);
+//     bytes_read          = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
+//     //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
+//     if (bytes_read <= 0) break;
+
+//     dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
+//     while (dirent->d_reclen > 0) {
+//       // get current dirent, see what we have
+//       // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent_pfs->d_fileno, "name:", dirent_pfs->d_name, "type:", dirent_pfs->d_type,
+//       //     "namelen:", static_cast<u16>(dirent_pfs->d_namlen), "reclen:", dirent_pfs->d_reclen);
+
+//       // current dirent is >=24 bytes but OOB
+//       if ((entry_offset + dirent->d_reclen) >= bytes_read) {
+//         break;
+//       }
+
+//       // current dirent fits
+//       if (entry_cb) {
+//         if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
+//       }
+//       entry_offset += dirent->d_reclen;
+
+//       // peek at next entry, if less than 24 bytes are available, break
+//       dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
+//       if ((bytes_read - (entry_offset + 1)) < 24) {
+//         // Log("Not enough data available at", entry_offset);
+//         break;
+//       }
+//     }
+
+//     // unless entry offset moved by bytes read, we didn't consume the entire buffer
+//     if (((entry_offset + 1) != bytes_read) && (entry_offset > 0)) {
+//       // if we're here, then we did not. back off to the end of the last dirent
+//       sceKernelLseek(fd_src, read_start_position + entry_offset, 0);
+//     }
+//     // Log("End position:", entry_offset, "/", clone_buffer_size);
+//   } while (--_canary);
+
+//   // Log("Dump ended with status", bytes_read);
+//   sceKernelClose(fd_src);
+//   return 0;
+// }
+
+// s64 iterate_getdirentries(const char* source_path, const std::function<s64(oi::FolderDirent*)>& entry_cb = nullptr) {
+//   constexpr int clone_buffer_size = 1024;
+//   char          clone_buffer[clone_buffer_size] {0};
+
+//   int fd_src {0};
+//   s64 read_start_position {0};
+//   u32 entry_offset {0};
+//   s64 bytes_read {0};
+//   s64 basep {0};
+//   u16 _canary {0};
+
+//   oi::FolderDirent* dirent {0};
+
+//   memset(clone_buffer, 0, clone_buffer_size);
+
+//   fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
+//   if (fd_src < 0) return -1;
+
+//   do {
+//     read_start_position = sceKernelLseek(fd_src, 0, 1);
+//     bytes_read          = sceKernelGetdirentries(fd_src, clone_buffer, clone_buffer_size, &basep);
+//     // Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
+//     if (bytes_read <= 0) break;
+
+//     dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
+//     // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name,
+//     //     "type:", static_cast<u16>(dirent->d_type), "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
+//     for (entry_offset = 0; (entry_offset < bytes_read) && (dirent->d_reclen > 0); entry_offset += dirent->d_reclen) {
+//       dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
+
+//       if (entry_cb) {
+//         if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
+//       }
+//     }
+//     // Log("End position:", entry_offset, "/", clone_buffer_size);
+//   } while (--_canary);
+
+//   // Log("Dump ended with status", bytes_read);
+//   sceKernelClose(fd_src);
+//   return 0;
+// }
+
+// TEST(DirentTests, CompareDirentsAPP0) {
+//   LogTest("<<<< Compare PFS read&getdirentries, clone to /data >>>>");
+
+//   ///
+//   /// Setup dumping directory
+//   ///
+
+//   std::vector<std::string> entries_read {};
+//   std::vector<std::string> entries_getdirentries {};
+
+//   sceKernelMkdir(clone_destination_read, 0777);
+//   sceKernelMkdir(clone_destination_getdirentries, 0777);
+
+//   //
+
+//   LogTest("Read entries from /app0 (read) and clone to", clone_destination_read);
+//   iterate_pfs_read(clone_source_app0, [&entries_read, dest = &clone_destination_read, cb = dump_clone_pfs_read](oi::PfsDirent* dirent) -> s64 {
+//     if (is_directory_relatives(dirent->d_name)) return 0;
+//     entries_read.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
+//     return cb(clone_destination_read, dirent);
+//   });
+
+//   LogTest("Read entries from /app0 (getdirentries) and clone to", clone_destination_getdirentries);
+//   iterate_getdirentries(clone_source_app0,
+//                         [&entries_getdirentries, dest = &clone_destination_getdirentries, cb = dump_clone_read](oi::FolderDirent* dirent) -> s64 {
+//                           if (is_directory_relatives(dirent->d_name)) return 0;
+//                           entries_getdirentries.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
+//                           return cb(clone_destination_getdirentries, dirent);
+//                         });
+
+//   std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
+//   std::sort(entries_read.begin(), entries_read.end());
+
+//   CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not
+//   equal");
+// }
+
+// TEST(DirentTests, CompareDirentsData) {
+//   LogTest("<<<< Compare regular read&getdirentries >>>>");
+
+//   ///
+//   /// Setup dumping directory
+//   ///
+
+//   std::vector<std::string> entries_read {};
+//   std::vector<std::string> entries_getdirentries {};
+
+//   //
+
+//   LogTest("Read entries from /data (read)", clone_destination_read);
+//   iterate_normal_read(clone_destination_read, [&entries_read](oi::FolderDirent* dirent) {
+//     if (is_directory_relatives(dirent->d_name)) return 0;
+//     entries_read.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
+//     return 0;
+//   });
+
+//   LogTest("Read entries from /data (getdirentries)", clone_destination_getdirentries);
+//   iterate_getdirentries(clone_destination_getdirentries, [&entries_getdirentries](oi::FolderDirent* dirent) {
+//     if (is_directory_relatives(dirent->d_name)) return 0;
+//     entries_getdirentries.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
+//     return 0;
+//   });
+
+//   std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
+//   std::sort(entries_read.begin(), entries_read.end());
+
+//   CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not
+//   equal");
+// }
+
+// OK
+// TEST(DirentTests, DirentShortReadNormal) {
+//   LogTest("<<<< Short normal reads >>>>");
+
+//   const char* dir_test             = "/data/enderman/partialdirents";
+//   char        file_placeholder[92] = "/data/enderman/partialdirents/tomakethingseasierthisfilenameshouldbeover40characterslong_aa";
+//   char*       startchar            = file_placeholder + 90;
+//   RegenerateDir(dir_test);
 
 //   int           fd {};
 //   s32           tbr {};
-//   constexpr u32 buffer_size = 65536;
-//   u32           view_size   = 48;
-//   u32           view_start  = 48;
+//   constexpr u32 buffer_size   = 4096;
+//   u32           view_size     = 24;
+//   u32           view_size_end = 24;
+//   u32           zero          = 0;
 //   char          buffer[buffer_size] {0};
+//   char          reflection[buffer_size] {0};
 
-//   u32* view_start_set = &view_start;
-//   u32* view_size_set  = &view_size;
-
-//   auto quickprint = [vsi = &view_size, vs = &view_start, bs = &buffer_size](std::string title, const void* array) -> void {
+//   auto quickprint = [&view_size, &view_size_end, bs = &buffer_size](std::string title, const void* array) -> void {
 //     std::string out {title};
-//     if (*vsi == 0) return;
-//     auto lim = (*vsi) / 2;
-//     for (u32 idx = 0; idx < lim; ++idx) {
+//     for (u32 idx = 0; idx < view_size; ++idx) {
 //       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-//       auto hexed = to_hex<u8>(*(reinterpret_cast<const u8*>(array) + idx));
+//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
 //       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
 //     }
-//     if (*vs == 0) {
+//     if (0 == view_size_end) {
 //       Log(out);
 //       return;
 //     }
 //     out += "\r\n\t\t\t\t\t\t----------";
-//     if (*vs > lim) Log("Read leaks from incident memory");
-//     for (u32 idx = 0; idx < lim; ++idx) {
+//     for (u32 idx = 0; idx < view_size_end; ++idx) {
 //       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-//       auto hexed = to_hex<u8>(*(reinterpret_cast<const u8*>(array) + *vs + idx));
+//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + *bs - view_size_end + idx));
 //       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
 //     }
 //     Log(out);
 //   };
 
-//   auto rd = [bf = &buffer](s32 fd, s64 size) -> s64 {
-//     errno = 0;
-//     CHECK_EQUAL(0, sceKernelLseek(fd, 0, 0));
+//   auto rd = [](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
+//     auto buffer_ptr = static_cast<char*>(buffer);
+//     errno           = 0;
+//     CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
 //     CHECK_EQUAL_ZERO(errno);
-//     memset(bf, 0xAA, size);
+//     memset(buffer_ptr, 0xAA, size);
 //     errno = 0;
-//     return sceKernelGetdirentries(fd, *bf, size, nullptr);
+//     return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
 //   };
 
 //   // clang-format off
-//   errno = 0;  fd = sceKernelOpen(dir_test, O_RDONLY, 0777); CHECK_COMPARE(0, <, fd);
+//   errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
 
-//   tbr = rd(fd, 16); LogError(512, tbr); LogError(errno);
-//   *view_size_set  = 32; *view_start_set = 0; quickprint("\tSTART+0:", buffer);
+//   LogTest("EINVAL when size+offset falls before first 512 bytes");
+//   for(u16 len=0; len < 512; len+=1){
+//     tbr = rd(fd,buffer, len, 511-len);
+//     if(tbr >= 0)
+//       LogError("Incorrect returns for read size", len, "with offset",511-len);
+//     CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr);
+//     CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, 0xAA, len));
+//   }
+
+//   view_size  = 24;  view_size_end = 24;
+//   tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
+//   tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512,
+//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr),
+//   "memory compare failed");
+
+//   view_size  = 24;  view_size_end = 24;
+//   tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
+//   tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513,
+//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr),
+//   "memory compare failed");
+
+//   // create some dummy files
+//   for (*startchar = 'a'; *startchar < 'z'; *startchar += 1) {
+//     CHECK_EQUAL_ZERO(touch(file_placeholder));
+//   }
+
+//   view_size  = 24;  view_size_end = 24;
+//   // view_size  = 24;  view_size_end = 64;
+//   // for this test, only "shorter" tbr is taken into account. dirents return data for x sectors only when end of the read happens on the next sector
+//   // so 1023+0 is still 512, but 1023 + 5 offset is 507 + 512
+//   tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(512, tbr);    CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
+//   tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(1019, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed"); tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr);   CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed"); tbr = rd(fd, reflection,
+//   1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7,
+//   reflection, 512 - 7), "memory compare failed");
+
+//   tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
+//   tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
+//   1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection,
+//   tbr), "memory compare failed");
+
+//   tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
+//   tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1,
+//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
+//   1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection,
+//   tbr), "memory compare failed");
+
 //   // clang-format on
 
 //   CHECK_EQUAL_ZERO(sceKernelClose(fd));
-
-//   // int fd = sceKernelOpen()
 // }
 
-TEST(DirentTests, LseekRegularTests) {
-  LogTest("<<<< Testing lseek() on normal directory >>>>");
+// OK
+// TEST(DirentTests, LseekRegularTests) {
+//   LogTest("<<<< Testing lseek() on normal directory >>>>");
 
-  fd = sceKernelOpen("/data/enderman", O_DIRECTORY | O_RDONLY, 0777);
-  CHECK_COMPARE_TEXT(fd, >, 0, "Unable to open /data/enderman");
+//   fd = sceKernelOpen("/data/enderman", O_DIRECTORY | O_RDONLY, 0777);
+//   CHECK_COMPARE_TEXT(fd, >, 0, "Unable to open /data/enderman");
 
-  int status;
+//   int status;
 
-  // clang-format off
-  LogTest("START+0 == 0");
-  errno  = 0; status = sceKernelLseek(fd, 0, 0);
-  LONGLONGS_EQUAL_TEXT(0, status, "START+0"); UNSIGNED_INT_EQUALS(0, errno);
+//   // clang-format off
+//   LogTest("START+0 == 0");
+//   errno  = 0; status = sceKernelLseek(fd, 0, 0);
+//   LONGLONGS_EQUAL_TEXT(0, status, "START+0"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("START-123 == EINVAL");
-  errno  = 0; status = sceKernelLseek(fd, -123, 0);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123"); UNSIGNED_INT_EQUALS(EINVAL, errno);
+//   LogTest("START-123 == EINVAL");
+//   errno  = 0; status = sceKernelLseek(fd, -123, 0);
+//   UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123"); UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  LogTest("START+123456 == 123456");
-  errno  = 0; status = sceKernelLseek(fd, 123456, 0);
-  LONGLONGS_EQUAL_TEXT(123456, status, "START+123456"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("START+123456 == 123456");
+//   errno  = 0; status = sceKernelLseek(fd, 123456, 0);
+//   LONGLONGS_EQUAL_TEXT(123456, status, "START+123456"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("START+60 == 60");
-  errno  = 0; status = sceKernelLseek(fd, 60, 0);
-  LONGLONGS_EQUAL_TEXT(60, status, "START+60"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("START+60 == 60");
+//   errno  = 0; status = sceKernelLseek(fd, 60, 0);
+//   LONGLONGS_EQUAL_TEXT(60, status, "START+60"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR+0 == 60");
-  errno  = 0; status = sceKernelLseek(fd, 0, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");  UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR+0 == 60");
+//   errno  = 0; status = sceKernelLseek(fd, 0, 1);
+//   LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");  UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR+24 == 84");
-  errno  = 0; status = sceKernelLseek(fd, 24, 1);
-  LONGLONGS_EQUAL_TEXT(84, status, "CUR+24"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR+24 == 84");
+//   errno  = 0; status = sceKernelLseek(fd, 24, 1);
+//   LONGLONGS_EQUAL_TEXT(84, status, "CUR+24"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR-24 == 60");
-  errno  = 0; status = sceKernelLseek(fd, -24, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR-24"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR-24 == 60");
+//   errno  = 0; status = sceKernelLseek(fd, -24, 1);
+//   LONGLONGS_EQUAL_TEXT(60, status, "CUR-24"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR-6666 == EINVAL");
-  errno  = 0; status = sceKernelLseek(fd, -6666, 1);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");  UNSIGNED_INT_EQUALS(EINVAL, errno);
+//   LogTest("CUR-6666 == EINVAL");
+//   errno  = 0; status = sceKernelLseek(fd, -6666, 1);
+//   UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");  UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  LogTest("CUR+123456 == 123516");
-  errno  = 0; status = sceKernelLseek(fd, 123456, 1);
-  LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR+123456 == 123516");
+//   errno  = 0; status = sceKernelLseek(fd, 123456, 1);
+//   LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END+0 == 512");
-  errno  = 0; status = sceKernelLseek(fd, 0, 2);
-  LONGLONGS_EQUAL_TEXT(512, status, "END+0"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END+0 == 512");
+//   errno  = 0; status = sceKernelLseek(fd, 0, 2);
+//   LONGLONGS_EQUAL_TEXT(512, status, "END+0"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END+123456 == 123968");
-  errno  = 0; status = sceKernelLseek(fd, 123456, 2);
-  LONGLONGS_EQUAL_TEXT(123968, status, "END+123456"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END+123456 == 123968");
+//   errno  = 0; status = sceKernelLseek(fd, 123456, 2);
+//   LONGLONGS_EQUAL_TEXT(123968, status, "END+123456"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END+100 == 612");
-  errno  = 0; status = sceKernelLseek(fd, 100, 2);
-  LONGLONGS_EQUAL_TEXT(612, status, "END+100"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END+100 == 612");
+//   errno  = 0; status = sceKernelLseek(fd, 100, 2);
+//   LONGLONGS_EQUAL_TEXT(612, status, "END+100"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END-100 == 412");
-  errno  = 0; status = sceKernelLseek(fd, -100, 2);
-  LONGLONGS_EQUAL_TEXT(412, status, "END-100"); UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END-100 == 412");
+//   errno  = 0; status = sceKernelLseek(fd, -100, 2);
+//   LONGLONGS_EQUAL_TEXT(412, status, "END-100"); UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END-100000 == EINVAL");
-  errno  = 0; status = sceKernelLseek(fd, -100000, 2);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");  UNSIGNED_INT_EQUALS(EINVAL, errno);
-  // clang-format off
-}
+//   LogTest("END-100000 == EINVAL");
+//   errno  = 0; status = sceKernelLseek(fd, -100000, 2);
+//   UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");  UNSIGNED_INT_EQUALS(EINVAL, errno);
+//   // clang-format off
+// }
 
-TEST(DirentTests, LseekPFSTests) {
-  LogTest("Testing lseek() on PFS directory");
+// TEST(DirentTests, LseekPFSTests) {
+//   LogTest("Testing lseek() on PFS directory");
 
-  fd = sceKernelOpen("/app0/assets/misc", O_DIRECTORY | O_RDONLY, 0777);
-  CHECK_COMPARE_TEXT(fd, >, 0, "Unable to open /app0/assets/misc");
+//   fd = sceKernelOpen("/app0/assets/misc", O_DIRECTORY | O_RDONLY, 0777);
+//   CHECK_COMPARE_TEXT(fd, >, 0, "Unable to open /app0/assets/misc");
 
-  s64 status;
+//   s64 status;
 
-  // clang-format off
-  LogTest("START+0 == ");
-  errno  = 0; status = sceKernelLseek(fd, 0, 0);
-  LONGLONGS_EQUAL_TEXT(0, status, "START+0");                               UNSIGNED_INT_EQUALS(0, errno);
+//   // clang-format off
+//   LogTest("START+0 == ");
+//   errno  = 0; status = sceKernelLseek(fd, 0, 0);
+//   LONGLONGS_EQUAL_TEXT(0, status, "START+0");                               UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("START-123 == EINVAL");
-  errno  = 0; status = sceKernelLseek(fd, -123, 0);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123"); UNSIGNED_INT_EQUALS(EINVAL, errno);
+//   LogTest("START-123 == EINVAL");
+//   errno  = 0; status = sceKernelLseek(fd, -123, 0);
+//   UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "START-123"); UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  LogTest("START+123456 == 123456");
-  errno  = 0; status = sceKernelLseek(fd, 123456, 0);
-  LONGLONGS_EQUAL_TEXT(123456, status, "START+123456");                     UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("START+123456 == 123456");
+//   errno  = 0; status = sceKernelLseek(fd, 123456, 0);
+//   LONGLONGS_EQUAL_TEXT(123456, status, "START+123456");                     UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("START+60 == 60");
-  errno  = 0; status = sceKernelLseek(fd, 60, 0);
-  LONGLONGS_EQUAL_TEXT(60, status, "START+60");                             UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("START+60 == 60");
+//   errno  = 0; status = sceKernelLseek(fd, 60, 0);
+//   LONGLONGS_EQUAL_TEXT(60, status, "START+60");                             UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR+0 == 60");
-  errno  = 0; status = sceKernelLseek(fd, 0, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");                                UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR+0 == 60");
+//   errno  = 0; status = sceKernelLseek(fd, 0, 1);
+//   LONGLONGS_EQUAL_TEXT(60, status, "CUR+0");                                UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR+24 == 84");
-  errno  = 0; status = sceKernelLseek(fd, 24, 1);
-  LONGLONGS_EQUAL_TEXT(84, status, "CUR+24");                               UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR+24 == 84");
+//   errno  = 0; status = sceKernelLseek(fd, 24, 1);
+//   LONGLONGS_EQUAL_TEXT(84, status, "CUR+24");                               UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR-24 == 60");
-  errno  = 0; status = sceKernelLseek(fd, -24, 1);
-  LONGLONGS_EQUAL_TEXT(60, status, "CUR-24");                               UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR-24 == 60");
+//   errno  = 0; status = sceKernelLseek(fd, -24, 1);
+//   LONGLONGS_EQUAL_TEXT(60, status, "CUR-24");                               UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("CUR-6666 == EINVAL");
-  errno  = 0; status = sceKernelLseek(fd, -6666, 1);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");  UNSIGNED_INT_EQUALS(EINVAL, errno);
+//   LogTest("CUR-6666 == EINVAL");
+//   errno  = 0; status = sceKernelLseek(fd, -6666, 1);
+//   UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "CUR-6666");  UNSIGNED_INT_EQUALS(EINVAL, errno);
 
-  LogTest("CUR+123456 == 123516");
-  errno  = 0; status = sceKernelLseek(fd, 123456, 1);
-  LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456");                       UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("CUR+123456 == 123516");
+//   errno  = 0; status = sceKernelLseek(fd, 123456, 1);
+//   LONGLONGS_EQUAL_TEXT(123516, status, "CUR+123456");                       UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END+0 == 65536");
-  errno  = 0; status = sceKernelLseek(fd, 0, 2);
-  LONGLONGS_EQUAL_TEXT(65536, status, "END+0");                             UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END+0 == 65536");
+//   errno  = 0; status = sceKernelLseek(fd, 0, 2);
+//   LONGLONGS_EQUAL_TEXT(65536, status, "END+0");                             UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END+123456 == 188992");
-  errno  = 0; status = sceKernelLseek(fd, 123456, 2);
-  LONGLONGS_EQUAL_TEXT(188992, status, "END+123456");                       UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END+123456 == 188992");
+//   errno  = 0; status = sceKernelLseek(fd, 123456, 2);
+//   LONGLONGS_EQUAL_TEXT(188992, status, "END+123456");                       UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END+100 == 65636");
-  errno  = 0; status = sceKernelLseek(fd, 100, 2);
-  LONGLONGS_EQUAL_TEXT(65636, status, "END+100");                           UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END+100 == 65636");
+//   errno  = 0; status = sceKernelLseek(fd, 100, 2);
+//   LONGLONGS_EQUAL_TEXT(65636, status, "END+100");                           UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END-100 == 65436");
-  errno  = 0; status = sceKernelLseek(fd, -100, 2);
-  LONGLONGS_EQUAL_TEXT(65436, status, "END-100");                           UNSIGNED_INT_EQUALS(0, errno);
+//   LogTest("END-100 == 65436");
+//   errno  = 0; status = sceKernelLseek(fd, -100, 2);
+//   LONGLONGS_EQUAL_TEXT(65436, status, "END-100");                           UNSIGNED_INT_EQUALS(0, errno);
 
-  LogTest("END-100000 == EINVAL");
-  errno  = 0; status = sceKernelLseek(fd, -100000, 2);
-  UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");  UNSIGNED_INT_EQUALS(EINVAL, errno);
-  // clang-format on
-}
+//   LogTest("END-100000 == EINVAL");
+//   errno  = 0; status = sceKernelLseek(fd, -100000, 2);
+//   UNSIGNED_INT_EQUALS_TEXT(ORBIS_KERNEL_ERROR_EINVAL, status, "END-100000");  UNSIGNED_INT_EQUALS(EINVAL, errno);
+//   // clang-format on
+// }

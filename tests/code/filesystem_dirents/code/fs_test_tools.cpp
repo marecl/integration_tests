@@ -1,11 +1,98 @@
 #include "fs_test.h"
 
+#include <cstring>
 #include <filesystem>
 #include <orbis/libkernel.h>
 #include <vector>
 
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
+
+// -1 = equal, anything positive - idx of first differing element
+s64 qmemcmp(const void* object, const void* reflection, s64 bytes) {
+  // watch out when debugging with logs, variable reads bytes the opposite way (little endian)
+  // certainly faster than regular memcmp, which reads individual bytes, here we try to operate on longlongs
+  u32        longs           = (bytes & ~0x7) >> 3; // bytes to longs (divide by 8 basically)
+  u8         shorts          = bytes & 0x07;
+  const u64* object_ptr      = static_cast<const u64*>(object);
+  const u64* reflection_ptr  = static_cast<const u64*>(reflection);
+  const u8*  object_ptr8     = static_cast<const u8*>(object);
+  const u8*  reflection_ptr8 = static_cast<const u8*>(reflection);
+  u64        idx             = 0;
+
+  for (idx = 0; idx < longs; idx++) {
+    // target is 64bit, so one step is 8 bytes
+    if (*(object_ptr + idx) == *(reflection_ptr + idx)) continue;
+    // if different, skip the rest to compare shorts
+    longs = idx;
+    break;
+  }
+
+  // longlong->byte conversion
+  for (idx <<= 3; idx < bytes; idx++) {
+    if (static_cast<const u8*>(object) != static_cast<const u8*>(reflection)) return idx;
+  }
+
+  return -1;
+}
+
+bool fillcheck(const void* data, const u8 value, const u64 bytes) {
+  u64 longval = 0x0101010101010101 * value; // fills entire u64 with one value
+  u32 longs   = (bytes & ~0x7) >> 3;
+  u8  shorts  = bytes & 0x07;
+  u64 idx     = 0;
+  for (idx = 0; idx < longs; idx++) {
+    if (longval != *(static_cast<const u64*>(data) + idx)) return false;
+  }
+  for (idx = (longs << 3); idx < bytes; idx++) {
+    if (value != *(static_cast<const u8*>(data) + idx)) return false;
+  }
+  return true;
+};
+
+#define VNG_NL(x)   (x > 0)               // single byte, just not a 0
+#define VNG_T(x)    (x >= 0 && x < 15)    // TODO: check
+#define VNG_RL(x)   (x >= 12 && x <= 264) // min/max possible reclen
+#define VNG_N(x, y) (strlen(x) == y)      // duuh
+
+#define VPG_NL(x)   (x > 0 && x < 256)    // string, so that's obvious (255+null)
+#define VPG_T(x)    (x >= 0 && x < 15)    // types cap at 15 i think
+#define VPG_RL(x)   (x >= 24 && x <= 272) // min/max possible reclen
+#define VPG_N(x, y) (strlen(x) == y)      // duuh
+
+s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
+  if (bytes < 0) return bytes;
+
+  const u8* data_ptr     = static_cast<const u8*>(data);
+  s64       total_size   = 0;
+  u32       current_size = 0;
+
+  while (total_size < bytes) { // this element is in bounds
+    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data_ptr + total_size);
+    if (dirent->d_reclen == 0) {
+      LogError("error: reclen = ", dirent->d_reclen);
+      break;
+    }; // likely went OOB
+    if (!VNG_NL(dirent->d_namlen)) {
+      LogError("error: namlen = ", dirent->d_namlen);
+      break;
+    };
+    if (!VNG_T(dirent->d_type)) {
+      LogError("error: type = ", dirent->d_type);
+      break;
+    };
+    if (!VNG_RL(dirent->d_reclen)) {
+      LogError("error: reclen = ", dirent->d_reclen);
+      break;
+    };
+    if (!VNG_N(dirent->d_name, dirent->d_namlen)) {
+      LogError("error: strlen = ", strlen(dirent->d_name));
+      break;
+    };
+    total_size += dirent->d_reclen;
+  }
+  return total_size;
+}
 
 bool is_directory_relatives(const char* data) {
   const u32 dotfinder = *reinterpret_cast<const u32*>(data);

@@ -20,6 +20,13 @@ using u64 = uint64_t;
 
 namespace OrbisInternals {
 
+typedef struct DirentCombination {
+  s64 read_size;
+  s64 read_offset;
+  s64 expected_result;
+  u32 expected_errno;
+} DirentCombination;
+
 typedef struct PfsDirent {
   s32  d_fileno;
   s32  d_type;
@@ -44,5 +51,9 @@ int32_t touch(const char* path);
 int32_t touch(const std::string& path);
 
 bool is_directory_relatives(const char* data);
+s64  qmemcmp(const void* object, const void* reflection, s64 bytes);
+bool fillcheck(const void* data, const u8 value, const u64 bytes);
+
+s64 validate_pfs_getdirentries(const void* data, const s64 bytes);
 
 #endif // FS_TEST_H
