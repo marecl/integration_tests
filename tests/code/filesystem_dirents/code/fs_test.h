@@ -20,12 +20,20 @@ using u64 = uint64_t;
 
 namespace OrbisInternals {
 
-typedef struct DirentCombination {
+typedef struct DirentCombinationRead {
   s64 read_size;
   s64 read_offset;
   s64 expected_result;
   u32 expected_errno;
-} DirentCombination;
+} DirentCombinationRead;
+
+typedef struct DirentCombinationGetdirentries {
+  s64 read_size;
+  s64 read_offset;
+  s64 expected_basep;
+  s64 expected_result;
+  u32 expected_errno;
+} DirentCombinationGetdirentries;
 
 typedef struct PfsDirent {
   s32  d_fileno;

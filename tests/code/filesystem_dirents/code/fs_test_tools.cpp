@@ -131,7 +131,7 @@ void Obliterate(const char* path) {
     if (0 == sceKernelRmdir(pp)) continue;
     LogError("Cannot remove [", pp, "] ( errno =", errno, ")");
   }
-  if (0 != sceKernelRmdir(path)) LogError("Cannot remove [", path, "] ( errno =", errno, ")");
+  if (0 != sceKernelRmdir(path) && errno == ENOENT) LogError("Cannot remove [", path, "] ( errno =", errno, ")");
 
   LogSuccess(">> rm -rf [", path, "] <<");
   return;

@@ -16,9 +16,9 @@ int main(int ac, char** av) {
   Log();
 
   // prepare files
-
   if (!PrepareTests()) {
     LogError("Can't setup tests");
+    sceSystemServiceLoadExec("EXIT", nullptr);
     return 0;
   }
 

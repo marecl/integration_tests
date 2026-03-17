@@ -33,6 +33,7 @@ bool PrepareTests() {
 
   RegenerateDir("/data/enderman");
   sceKernelMkdir(clone_dir.c_str(), 0777);
+  sceKernelWrite(1, "!@#!@#!WD", 8);
 
   for (auto& dent: fs::directory_iterator("/app0/assets/misc")) {
     target = clone_dir / dent.path().filename();
@@ -185,6 +186,72 @@ TEST(DirentTests, NormalRead) {
     tbr   = sceKernelRead(fd, buffer, spec.read_size);
     CHECK_EQUAL(spec.expected_result, tbr);
     CHECK_EQUAL(spec.expected_errno, errno);
+    // dump good ones to file
+  }
+}
+
+TEST(DirentTests, PFSGetdirentries) {
+  LogTest("<<<< PFS getdirentries tests >>>>");
+
+  fs::path output_root = "/data/enderman/pfs_getdirentries";
+  char     buffer[65536];
+  int      result_cast {};
+
+  auto pattern = [](s64 size, s64 offset) -> fs::path { return "pfs_getdirentries_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
+
+  RegenerateDir(output_root.c_str());
+
+  fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+  s64 basep {};
+  for (auto& spec: pfs_dirent_variants) {
+    basep = 0;
+    memset(buffer, 0xAA, 65536);
+    result_cast = int(spec.expected_result);
+    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
+    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno, "\t",
+            to_hex(*reinterpret_cast<u32*>(buffer)));
+    if (tbr < 0) {
+      CHECK_EQUAL(result_cast, tbr);
+    } else {
+      CHECK_EQUAL(spec.expected_result, tbr);
+    }
+    CHECK_EQUAL(spec.expected_errno, errno);
+    CHECK_EQUAL(spec.expected_basep, basep);
+    // dump good ones to file
+  }
+}
+
+TEST(DirentTests, NormalGetdirentries) {
+  LogTest("<<<< Normal getdirentries tests >>>>");
+
+  fs::path output_root = "/data/enderman/normal_getdirentries";
+  char     buffer[65536];
+  int      result_cast {};
+
+  auto pattern = [](s64 size, s64 offset) -> fs::path { return "pfs_getdirentries_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
+
+  RegenerateDir(output_root.c_str());
+
+  fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+  s64 basep {};
+  for (auto& spec: normal_dirent_variants) {
+    basep = 0;
+    memset(buffer, 0xAA, 65536);
+    result_cast = int(spec.expected_result);
+    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
+    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno,
+            to_hex(*reinterpret_cast<u32*>(buffer)));
+    if (tbr < 0) {
+      CHECK_EQUAL(result_cast, tbr);
+    } else {
+      CHECK_EQUAL(spec.expected_result, tbr);
+    }
+    CHECK_EQUAL(spec.expected_errno, errno);
+    CHECK_EQUAL(spec.expected_basep, basep);
     // dump good ones to file
   }
 }
