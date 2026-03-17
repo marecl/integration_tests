@@ -131,6 +131,7 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
     but reading from that
     */
 
+    // bad reads - not reaching upper 512 byte mark
     {0, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {8, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {16, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
@@ -140,28 +141,7 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
     {128, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {256, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {511, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {513, 0, 0, 496, 0},
-    {512, 0, 0, 496, 0},                          //
-    {512, -1, 496, 0, 0},                         //
-    {512, 512, 512, 480, 0},                      // 496 - 975
-    {64, 534, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},  // seek to the middle of the dirent starting in the previous sector
-    {64, 1015, 1015, 0, 0},                       // dirent would leak into new sector
-    {64, 1016, 1016, 0, 0},                       // dirent would leak into new sector
-    {64, 1017, 1017, 0, 0},                       // dirent would leak into new sector
-    {64, 1024, 0, ORBIS_KERNEL_ERROR_EINVAL, 22}, // 1016 - 1055
 
-    {1024, 0, 0, 1016, 0},
-    {1024, 511, 511, 480, 0},
-    {1024, 512, 512, 1000, 0},
-    {1024, 513, 513, 1000, 0},
-    {1025, 513, 513, 1000, 0},
-    {1026, 513, 513, 1000, 0},
-    {1026, -1, 1513, 520, 0},
-
-    {256, 256, 256, 240, 0},
-    {256, -1, 496, 0, 0},
-
-    // try to get the filler between dirents
     {0, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {8, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {16, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
@@ -195,16 +175,47 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
 
     {48, 128, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {64, 128, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-
-    {0, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
+    {0, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22}, // 512 is already treated as a new sector, so it won't backtrack
     {8, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {16, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {23, 511, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 511, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {25, 511, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {23, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {24, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {25, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
+
+    {512, 0, 0, 496, 0},  //
+    {512, -1, 496, 0, 0}, //
+    {512, -1, 496, 0, 0}, //
+
+    {512, 16, 16, 472, 0},
+    {512, 512, 512, 480, 0}, // 496 - 975
+
+    {513, 0, 0, 496, 0},
+    {64, 534, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},  // seek to the middle of the dirent starting in the previous sector
+    {64, 1015, 1015, 0, 0},                       // dirent would leak into new sector
+    {64, 1016, 1016, 0, 0},                       // dirent would leak into new sector
+    {64, 1017, 1017, 0, 0},                       // dirent would leak into new sector
+    {64, 1024, 0, ORBIS_KERNEL_ERROR_EINVAL, 22}, // 1016 - 1055
+
+    {1023, 0, 0, 496, 0},
+    {1023, -1, 496, 520, 0},
+    {1023, -1, 1016, 520, 0},
+
+    {1024, 0, 0, 1016, 0},
+    {1024, 511, 511, 480, 0},
+    {1024, 512, 512, 1000, 0},
+    {1024, 513, 513, 1000, 0},
+    {1025, 513, 513, 1000, 0},
+    {1026, 513, 513, 1000, 0},
+    {1026, -1, 1513, 520, 0},
+
+    {256, 256, 256, 240, 0},
+    {256, -1, 496, 0, 0},
+
+    // try to get the filler between dirents
+
+    {23, 511, 511, 0, 0},
+    {24, 511, 511, 0, 0},
+    {25, 511, 511, 0, 0},
 
     {8, 504, 504, 0, 0},
     {16, 496, 496, 0, 0},
@@ -219,17 +230,19 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
     {16, 4064, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {24, 4064, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {32, 4064, 4064, 0, 0}, // not a full dirent but valid
-    {64, 4064, 4064, 56, 0},
-    {80, 4064, 4064, 56, 0},
-    {128, 4064, 4064, 112, 0},
-    {256, 4064, 4064, 224, 0},
+    {64, 4064, 4064, 0, 0}, // doesnt pass alignment
+    {80, 4064, 4064, 0, 0},
+    {112, 4064, 4064, 0, 0}, // passes alignment brom the bottom but doesn't have a full dirent and doesn't pass upper boundary
+    {128, 4064, 4064, 0, 0}, //
+    {256, 4064, 4064, 0, 0},
+    {512 + 32, 4064, 4064, 504, 0},
 
-    {1024, 0, 0, 1024, 0},
-    {1024, -1, 1024, 1024, 0},
-    {1024, -1, 2048, 1024, 0},
+    {1024, 0, 0, 1016, 0},
+    {1024, -1, 1016, 520, 0},
+    {1024, -1, 1536, 1016, 0},
 
     {32, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {32, 480, 480, 32, 0},
+    {32, 480, 480, 0, 0},
     {32, 479, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
 };
 
