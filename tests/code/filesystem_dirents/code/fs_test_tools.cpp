@@ -50,15 +50,15 @@ bool fillcheck(const void* data, const u8 value, const u64 bytes) {
   return true;
 };
 
-#define VNG_NL(x)   (x > 0)               // single byte, just not a 0
-#define VNG_T(x)    (x >= 0 && x < 15)    // TODO: check
-#define VNG_RL(x)   (x >= 12 && x <= 264) // min/max possible reclen
-#define VNG_N(x, y) (strlen(x) == y)      // duuh
+#define VNG_NL(x)     (x > 0)                                  // single byte, just not a 0
+#define VNG_T(x)      (x >= 0 && x < 15)                       // TODO: check
+#define VNG_RL(x)     (x >= 12 && x <= 264 && (x & 0x03) == 0) // min/max possible reclen, aligned to 4
+#define VNG_NLE(x, y) (strlen(x) == y)                         // duuh
 
-#define VPG_NL(x)   (x > 0 && x < 256)    // string, so that's obvious (255+null)
-#define VPG_T(x)    (x >= 0 && x < 15)    // types cap at 15 i think
-#define VPG_RL(x)   (x >= 24 && x <= 272) // min/max possible reclen
-#define VPG_N(x, y) (strlen(x) == y)      // duuh
+#define VPG_NL(x)     (x > 0 && x < 256)                       // string, so that's obvious (255+null)
+#define VPG_T(x)      (x >= 0 && x < 15)                       // types cap at 15 i think
+#define VPG_RL(x)     (x >= 24 && x <= 272 && (x & 0x07) == 0) // min/max possible reclen, aligned to 8
+#define VPG_NLE(x, y) (strlen(x) == y)                         // duuh
 
 s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
   if (bytes < 0) return bytes;
@@ -85,7 +85,7 @@ s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
       LogError("error: reclen = ", dirent->d_reclen);
       break;
     };
-    if (!VNG_N(dirent->d_name, dirent->d_namlen)) {
+    if (!VNG_NLE(dirent->d_name, dirent->d_namlen)) {
       LogError("error: strlen = ", strlen(dirent->d_name));
       break;
     };

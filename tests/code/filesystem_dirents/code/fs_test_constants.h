@@ -116,6 +116,12 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
     {.read_size = 0, .read_offset = 0, .expected_basep = 0, .expected_result = ORBIS_KERNEL_ERROR_EINVAL, .expected_errno = EINVAL},
 
     /**
+     * Final writeup:
+     *  1.  offset + read size MUST break any 512b alignment before attempting to read
+     *      offset+size=read 0+(<512), 256+(<256) BUT 511+16=0
+     */
+
+    /**
     What i (again) think is that the entire 512byte buffer must be iterated? or sth
     read can occur as long as read descriptor passes 512aligned mark, i.e.
     it will read a couple of bytes if end position falls couple of bytes after the end
@@ -131,70 +137,31 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
     but reading from that
     */
 
-    // bad reads - not reaching upper 512 byte mark
-    {0, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {8, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {16, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {48, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {64, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {128, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {256, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {511, 0, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
+    /**
+     * Apparent end crosses sector end - sector is read
+     * Apparent end doesn't cross sector end - everything from that sector is omitted
+     *
+     * Read start
+     */
 
-    {0, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {8, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {16, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {48, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {64, 8, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
+    // apparent end = offset + length before checking dirents
 
-    {0, 16, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {8, 16, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {16, 16, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 16, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {48, 16, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {64, 16, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-
-    {0, 24, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {8, 24, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {16, 24, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 24, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {48, 24, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {64, 24, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-
-    {0, 32, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {8, 32, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {16, 32, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 32, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {48, 32, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {64, 32, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-
-    {48, 64, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {64, 64, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-
-    {48, 128, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {64, 128, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {0, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22}, // 512 is already treated as a new sector, so it won't backtrack
-    {8, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {16, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {23, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {25, 512, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-
-    {512, 0, 0, 496, 0},  //
-    {512, -1, 496, 0, 0}, //
-    {512, -1, 496, 0, 0}, //
-
-    {512, 16, 16, 472, 0},
-    {512, 512, 512, 480, 0}, // 496 - 975
-
-    {513, 0, 0, 496, 0},
-    {64, 534, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},  // seek to the middle of the dirent starting in the previous sector
-    {64, 1015, 1015, 0, 0},                       // dirent would leak into new sector
-    {64, 1016, 1016, 0, 0},                       // dirent would leak into new sector
-    {64, 1017, 1017, 0, 0},                       // dirent would leak into new sector
-    {64, 1024, 0, ORBIS_KERNEL_ERROR_EINVAL, 22}, // 1016 - 1055
+    // 512 byte reads can get deadlocked like here. 496 read, so next 512 read won't break 1024 barrier
+    {512, 0, 0, 496, 0},     // 0 - 496, reaches upper border
+    {512, -1, 496, 0, 0},    // 496 + 512 = 1008 < 1024, apparent end below sector end
+    {512, -1, 496, 0, 0},    // same as above
+                             //
+    {512, 16, 16, 472, 0},   // 16 - 496, reaches upper border
+    {512, 512, 512, 480, 0}, // 496 - 975, apparent end at sector end
+    {513, 0, 0, 496, 0},     // 0 - 496, apparent end beyond sector end
+    {536, 0, 0, 496, 0},     // 0 - 496, end on dirent in next sector, does not read from next sector, apparent end doesnt reach its end border
+    //
+    {64, 1015, 1015, 0, 0}, // dirent would leak into new sector
+    {64, 1016, 1016, 0, 0}, // dirent would leak into new sector
+    {64, 1017, 1017, 0, 0}, // dirent would leak into new sector
+    {80, 1015, 1015, 0, 0}, // dirent would leak into new sector
+    {80, 1016, 1016, 0, 0}, // dirent would leak into new sector
+    {80, 1017, 1017, 0, 0}, // dirent would leak into new sector
 
     {1023, 0, 0, 496, 0},
     {1023, -1, 496, 520, 0},
@@ -226,9 +193,6 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
     {256, 256, 256, 240, 0},
     {511, 1, 1, 472, 0},
 
-    {8, 4064, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {16, 4064, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
-    {24, 4064, 0, ORBIS_KERNEL_ERROR_EINVAL, 22},
     {32, 4064, 4064, 0, 0}, // not a full dirent but valid
     {64, 4064, 4064, 0, 0}, // doesnt pass alignment
     {80, 4064, 4064, 0, 0},

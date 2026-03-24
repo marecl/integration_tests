@@ -190,6 +190,36 @@ TEST(DirentTests, NormalRead) {
   }
 }
 
+TEST(DirentTests, PFSGetdirentriesErrors) {
+  LogTest("<<<< PFS getdirentries test illegal reads >>>>");
+  LogTest("Test reads that do not break 512b alignment");
+
+  char buffer[1024];
+  int  result_cast {};
+  s64  spec_read_size {};
+  s64  spec_offset_base {};
+  s64  spec_offset {};
+  s64  basep {};
+  memset(buffer, 0xAA, 1024);
+
+  fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+
+  for (spec_offset_base = 0; spec_offset_base < 65536; spec_offset_base += 512) {
+    for (spec_read_size = 0; spec_read_size < 512; ++spec_read_size) {
+      basep       = 0;
+      spec_offset = spec_offset_base + 511 - spec_read_size;
+      CHECK_EQUAL(spec_offset, sceKernelLseek(fd, spec_offset, 0));
+      errno = 0;
+      tbr   = sceKernelGetdirentries(fd, buffer, spec_read_size, &basep);
+      CHECK_EQUAL(0xAAAAAAAAAAAAAAAA, *reinterpret_cast<u64*>(buffer));
+      CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, int(tbr));
+      CHECK_EQUAL(EINVAL, errno);
+      CHECK_EQUAL(0, basep);
+    }
+  }
+  sceKernelClose(fd);
+}
+
 TEST(DirentTests, PFSGetdirentries) {
   LogTest("<<<< PFS getdirentries tests >>>>");
 
