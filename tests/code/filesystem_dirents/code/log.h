@@ -55,6 +55,11 @@ void ResetErrorCounter(void);
     LogCustom(__FUNCTION__, "\033[31;1m[FAIL]\033[0m", ##__VA_ARGS__, "( " __FILE__ ":", __LINE__, ")");                                                       \
   }
 
+#define LogWarning(...)                                                                                                                                        \
+  {                                                                                                                                                            \
+    LogCustom(__FUNCTION__, "\033[33;1m[WARN]\033[0m", ##__VA_ARGS__, "( " __FILE__ ":", __LINE__, ")");                                                       \
+  }
+
 #define LogSuccess(...)                                                                                                                                        \
   {                                                                                                                                                            \
     LogCustom(__FUNCTION__, "\033[32;1m[SUCC]\033[0m", ##__VA_ARGS__);                                                                                         \

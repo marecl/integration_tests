@@ -83,6 +83,13 @@ TEST_GROUP (DirentTests) {
   const char* output_normal_read          = "/data/enderman/dump/normal_read.bin";
   const char* output_normal_getdirentries = "/data/enderman/dump/normal_getdirent.bin";
 
+  char buffer_pfs_read[65536] {'A'};
+  char buffer_pfs_getdirentries[65536] {'A'};
+  char buffer_normal_read[65536] {'A'};
+  char buffer_normal_getdirentries[65536] {'A'};
+
+  bool everything_dumped = false;
+
   int fd;
   s64 tbr;
 
@@ -93,79 +100,70 @@ TEST_GROUP (DirentTests) {
   }
 };
 
-TEST(DirentTests, DumpEverythingRaw) {
-  LogTest("<<<< Dump everything >>>>");
+TEST(DirentTests, PFSGetdirentries) {
+  LogTest("<<<< PFS getdirentries tests >>>>");
 
-  int  fd_read {};
-  int  fd_dump {};
-  char buffer[65536];
+  fs::path output_root = "/data/enderman/pfs_getdirentries";
+  char     buffer[65536];
+  int      result_cast {};
 
-  RegenerateDir(output_dir);
+  auto pattern = [](s64 size, s64 offset) -> fs::path { return "pfs_getdirentries_fail_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
 
-  //
+  RegenerateDir(output_root.c_str());
 
-  fd_read = sceKernelOpen(input_pfs, O_DIRECTORY | O_RDONLY, 0777);
-  CHECK_COMPARE_TEXT(fd_read, >, 0, "Can't open input dir");
-
-  //
-
-  fd_dump = sceKernelOpen(output_pfs_read, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
-  do {
+  fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+  s64 basep {};
+  for (auto& spec: pfs_dirent_variants) {
+    basep = 0;
     memset(buffer, 0xAA, 65536);
-    tbr = sceKernelRead(fd_read, buffer, 65536);
-    CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS read failed");
-    if (tbr == 0) break;
-    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
-  } while (tbr);
-  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-  //
-  fd_dump = sceKernelOpen(output_pfs_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
-  CHECK_EQUAL_ZERO_TEXT(sceKernelLseek(fd_read, 0, 0), "Can't rewind directory");
-  do {
+    result_cast = int(spec.expected_result);
+    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
+    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno, "\t",
+            to_hex(*reinterpret_cast<u32*>(buffer)));
+    if (tbr < 0) {
+      CHECK_EQUAL(result_cast, tbr);
+    } else {
+      CHECK_EQUAL(spec.expected_result, tbr);
+    }
+    CHECK_EQUAL(spec.expected_errno, errno);
+    CHECK_EQUAL(spec.expected_basep, basep);
+    // dump good ones to file
+  }
+}
+
+TEST(DirentTests, NormalGetdirentries) {
+  LogTest("<<<< Normal getdirentries tests >>>>");
+
+  fs::path output_root = "/data/enderman/normal_getdirentries";
+  char     buffer[65536];
+  int      result_cast {};
+
+  auto pattern = [](s64 size, s64 offset) -> fs::path { return "normal_getdirentries_fail_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
+
+  RegenerateDir(output_root.c_str());
+
+  fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+  s64 basep {};
+  for (auto& spec: normal_dirent_variants) {
+    basep = 0;
     memset(buffer, 0xAA, 65536);
-    tbr = sceKernelGetdirentries(fd_read, buffer, 65536, nullptr);
-    CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS sceKernelGetdirentries failed");
-    if (tbr == 0) break;
-    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
-  } while (tbr);
-  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-
-  //
-
-  CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
-  fd_read = sceKernelOpen(input_normal, O_DIRECTORY | O_RDONLY, 0777);
-  CHECK_COMPARE_TEXT(fd_read, >, 0, "Can't open input dir");
-
-  //
-
-  fd_dump = sceKernelOpen(output_normal_read, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
-  do {
-    memset(buffer, 0xAA, 65536);
-    tbr = sceKernelRead(fd_read, buffer, 65536);
-    CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelRead failed");
-    if (tbr == 0) break;
-    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
-  } while (tbr);
-  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-  //
-  fd_dump = sceKernelOpen(output_normal_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
-  CHECK_EQUAL_ZERO_TEXT(sceKernelLseek(fd_read, 0, 0), "Can't rewind directory");
-  do {
-    memset(buffer, 0xAA, 65536);
-    tbr = sceKernelGetdirentries(fd_read, buffer, 65536, nullptr);
-    CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelGetdirentries failed");
-    if (tbr == 0) break;
-    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
-  } while (tbr);
-  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-
-  //
-
-  CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
+    result_cast = int(spec.expected_result);
+    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
+    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno,
+            to_hex(*reinterpret_cast<u32*>(buffer)));
+    if (tbr < 0) {
+      CHECK_EQUAL(result_cast, tbr);
+    } else {
+      CHECK_EQUAL(spec.expected_result, tbr);
+    }
+    CHECK_EQUAL(spec.expected_errno, errno);
+    CHECK_EQUAL(spec.expected_basep, basep);
+    // dump good ones to file
+  }
 }
 
 TEST(DirentTests, NormalRead) {
@@ -174,7 +172,7 @@ TEST(DirentTests, NormalRead) {
   fs::path output_root = "/data/enderman/normal_read";
   char     buffer[65536];
 
-  auto pattern = [](s64 size, s64 offset) -> fs::path { return "normal_read_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
+  auto pattern = [](s64 size, s64 offset) -> fs::path { return "normal_read_fail_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
 
   RegenerateDir(output_root.c_str());
 
@@ -220,70 +218,98 @@ TEST(DirentTests, PFSGetdirentriesErrors) {
   sceKernelClose(fd);
 }
 
-TEST(DirentTests, PFSGetdirentries) {
-  LogTest("<<<< PFS getdirentries tests >>>>");
+TEST(DirentTests, DumpEverythingRaw) {
+  LogTest("<<<< Dump everything >>>>");
 
-  fs::path output_root = "/data/enderman/pfs_getdirentries";
-  char     buffer[65536];
-  int      result_cast {};
+  int  fd_read {};
+  int  fd_dump {};
+  char buffer[65536];
 
-  auto pattern = [](s64 size, s64 offset) -> fs::path { return "pfs_getdirentries_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
+  RegenerateDir(output_dir);
 
-  RegenerateDir(output_root.c_str());
+  //
 
-  fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
-  s64 basep {};
-  for (auto& spec: pfs_dirent_variants) {
-    basep = 0;
+  fd_read = sceKernelOpen(input_pfs, O_DIRECTORY | O_RDONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_read, >, 0, "Can't open input dir");
+
+  //
+
+  fd_dump = sceKernelOpen(output_pfs_read, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  do {
     memset(buffer, 0xAA, 65536);
-    result_cast = int(spec.expected_result);
-    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
-    errno = 0;
-    tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
-    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno, "\t",
-            to_hex(*reinterpret_cast<u32*>(buffer)));
-    if (tbr < 0) {
-      CHECK_EQUAL(result_cast, tbr);
-    } else {
-      CHECK_EQUAL(spec.expected_result, tbr);
-    }
-    CHECK_EQUAL(spec.expected_errno, errno);
-    CHECK_EQUAL(spec.expected_basep, basep);
-    // dump good ones to file
-  }
-}
+    tbr = sceKernelRead(fd_read, buffer, 65536);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS read failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
+  if (tbr < 65536)
+    memcpy(buffer_pfs_read, buffer, 65536);
+  else
+    LogWarning("PFS Read has more than 65536 bytes:", tbr);
 
-TEST(DirentTests, NormalGetdirentries) {
-  LogTest("<<<< Normal getdirentries tests >>>>");
-
-  fs::path output_root = "/data/enderman/normal_getdirentries";
-  char     buffer[65536];
-  int      result_cast {};
-
-  auto pattern = [](s64 size, s64 offset) -> fs::path { return "pfs_getdirentries_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
-
-  RegenerateDir(output_root.c_str());
-
-  fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
-  s64 basep {};
-  for (auto& spec: normal_dirent_variants) {
-    basep = 0;
+  //
+  fd_dump = sceKernelOpen(output_pfs_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  CHECK_EQUAL_ZERO_TEXT(sceKernelLseek(fd_read, 0, 0), "Can't rewind directory");
+  do {
     memset(buffer, 0xAA, 65536);
-    result_cast = int(spec.expected_result);
-    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
-    errno = 0;
-    tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
-    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno,
-            to_hex(*reinterpret_cast<u32*>(buffer)));
-    if (tbr < 0) {
-      CHECK_EQUAL(result_cast, tbr);
-    } else {
-      CHECK_EQUAL(spec.expected_result, tbr);
-    }
-    CHECK_EQUAL(spec.expected_errno, errno);
-    CHECK_EQUAL(spec.expected_basep, basep);
-    // dump good ones to file
-  }
+    tbr = sceKernelGetdirentries(fd_read, buffer, 65536, nullptr);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS sceKernelGetdirentries failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
+  if (tbr < 65536)
+    memcpy(buffer_pfs_getdirentries, buffer, 65536);
+  else
+    LogWarning("PFS Getdirentries has more than 65536 bytes:", tbr);
+  //
+
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
+  fd_read = sceKernelOpen(input_normal, O_DIRECTORY | O_RDONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_read, >, 0, "Can't open input dir");
+
+  //
+
+  fd_dump = sceKernelOpen(output_normal_read, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  do {
+    memset(buffer, 0xAA, 65536);
+    tbr = sceKernelRead(fd_read, buffer, 65536);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelRead failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
+  if (tbr < 65536)
+    memcpy(buffer_normal_read, buffer, 65536);
+  else
+    LogWarning("Normal Read has more than 65536 bytes:", tbr);
+
+  //
+  fd_dump = sceKernelOpen(output_normal_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
+  CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
+  CHECK_EQUAL_ZERO_TEXT(sceKernelLseek(fd_read, 0, 0), "Can't rewind directory");
+  do {
+    memset(buffer, 0xAA, 65536);
+    tbr = sceKernelGetdirentries(fd_read, buffer, 65536, nullptr);
+    CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelGetdirentries failed");
+    if (tbr == 0) break;
+    CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
+  } while (tbr);
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
+  if (tbr < 65536)
+    memcpy(buffer_normal_getdirentries, buffer, 65536);
+  else
+    LogWarning("Normal Getdirentries has more than 65536 bytes:", tbr);
+
+  //
+
+  CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
+
+  everything_dumped = true;
 }
 
 // TEST(DirentTests, DirentPFSGetdirentries) {
@@ -347,14 +373,14 @@ TEST(DirentTests, NormalGetdirentries) {
 //   CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
 //   *(reinterpret_cast<u32*>(buffer))=0;
 //   *(reinterpret_cast<u32*>(buffer+24))=0;
-//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
-//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
+//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
+//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
 
 //   for (auto idx = 1; idx < 24; idx++){
 //     tbr = rd(fd, reflection, 512, idx); CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);
 //     CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
 //     *(reinterpret_cast<u32*>(reflection))=0;
-//     CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, tbr), "memory compare failed");
+//     CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, tbr), "memory compare failed");
 //   }
 
 //   view_size=32;view_size_end=32;
@@ -377,14 +403,14 @@ TEST(DirentTests, NormalGetdirentries) {
 //   CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R1023", buffer,1023);
 //   CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
 //   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
-//   CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
+//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
+//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
 
 //   for (auto idx = 1; idx < 24; idx++){
 //     tbr = rd(fd, reflection, 1023, idx); CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
 //     CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
 //     *(reinterpret_cast<u32*>(reflection))=0;
-//     CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 472), "memory compare failed");
+//     CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 472), "memory compare failed");
 //   }
 
 //   // comment below is unrelated to what's below that comment
@@ -396,18 +422,18 @@ TEST(DirentTests, NormalGetdirentries) {
 //   tbr = rd(fd, buffer, 1024, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer,1024);
 //   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
 //   tbr = rd(fd, reflection, 1024, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
+//   imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
 //   reflection, 1024, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+//   imemcmp(buffer + 24, reflection, 992), "memory compare failed");
 
 //   tbr = rd(fd, buffer, 1025, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer,1025);
 //   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
 //   tbr = rd(fd, reflection, 1025, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
+//   imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
 //   reflection, 1025, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 24, reflection, 992), "memory compare failed");
+//   imemcmp(buffer + 24, reflection, 992), "memory compare failed");
 
 //   // clang-format on
 
@@ -867,17 +893,17 @@ TEST(DirentTests, NormalGetdirentries) {
 //   view_size  = 24;  view_size_end = 24;
 //   tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
 //   tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512,
-//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr),
+//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512,
+//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection, tbr),
 //   "memory compare failed");
 
 //   view_size  = 24;  view_size_end = 24;
 //   tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
 //   tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513,
-//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection, tbr),
+//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513,
+//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection, tbr),
 //   "memory compare failed");
 
 //   // create some dummy files
@@ -891,23 +917,23 @@ TEST(DirentTests, NormalGetdirentries) {
 //   // so 1023+0 is still 512, but 1023 + 5 offset is 507 + 512
 //   tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(512, tbr);    CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
 //   tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(1019, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed"); tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr);   CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed"); tbr = rd(fd, reflection,
-//   1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7,
+//   imemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed"); tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr);   CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed"); tbr = rd(fd, reflection,
+//   1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7,
 //   reflection, 512 - 7), "memory compare failed");
 
 //   tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
 //   tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection,
+//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
+//   1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
 //   tbr), "memory compare failed");
 
 //   tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
 //   tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1,
-//   qmemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, qmemcmp(buffer + 7, reflection,
+//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
+//   1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
 //   tbr), "memory compare failed");
 
 //   // clang-format on

@@ -57,10 +57,9 @@ void    RegenerateDir(const char* path);
 void    Obliterate(const char* path);
 int32_t touch(const char* path);
 int32_t touch(const std::string& path);
-
-bool is_directory_relatives(const char* data);
-s64  qmemcmp(const void* object, const void* reflection, s64 bytes);
-bool fillcheck(const void* data, const u8 value, const u64 bytes);
+bool    is_directory_relatives(const char* data);
+s64     imemcmp(const void* object, const void* reflection, s64 bytes);
+s64     fillcheck(const void* data, const u8 value, const u64 bytes);
 
 s64 validate_pfs_getdirentries(const void* data, const s64 bytes);
 

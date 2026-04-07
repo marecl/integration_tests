@@ -9,45 +9,48 @@ namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
 // -1 = equal, anything positive - idx of first differing element
-s64 qmemcmp(const void* object, const void* reflection, s64 bytes) {
-  // watch out when debugging with logs, variable reads bytes the opposite way (little endian)
-  // certainly faster than regular memcmp, which reads individual bytes, here we try to operate on longlongs
-  u32        longs           = (bytes & ~0x7) >> 3; // bytes to longs (divide by 8 basically)
-  u8         shorts          = bytes & 0x07;
-  const u64* object_ptr      = static_cast<const u64*>(object);
-  const u64* reflection_ptr  = static_cast<const u64*>(reflection);
-  const u8*  object_ptr8     = static_cast<const u8*>(object);
-  const u8*  reflection_ptr8 = static_cast<const u8*>(reflection);
-  u64        idx             = 0;
+// does not adhere to memcmp spec, i want differing indexes, not values!
+s64 imemcmp(const void* object, const void* reflection, s64 bytes) {
+  u32        longs            = (bytes & ~0x7) >> 3; // bytes to longs (divide by 8 basically)
+  const u64* object_ptr64     = static_cast<const u64*>(object);
+  const u64* reflection_ptr64 = static_cast<const u64*>(reflection);
+  const u8*  object_ptr8      = static_cast<const u8*>(object);
+  const u8*  reflection_ptr8  = static_cast<const u8*>(reflection);
+  u64        idx              = 0;
 
   for (idx = 0; idx < longs; idx++) {
     // target is 64bit, so one step is 8 bytes
-    if (*(object_ptr + idx) == *(reflection_ptr + idx)) continue;
+    if (*(object_ptr64 + idx) == *(reflection_ptr64 + idx)) continue;
     // if different, skip the rest to compare shorts
-    longs = idx;
     break;
   }
 
   // longlong->byte conversion
+  // worst case scenario 8 iterations
   for (idx <<= 3; idx < bytes; idx++) {
-    if (static_cast<const u8*>(object) != static_cast<const u8*>(reflection)) return idx;
+    if (*(object_ptr8 + idx) != *(reflection_ptr8 + idx)) return idx;
   }
 
   return -1;
 }
 
-bool fillcheck(const void* data, const u8 value, const u64 bytes) {
+s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
   u64 longval = 0x0101010101010101 * value; // fills entire u64 with one value
   u32 longs   = (bytes & ~0x7) >> 3;
-  u8  shorts  = bytes & 0x07;
-  u64 idx     = 0;
+
+  const u64* data_ptr64 = static_cast<const u64*>(data);
+  const u8*  data_ptr8  = static_cast<const u8*>(data);
+  u64        idx        = 0;
+
   for (idx = 0; idx < longs; idx++) {
-    if (longval != *(static_cast<const u64*>(data) + idx)) return false;
+    if (longval != *(data_ptr64 + idx)) break;
   }
-  for (idx = (longs << 3); idx < bytes; idx++) {
-    if (value != *(static_cast<const u8*>(data) + idx)) return false;
+
+  for (idx <<= 3; idx < bytes; idx++) {
+    if (value != *(data_ptr8 + idx)) return idx;
   }
-  return true;
+
+  return -1;
 };
 
 #define VNG_NL(x)     (x > 0)                                  // single byte, just not a 0
