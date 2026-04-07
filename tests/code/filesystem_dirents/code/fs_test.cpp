@@ -83,11 +83,6 @@ TEST_GROUP (DirentTests) {
   const char* output_normal_read          = "/data/enderman/dump/normal_read.bin";
   const char* output_normal_getdirentries = "/data/enderman/dump/normal_getdirent.bin";
 
-  char buffer_pfs_read[65536] {'A'};
-  char buffer_pfs_getdirentries[65536] {'A'};
-  char buffer_normal_read[65536] {'A'};
-  char buffer_normal_getdirentries[65536] {'A'};
-
   bool everything_dumped = false;
 
   int fd;
@@ -121,7 +116,7 @@ TEST(DirentTests, PFSGetdirentries) {
     errno = 0;
     tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
     LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno, "\t",
-            to_hex(*reinterpret_cast<u32*>(buffer)));
+             to_hex_string(buffer,16,""));
     if (tbr < 0) {
       CHECK_EQUAL(result_cast, tbr);
     } else {
@@ -131,6 +126,7 @@ TEST(DirentTests, PFSGetdirentries) {
     CHECK_EQUAL(spec.expected_basep, basep);
     // dump good ones to file
   }
+  sceKernelClose(fd);
 }
 
 TEST(DirentTests, NormalGetdirentries) {
@@ -154,7 +150,7 @@ TEST(DirentTests, NormalGetdirentries) {
     errno = 0;
     tbr   = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
     LogTest(spec.read_size, spec.read_offset, spec.expected_basep, result_cast, spec.expected_errno, "\t->\t", basep, tbr, errno,
-            to_hex(*reinterpret_cast<u32*>(buffer)));
+             to_hex_string(buffer,16,""));
     if (tbr < 0) {
       CHECK_EQUAL(result_cast, tbr);
     } else {
@@ -164,6 +160,21 @@ TEST(DirentTests, NormalGetdirentries) {
     CHECK_EQUAL(spec.expected_basep, basep);
     // dump good ones to file
   }
+  sceKernelClose(fd);
+}
+
+s64 qqq(const void* master, const void* test, s64 buffer_size, s64 tbr, struct oi::DirentCombinationRead* spec) {
+  const char* master_data = reinterpret_cast<const char*>(master) + spec->read_offset;
+  const char* test_data   = reinterpret_cast<const char*>(test);
+
+  if (auto qw = imemcmp(master_data, test_data, tbr); qw != -1) {
+    LogError("Incorrect read at", spec->read_offset + qw);
+    LogError("Global dump:", to_hex_string(master_data + qw, std::min((s64)32, tbr)));
+    LogError("Recent dump:", to_hex_string(test_data + qw, std::min((s64)32, tbr)));
+
+    return -1;
+  }
+  return 0;
 }
 
 TEST(DirentTests, NormalRead) {
@@ -171,6 +182,7 @@ TEST(DirentTests, NormalRead) {
 
   fs::path output_root = "/data/enderman/normal_read";
   char     buffer[65536];
+  int      result_cast {};
 
   auto pattern = [](s64 size, s64 offset) -> fs::path { return "normal_read_fail_o" + std::to_string(offset) + "_s" + std::to_string(size) + ".bin"; };
 
@@ -178,14 +190,27 @@ TEST(DirentTests, NormalRead) {
 
   fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
   for (auto& spec: normal_read_variants) {
-    memset(buffer, 0xAA, 65536);
+    result_cast = int(spec.expected_result);
+    memset(buffer, 'A', 65536);
+
     CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
     errno = 0;
     tbr   = sceKernelRead(fd, buffer, spec.read_size);
+
+    LogTest(spec.read_size, spec.read_offset, result_cast, spec.expected_errno, "\t->\t", tbr, errno, "\t", to_hex_string(buffer,16,""));
+
+    {
+      int  f = sceKernelOpen(output_normal_read, O_RDONLY, 0777);
+      char b[65536] {'A'};
+      sceKernelRead(f, b, 65536);
+      sceKernelClose(f);
+      qqq(b, buffer, 65536, tbr, &spec);
+    }
     CHECK_EQUAL(spec.expected_result, tbr);
     CHECK_EQUAL(spec.expected_errno, errno);
     // dump good ones to file
   }
+  sceKernelClose(fd);
 }
 
 TEST(DirentTests, PFSGetdirentriesErrors) {
@@ -244,12 +269,9 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
   } while (tbr);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-  if (tbr < 65536)
-    memcpy(buffer_pfs_read, buffer, 65536);
-  else
-    LogWarning("PFS Read has more than 65536 bytes:", tbr);
 
   //
+
   fd_dump = sceKernelOpen(output_pfs_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
   CHECK_COMPARE_TEXT(fd_dump, >, 0, "Can't open output dir");
   CHECK_EQUAL_ZERO_TEXT(sceKernelLseek(fd_read, 0, 0), "Can't rewind directory");
@@ -261,10 +283,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
   } while (tbr);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-  if (tbr < 65536)
-    memcpy(buffer_pfs_getdirentries, buffer, 65536);
-  else
-    LogWarning("PFS Getdirentries has more than 65536 bytes:", tbr);
+
   //
 
   CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
@@ -283,10 +302,6 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
   } while (tbr);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-  if (tbr < 65536)
-    memcpy(buffer_normal_read, buffer, 65536);
-  else
-    LogWarning("Normal Read has more than 65536 bytes:", tbr);
 
   //
   fd_dump = sceKernelOpen(output_normal_getdirentries, O_CREAT | O_TRUNC | O_WRONLY, 0777);
@@ -300,10 +315,6 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_EQUAL(65536, sceKernelWrite(fd_dump, buffer, 65536));
   } while (tbr);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
-  if (tbr < 65536)
-    memcpy(buffer_normal_getdirentries, buffer, 65536);
-  else
-    LogWarning("Normal Getdirentries has more than 65536 bytes:", tbr);
 
   //
 

@@ -10,9 +10,14 @@ s64 oke264(int error) {
 }
 
 std::vector<OrbisInternals::DirentCombinationRead> normal_read_variants = {
-    {0, 0, 0, 0},     {64, 0, 64, 0},   {128, 0, 128, 0}, //
-    {256, 0, 256, 0}, {511, 0, 511, 0}, {511, 1, 511, 0}, //
-    {511, 2, 511, 0}, {512, 0, 512, 0},
+    {.read_size = 0, .read_offset = 0, .expected_result = 0, .expected_errno = 0},
+    {64, 0, 64, 0},
+    {128, 0, 128, 0}, //
+    {256, 0, 256, 0},
+    {511, 0, 511, 0},
+    {511, 1, 511, 0}, //
+    {511, 2, 511, 0},
+    {512, 0, 512, 0},
 };
 std::vector<OrbisInternals::DirentCombinationGetdirentries> normal_dirent_variants = {
     {.read_size = 0, .read_offset = 0, .expected_basep = 0, .expected_result = ORBIS_KERNEL_ERROR_EINVAL, .expected_errno = EINVAL},

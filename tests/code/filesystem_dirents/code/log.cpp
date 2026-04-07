@@ -32,3 +32,11 @@ std::string right(const std::string& s, int width) {
   int left = (width - len);
   return std::string(left, ' ') + s;
 }
+
+std::string to_hex_string(const void* data, long long length, std::string sep) {
+  std::ostringstream oss {};
+  for (auto i = 0; i < length; i++) {
+    oss << std::hex << std::setw(2) << std::setfill('0') << (0xFF & static_cast<unsigned int>(*(reinterpret_cast<const char*>(data) + i))) << sep;
+  }
+  return oss.str();
+}
