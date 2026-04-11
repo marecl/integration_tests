@@ -56,14 +56,9 @@ s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
 #define VNG_NL(x)     (x > 0)                                  // single byte, just not a 0
 #define VNG_T(x)      (x >= 0 && x < 15)                       // TODO: check
 #define VNG_RL(x)     (x >= 12 && x <= 264 && (x & 0x03) == 0) // min/max possible reclen, aligned to 4
-#define VNG_NLE(x, y) (strlen(x) == y)                         // duuh
+#define VNG_NLE(x, y) (strnlen(x, 255) == y)                   // duuh
 
-#define VPG_NL(x)     (x > 0 && x < 256)                       // string, so that's obvious (255+null)
-#define VPG_T(x)      (x >= 0 && x < 15)                       // types cap at 15 i think
-#define VPG_RL(x)     (x >= 24 && x <= 272 && (x & 0x07) == 0) // min/max possible reclen, aligned to 8
-#define VPG_NLE(x, y) (strlen(x) == y)                         // duuh
-
-s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
+s64 validate_normal_getdirentries(const void* data, const s64 bytes) {
   if (bytes < 0) return bytes;
 
   const u8* data_ptr     = static_cast<const u8*>(data);
@@ -89,6 +84,45 @@ s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
       break;
     };
     if (!VNG_NLE(dirent->d_name, dirent->d_namlen)) {
+      LogError("error: strlen = ", strlen(dirent->d_name));
+      break;
+    };
+    total_size += dirent->d_reclen;
+  }
+  return total_size;
+}
+
+#define VPG_NL(x)     (x > 0 && x < 256)                         // string, so that's obvious (255+null)
+#define VPG_T(x)      (x >= 0 && x < 15)                         // types cap at 15 i think
+#define VPG_RL(x)     (x >= 24 && x <= 272 && ((x & 0x07) == 0)) // min/max possible reclen, aligned to 8
+#define VPG_NLE(x, y) (strnlen(x, 255) == y)                     // duuh
+
+s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
+  if (bytes < 0) return bytes;
+
+  const u8* data_ptr     = static_cast<const u8*>(data);
+  s64       total_size   = 0;
+  u32       current_size = 0;
+
+  while (total_size < bytes) { // this element is in bounds
+    const oi::PfsDirent* dirent = reinterpret_cast<const oi::PfsDirent*>(data_ptr + total_size);
+    if (dirent->d_reclen == 0) {
+      LogError("error: reclen = ", dirent->d_reclen);
+      break;
+    }; // likely went OOB
+    if (!VPG_NL(dirent->d_namlen)) {
+      LogError("error: namlen = ", dirent->d_namlen);
+      break;
+    };
+    if (!VPG_T(dirent->d_type)) {
+      LogError("error: type = ", dirent->d_type);
+      break;
+    };
+    if (!VPG_RL(dirent->d_reclen)) {
+      LogError("error: reclen = ", dirent->d_reclen);
+      break;
+    };
+    if (!VPG_NLE(dirent->d_name, dirent->d_namlen)) {
       LogError("error: strlen = ", strlen(dirent->d_name));
       break;
     };

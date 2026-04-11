@@ -5,19 +5,26 @@
 
 #include <vector>
 
-s64 oke264(int error) {
-  return static_cast<s64>(error);
-}
-
+// expected result is here only for visualization, real good values are calculated for each type individually
 std::vector<OrbisInternals::DirentCombinationRead> normal_read_variants = {
     {.read_size = 0, .read_offset = 0, .expected_result = 0, .expected_errno = 0},
-    {64, 0, 64, 0},
-    {128, 0, 128, 0}, //
-    {256, 0, 256, 0},
-    {511, 0, 511, 0},
-    {511, 1, 511, 0}, //
-    {511, 2, 511, 0},
-    {512, 0, 512, 0},
+    {64, 0, 64, 0},         // equal
+    {128, 0, 128, 0},       // equal
+    {256, 0, 256, 0},       // equal
+    {511, 0, 511, 0},       // equal
+    {511, 1, 511, 0},       // equal
+    {511, 2, 511, 0},       // equal
+    {512, 0, 512, 0},       // equal
+    {2048, 1245, 2048, 0},  // equal
+    {7257, 1245, 7257, 0},  // equal
+    {418, 574, 418, 0},     // equal
+    {9363, 1111, 7593, 0},  // PFS:9363
+    {37865, 936, 7768, 0},  // PFS:37865
+    {17543, 1245, 7459, 0}, // PFS:17543
+    {1024, 35565, 0, 0},    // PFS:1024
+    {512, 65534, 0, 0},     // PFS:2
+    {2048, 65534, 0, 0},    // PFS:2
+    {4096, 8192, 0, 0},     // PFS:2
 };
 std::vector<OrbisInternals::DirentCombinationGetdirentries> normal_dirent_variants = {
     {.read_size = 0, .read_offset = 0, .expected_basep = 0, .expected_result = ORBIS_KERNEL_ERROR_EINVAL, .expected_errno = EINVAL},
