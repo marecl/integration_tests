@@ -28,7 +28,7 @@ std::string to_hex(T value) {
   return oss.str();
 }
 
-std::string to_hex_string(const void* data, long long length, std::string sep=" ");
+std::string to_hex_string(const void* data, long long length, std::string sep = " ");
 
 template <typename... Args>
 void LogCustom(const char* fn, const char* msg, Args&&... args) {
