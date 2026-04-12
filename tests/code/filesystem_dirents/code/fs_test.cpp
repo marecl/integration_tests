@@ -453,8 +453,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal read failed");
     LogTest("Normal read got", tbr, "bytes");
     if (tbr == 0) break;
-#warning uncomment
-    // CHECK_EQUAL_TEXT(8704, tbr, "Incorrect read size"); // not ready for multiples of buffer size
+    CHECK_EQUAL_TEXT(8704, tbr, "Incorrect read size"); // not ready for multiples of buffer size
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
@@ -470,7 +469,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelGetdirentries failed");
     LogTest("Normal sceKernelGetdirentries got", tbr, "bytes");
     if (tbr == 0) break;
-    // CHECK_EQUAL_TEXT(8704, tbr, "Incorrect read size"); // not ready for multiples of buffer size
+    CHECK_EQUAL_TEXT(8704, tbr, "Incorrect read size"); // not ready for multiples of buffer size
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
