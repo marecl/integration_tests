@@ -24,7 +24,7 @@ typedef struct DirentCombinationRead {
   s64 read_size;
   s64 read_offset;
   s64 expected_result;
-  u32 expected_errno;
+  s64 expected_end_position;
 } DirentCombinationRead;
 
 typedef struct DirentCombinationGetdirentries {
@@ -32,7 +32,7 @@ typedef struct DirentCombinationGetdirentries {
   s64 read_offset;
   s64 expected_basep;
   s64 expected_result;
-  u32 expected_errno;
+  s64 expected_end_position;
 } DirentCombinationGetdirentries;
 
 typedef struct PfsDirent {
@@ -61,6 +61,8 @@ bool    is_directory_relatives(const char* data);
 s64     imemcmp(const void* object, const void* reflection, s64 bytes);
 s64     fillcheck(const void* data, const u8 value, const u64 bytes);
 
+s64 validate_normal_getdirentries(const void* data, const s64 bytes);
+s64 validate_pfs_read(const void* data, const s64 bytes);
 s64 validate_pfs_getdirentries(const void* data, const s64 bytes);
 
 #endif // FS_TEST_H
