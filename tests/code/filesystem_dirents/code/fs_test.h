@@ -25,6 +25,7 @@ typedef struct DirentCombinationRead {
   s64 read_offset;
   s64 expected_result;
   s64 expected_end_position;
+  int expected_errno;
 } DirentCombinationRead;
 
 typedef struct DirentCombinationGetdirentries {
@@ -33,6 +34,7 @@ typedef struct DirentCombinationGetdirentries {
   s64 expected_basep;
   s64 expected_result;
   s64 expected_end_position;
+  int expected_errno;
 } DirentCombinationGetdirentries;
 
 typedef struct PfsDirent {

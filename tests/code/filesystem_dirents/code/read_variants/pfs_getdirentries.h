@@ -2,7 +2,8 @@
 
 #include <vector>
 
-std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants = {
+// read size, read offset // HW basep, HW return, HW end position
+std::vector<std::pair<s64, s64>> pfs_dirent_variants = {
 
     /**
      * Final writeup:
@@ -36,66 +37,54 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
 
     // apparent end = offset + length before checking dirents
 
-    // 512 byte reads can get deadlocked like here. 496 read, so next 512 read won't break 1024 barrier
-    {.read_size = 512, .read_offset = 0, .expected_basep = 0, .expected_result = 496, .expected_end_position = 496}, // 0 - 496, reaches upper border
-    // 496 + 512 = 1008 < 1024, apparent end below sector end
-    {.read_size = 512, .read_offset = -1, .expected_basep = 496, .expected_result = 0, .expected_end_position = 496},
-    {.read_size = 512, .read_offset = -1, .expected_basep = 496, .expected_result = 0, .expected_end_position = 496},  // same as above
-    {.read_size = 512, .read_offset = 16, .expected_basep = 16, .expected_result = 472, .expected_end_position = 488}, // 16 - 496, reaches upper border
-    {.read_size             = 512,
-     .read_offset           = 512,
-     .expected_basep        = 512,
-     .expected_result       = 480,
-     .expected_end_position = 992},                                                                                  // 496 - 975, apparent end at sector end
-    {.read_size = 513, .read_offset = 0, .expected_basep = 0, .expected_result = 496, .expected_end_position = 496}, // 0 - 496, apparent end beyond sector end
-    // 0 - 496, end on dirent in next sector, does not read from next sector, apparent end doesnt reach its end border
-    {.read_size = 536, .read_offset = 0, .expected_basep = 0, .expected_result = 496, .expected_end_position = 496},
-    {.read_size = 64, .read_offset = 1015, .expected_basep = 1015, .expected_result = 0, .expected_end_position = 1015}, // dirent would leak into new sector
-    {.read_size = 64, .read_offset = 1016, .expected_basep = 1016, .expected_result = 0, .expected_end_position = 1016}, // dirent would leak into new sector
-    {.read_size = 64, .read_offset = 1017, .expected_basep = 1017, .expected_result = 0, .expected_end_position = 1017}, // dirent would leak into new sector
-    {.read_size = 80, .read_offset = 1015, .expected_basep = 1015, .expected_result = 0, .expected_end_position = 1015}, // dirent would leak into new sector
-    {.read_size = 80, .read_offset = 1016, .expected_basep = 1016, .expected_result = 0, .expected_end_position = 1016}, // dirent would leak into new sector
-    {.read_size = 80, .read_offset = 1017, .expected_basep = 1017, .expected_result = 0, .expected_end_position = 1017}, // dirent would leak into new sector
-    {.read_size = 1023, .read_offset = 0, .expected_basep = 0, .expected_result = 496, .expected_end_position = 496},
-    {.read_size = 1023, .read_offset = -1, .expected_basep = 496, .expected_result = 520, .expected_end_position = 1016},
-    {.read_size = 1023, .read_offset = -1, .expected_basep = 1016, .expected_result = 520, .expected_end_position = 1536},
-    {.read_size = 1024, .read_offset = 0, .expected_basep = 0, .expected_result = 1016, .expected_end_position = 1016},
-    {.read_size = 1024, .read_offset = 511, .expected_basep = 511, .expected_result = 480, .expected_end_position = 991},
-    {.read_size = 1024, .read_offset = 512, .expected_basep = 512, .expected_result = 1000, .expected_end_position = 1512},
-    {.read_size = 1024, .read_offset = 513, .expected_basep = 513, .expected_result = 1000, .expected_end_position = 1513},
-    {.read_size = 1025, .read_offset = 513, .expected_basep = 513, .expected_result = 1000, .expected_end_position = 1513},
-    {.read_size = 1026, .read_offset = 513, .expected_basep = 513, .expected_result = 1000, .expected_end_position = 1513},
-    {.read_size = 1026, .read_offset = -1, .expected_basep = 1513, .expected_result = 520, .expected_end_position = 2033},
-
-    {.read_size = 256, .read_offset = 256, .expected_basep = 256, .expected_result = 240, .expected_end_position = 496},
-    {.read_size = 256, .read_offset = -1, .expected_basep = 496, .expected_result = 0, .expected_end_position = 496},
-
-    // try to get the filler between dirents
-
-    {.read_size = 23, .read_offset = 511, .expected_basep = 511, .expected_result = 0, .expected_end_position = 511},
-    {.read_size = 24, .read_offset = 511, .expected_basep = 511, .expected_result = 0, .expected_end_position = 511},
-    {.read_size = 25, .read_offset = 511, .expected_basep = 511, .expected_result = 0, .expected_end_position = 511},
-    {.read_size = 8, .read_offset = 504, .expected_basep = 504, .expected_result = 0, .expected_end_position = 504},
-    {.read_size = 16, .read_offset = 496, .expected_basep = 496, .expected_result = 0, .expected_end_position = 496},
-    {.read_size = 24, .read_offset = 488, .expected_basep = 488, .expected_result = 0, .expected_end_position = 488},
-    {.read_size = 48, .read_offset = 464, .expected_basep = 464, .expected_result = 40, .expected_end_position = 504},
-    {.read_size = 64, .read_offset = 448, .expected_basep = 448, .expected_result = 40, .expected_end_position = 488},
-    {.read_size = 128, .read_offset = 384, .expected_basep = 384, .expected_result = 120, .expected_end_position = 504},
-    {.read_size = 256, .read_offset = 256, .expected_basep = 256, .expected_result = 240, .expected_end_position = 496},
-    {.read_size = 511, .read_offset = 1, .expected_basep = 1, .expected_result = 472, .expected_end_position = 473},
-    {.read_size = 32, .read_offset = 4064, .expected_basep = 4064, .expected_result = 0, .expected_end_position = 4064}, // not a full dirent but valid
-    {.read_size = 64, .read_offset = 4064, .expected_basep = 4064, .expected_result = 0, .expected_end_position = 4064}, // doesnt pass alignment
-    {.read_size = 80, .read_offset = 4064, .expected_basep = 4064, .expected_result = 0, .expected_end_position = 4064},
-    // passes alignment brom the bottom but doesn't have a full dirent and doesn't pass upper boundary
-    {.read_size = 112, .read_offset = 4064, .expected_basep = 4064, .expected_result = 0, .expected_end_position = 4064},
-    {.read_size = 128, .read_offset = 4064, .expected_basep = 4064, .expected_result = 0, .expected_end_position = 4064}, //
-    {.read_size = 256, .read_offset = 4064, .expected_basep = 4064, .expected_result = 0, .expected_end_position = 4064},
-    {.read_size = 544, .read_offset = 4064, .expected_basep = 4064, .expected_result = 504, .expected_end_position = 4568},
-    {.read_size = 1024, .read_offset = 0, .expected_basep = 0, .expected_result = 1016, .expected_end_position = 1016},
-    {.read_size = 1024, .read_offset = -1, .expected_basep = 1016, .expected_result = 520, .expected_end_position = 1536},
-    {.read_size = 1024, .read_offset = -1, .expected_basep = 1536, .expected_result = 1000, .expected_end_position = 2536},
-    {.read_size = 32, .read_offset = 480, .expected_basep = 480, .expected_result = 0, .expected_end_position = 480},
-    {.read_size = 1024, .read_offset = 10000, .expected_basep = 10000, .expected_result = 648, .expected_end_position = 65536},
-    {.read_size = 8192, .read_offset = 10000, .expected_basep = 10000, .expected_result = 648, .expected_end_position = 65536},
-    {.read_size = 8192, .read_offset = 35565, .expected_basep = 35565, .expected_result = 0, .expected_end_position = 65536},
+    {512, 0},      // 0        496        496
+    {512, -1},     // 496      0          496
+    {512, -1},     // 496      0          496
+    {512, 16},     // 16       472        488
+    {512, 512},    // 512      480        992
+    {513, 0},      // 0        496        496
+    {536, 0},      // 0        496        496
+    {64, 1015},    // 1015     0          1015
+    {64, 1016},    // 1016     0          1016
+    {64, 1017},    // 1017     0          1017
+    {80, 1015},    // 1015     0          1015
+    {80, 1016},    // 1016     0          1016
+    {80, 1017},    // 1017     0          1017
+    {1023, 0},     // 0        496        496
+    {1023, -1},    // 496      520        1016
+    {1023, -1},    // 1016     520        1536
+    {1024, 0},     // 0        1016       1016
+    {1024, 511},   // 511      480        991
+    {1024, 512},   // 512      1000       1512
+    {1024, 513},   // 513      1000       1513
+    {1025, 513},   // 513      1000       1513
+    {1026, 513},   // 513      1000       1513
+    {1026, -1},    // 1513     520        2033
+    {256, 256},    // 256      240        496
+    {256, -1},     // 496      0          496
+    {23, 511},     // 511      0          511
+    {24, 511},     // 511      0          511
+    {25, 511},     // 511      0          511
+    {8, 504},      // 504      0          504
+    {16, 496},     // 496      0          496
+    {24, 488},     // 488      0          488
+    {48, 464},     // 464      40         504
+    {64, 448},     // 448      40         488
+    {128, 384},    // 384      120        504
+    {256, 256},    // 256      240        496
+    {511, 1},      // 1        472        473
+    {32, 4064},    // 4064     0          4064
+    {64, 4064},    // 4064     0          4064
+    {80, 4064},    // 4064     0          4064
+    {112, 4064},   // 4064     0          4064
+    {128, 4064},   // 4064     0          4064
+    {256, 4064},   // 4064     0          4064
+    {544, 4064},   // 4064     504        4568
+    {1024, 0},     // 0        1016       1016
+    {1024, -1},    // 1016     520        1536
+    {1024, -1},    // 1536     1000       2536
+    {32, 480},     // 480      0          480
+    {1024, 10000}, // 10000    648        65536
+    {8192, 10000}, // 10000    648        65536
+    {8192, 35565}, // 35565    0          65536
 };

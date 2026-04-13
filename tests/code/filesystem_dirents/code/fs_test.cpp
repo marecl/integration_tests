@@ -99,28 +99,37 @@ TEST_GROUP (DirentTests) {
 TEST(DirentTests, PFSGetdirentries) {
   LogTest("<<<< PFS getdirentries tests >>>>");
 
-  fs::path output_root = "/data/enderman/pfs_getdirentries";
-  char     buffer[65536];
-  s64      end_ptr_position {};
+  fs::path                           output_root = "/data/enderman/pfs_getdirentries";
+  char                               buffer[65536];
+  char                               master_buffer[65536];
+  const s64                          master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
+  s64                                end_ptr_position {};
+  oi::DirentCombinationGetdirentries calc {};
+  s64                                spec_size {};
+  s64                                spec_offset {};
 
   fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
   add_fd(fd);
   s64 basep {};
-  for (auto& spec: pfs_dirent_variants) {
-    basep = 0;
-    memset(buffer, 0xAA, 65536);
+  LogTest(to_hex_string(master_buffer, 16, ""));
+  for (const auto& spec: pfs_dirent_variants) {
+    spec_size   = spec.first;
+    spec_offset = spec.second;
 
-    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+    memset(buffer, 'A', 65536);
+    calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec_offset, spec_size);
+
+    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
     errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
+    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
-    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, spec.expected_result, spec.expected_end_position, "\t->\t", basep, tbr, end_ptr_position,
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, calc.expected_result, calc.expected_end_position, "\t->\t", basep, tbr, end_ptr_position,
             to_hex_string(buffer, 16, ""));
 
-    CHECK_EQUAL(spec.expected_result, tbr);
-    CHECK_EQUAL_ZERO_TEXT(errno, "Incorrect errno");
-    CHECK_EQUAL_TEXT(spec.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    CHECK_EQUAL(spec.expected_basep, basep);
+    CHECK_EQUAL(calc.expected_basep, basep);
+    CHECK_EQUAL(calc.expected_result, tbr);
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
     // dump good ones to file
   }
   sceKernelClose(fd);
@@ -137,6 +146,7 @@ TEST(DirentTests, NormalGetdirentries) {
   add_fd(fd);
   for (auto& spec: normal_dirent_variants) {
     basep = 0;
+
     memset(buffer, 0xAA, 65536);
 
     if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
@@ -146,10 +156,10 @@ TEST(DirentTests, NormalGetdirentries) {
     LogTest(spec.read_size, spec.read_offset, spec.expected_basep, spec.expected_result, spec.expected_end_position, "\t->\t", basep, tbr, end_ptr_position,
             to_hex_string(buffer, 16, ""));
 
-    CHECK_EQUAL(spec.expected_result, tbr);
-    CHECK_EQUAL_ZERO_TEXT(errno, "Incorrect errno");
-    CHECK_EQUAL_TEXT(spec.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
     CHECK_EQUAL(spec.expected_basep, basep);
+    CHECK_EQUAL(spec.expected_result, tbr);
+    CHECK_EQUAL_TEXT(spec.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
+    CHECK_EQUAL_TEXT(spec.expected_errno, errno, "Incorrect errno");
     // dump good ones to file
   }
   sceKernelClose(fd);
@@ -211,9 +221,9 @@ TEST(DirentTests, PFSRead) {
     spec_offset = spec.second;
 
     memset(buffer, 'A', 65536);
-    calculate_pfs_read(&calc, buffer, master_length, spec_offset, spec_size);
+    calculate_pfs_read(&calc, master_buffer, master_length, spec_offset, spec_size);
 
-    CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
+    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
     errno            = 0;
     tbr              = sceKernelRead(fd, buffer, calc.read_size);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
@@ -222,7 +232,7 @@ TEST(DirentTests, PFSRead) {
             to_hex_string(buffer, 16, ""));
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Incorrect read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    CHECK_EQUAL_ZERO_TEXT(errno, "Incorrect errno");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
     compare_data_dump(master_buffer, buffer, 65536, tbr, &calc);
   }
   sceKernelClose(fd);
@@ -249,9 +259,9 @@ TEST(DirentTests, NormalRead) {
     spec_offset = spec.second;
 
     memset(buffer, 'A', 65536);
-    calculate_normal_read(&calc, buffer, master_length, spec_offset, spec_size);
+    calculate_normal_read(&calc, master_buffer, master_length, spec_offset, spec_size);
 
-    CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
+    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
     errno            = 0;
     tbr              = sceKernelRead(fd, buffer, calc.read_size);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
@@ -260,7 +270,7 @@ TEST(DirentTests, NormalRead) {
             to_hex_string(buffer, 16, ""));
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Incorrect read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    CHECK_EQUAL_ZERO_TEXT(errno, "Incorrect errno");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
     compare_data_dump(master_buffer, buffer, 65536, tbr, &calc);
   }
   sceKernelClose(fd);
