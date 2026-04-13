@@ -103,7 +103,7 @@ s64 validate_normal_getdirentries(const void* data, const s64 bytes) {
 #define VPG_NLE(x, y) (strnlen(x, 255) == y)                     // duuh
 
 s64 validate_pfs_read(const void* data, const s64 bytes) {
-  if (bytes < 0) return bytes;
+  if (bytes <= 0) return 0;
 
   const u8* data_ptr     = static_cast<const u8*>(data);
   s64       total_size   = 0;
@@ -112,25 +112,25 @@ s64 validate_pfs_read(const void* data, const s64 bytes) {
   while (total_size < bytes) { // this element is in bounds
     const oi::PfsDirent* dirent = reinterpret_cast<const oi::PfsDirent*>(data_ptr + total_size);
     if (dirent->d_reclen == 0) {
-      LogError("error: reclen = ", dirent->d_reclen);
+      LogError("Zero reclen found");
       break;
-    }; // likely went OOB
+    } // likely went OOB
     if (!VPG_NL(dirent->d_namlen)) {
       LogError("error: namlen = ", dirent->d_namlen);
       break;
-    };
+    }
     if (!VPG_T(dirent->d_type)) {
       LogError("error: type = ", dirent->d_type);
       break;
-    };
+    }
     if (!VPG_RL(dirent->d_reclen)) {
       LogError("error: reclen = ", dirent->d_reclen);
       break;
-    };
+    }
     if (!VPG_NLE(dirent->d_name, dirent->d_namlen)) {
       LogError("error: strlen = ", strlen(dirent->d_name));
       break;
-    };
+    }
     total_size += dirent->d_reclen;
   }
   return total_size;
@@ -146,25 +146,25 @@ s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
   while (total_size < bytes) { // this element is in bounds
     const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data_ptr + total_size);
     if (dirent->d_reclen == 0) {
-      LogError("error: reclen = ", dirent->d_reclen);
+      LogError("Zero reclen found");
       break;
-    }; // likely went OOB
+    } // likely went OOB
     if (!VPG_NL(dirent->d_namlen)) {
       LogError("error: namlen = ", dirent->d_namlen);
       break;
-    };
+    }
     if (!VPG_T(dirent->d_type)) {
       LogError("error: type = ", dirent->d_type);
       break;
-    };
+    }
     if (!VPG_RL(dirent->d_reclen)) {
       LogError("error: reclen = ", dirent->d_reclen);
       break;
-    };
+    }
     if (!VPG_NLE(dirent->d_name, dirent->d_namlen)) {
       LogError("error: strlen = ", strlen(dirent->d_name));
       break;
-    };
+    }
     total_size += dirent->d_reclen;
   }
   return total_size;

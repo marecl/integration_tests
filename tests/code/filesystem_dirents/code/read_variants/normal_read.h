@@ -2,27 +2,27 @@
 
 #include <vector>
 
-// expected result is here only for visualization, real good values are calculated for each type individually
-std::vector<OrbisInternals::DirentCombinationRead> normal_read_variants = {
-    {.read_size = 0, .read_offset = 0, .expected_result = 0, .expected_end_position = 0},              // 0
-    {.read_size = 64, .read_offset = 0, .expected_result = 64, .expected_end_position = 64},           // 64
-    {.read_size = 128, .read_offset = 0, .expected_result = 128, .expected_end_position = 128},        // 128
-    {.read_size = 256, .read_offset = 0, .expected_result = 256, .expected_end_position = 256},        // 256
-    {.read_size = 511, .read_offset = 0, .expected_result = 511, .expected_end_position = 511},        // 511
-    {.read_size = 511, .read_offset = 1, .expected_result = 511, .expected_end_position = 512},        // 512
-    {.read_size = 511, .read_offset = 2, .expected_result = 511, .expected_end_position = 513},        // 513
-    {.read_size = 512, .read_offset = 0, .expected_result = 512, .expected_end_position = 512},        // 512
-    {.read_size = 2048, .read_offset = 1245, .expected_result = 2048, .expected_end_position = 3293},  // 3293
-    {.read_size = 7257, .read_offset = 1245, .expected_result = 7257, .expected_end_position = 8502},  // 8502
-    {.read_size = 418, .read_offset = 574, .expected_result = 418, .expected_end_position = 992},      // 992
-    {.read_size = 9363, .read_offset = 1111, .expected_result = 7593, .expected_end_position = 8704},  // 8704
-    {.read_size = 37865, .read_offset = 936, .expected_result = 7768, .expected_end_position = 8704},  // 8704
-    {.read_size = 17543, .read_offset = 1245, .expected_result = 7459, .expected_end_position = 8704}, // 8704
-    {.read_size = 1024, .read_offset = 35565, .expected_result = 0, .expected_end_position = 35565},   // 35565
-    {.read_size = 512, .read_offset = 65534, .expected_result = 0, .expected_end_position = 65534},    // 65534
-    {.read_size = 2048, .read_offset = 65534, .expected_result = 0, .expected_end_position = 65534},   // 65534
-    {.read_size = 4096, .read_offset = 8192, .expected_result = 512, .expected_end_position = 8704},   // 8704
-    {.read_size = 1024, .read_offset = 8000, .expected_result = 704, .expected_end_position = 8704},   // 8704
-    {.read_size = 1024, .read_offset = 10000, .expected_result = 0, .expected_end_position = 10000},   // 10000
-    {.read_size = 4096, .read_offset = 10000, .expected_result = 0, .expected_end_position = 10000},   // 10000
+// read size, read offset // HW return, HW end position
+std::vector<std::pair<s64, s64>> normal_read_variants = {
+    {0, 0},        // return = 0    ,   endpos = 0
+    {64, 0},       // return = 64   ,   endpos = 64
+    {128, 0},      // return = 128  ,   endpos = 128
+    {256, 0},      // return = 256  ,   endpos = 256
+    {511, 0},      // return = 511  ,   endpos = 511
+    {511, 1},      // return = 511  ,   endpos = 512
+    {511, 2},      // return = 511  ,   endpos = 513
+    {512, 0},      // return = 512  ,   endpos = 512
+    {2048, 1245},  // return = 2048 ,   endpos = 3293
+    {7257, 1245},  // return = 7257 ,   endpos = 8502
+    {418, 574},    // return = 418  ,   endpos = 992
+    {9363, 1111},  // return = 7593 ,   endpos = 8704
+    {37865, 936},  // return = 7768 ,   endpos = 8704
+    {17543, 1245}, // return = 7459 ,   endpos = 8704
+    {1024, 35565}, // return = 0    ,   endpos = 35565
+    {512, 65534},  // return = 0    ,   endpos = 65534
+    {2048, 65534}, // return = 0    ,   endpos = 65534
+    {4096, 8192},  // return = 512  ,   endpos = 8704
+    {1024, 8000},  // return = 704  ,   endpos = 8704
+    {1024, 10000}, // return = 0    ,   endpos = 10000
+    {4096, 10000}, // return = 0    ,   endpos = 10000
 };

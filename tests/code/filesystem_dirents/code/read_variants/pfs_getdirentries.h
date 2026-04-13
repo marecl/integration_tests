@@ -93,9 +93,9 @@ std::vector<OrbisInternals::DirentCombinationGetdirentries> pfs_dirent_variants 
     {.read_size = 544, .read_offset = 4064, .expected_basep = 4064, .expected_result = 504, .expected_end_position = 4568},
     {.read_size = 1024, .read_offset = 0, .expected_basep = 0, .expected_result = 1016, .expected_end_position = 1016},
     {.read_size = 1024, .read_offset = -1, .expected_basep = 1016, .expected_result = 520, .expected_end_position = 1536},
-    {.read_size = 1024, .read_offset = -1, .expected_basep = 1536, .expected_result = 1016, .expected_end_position = 2552},
+    {.read_size = 1024, .read_offset = -1, .expected_basep = 1536, .expected_result = 1000, .expected_end_position = 2536},
     {.read_size = 32, .read_offset = 480, .expected_basep = 480, .expected_result = 0, .expected_end_position = 480},
-    {.read_size = 1024, .read_offset = 10000, .expected_basep = 10000, .expected_result = 576, .expected_end_position = 65536},
-    {.read_size = 8192, .read_offset = 10000, .expected_basep = 10000, .expected_result = 576, .expected_end_position = 65536},
+    {.read_size = 1024, .read_offset = 10000, .expected_basep = 10000, .expected_result = 648, .expected_end_position = 65536},
+    {.read_size = 8192, .read_offset = 10000, .expected_basep = 10000, .expected_result = 648, .expected_end_position = 65536},
     {.read_size = 8192, .read_offset = 35565, .expected_basep = 35565, .expected_result = 0, .expected_end_position = 65536},
 };

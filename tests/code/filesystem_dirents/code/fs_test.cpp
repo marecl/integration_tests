@@ -1,5 +1,6 @@
 #include "fs_test.h"
 
+#include "calculator.h"
 #include "fs_test_constants.h"
 #include "orbis/UserService.h"
 
@@ -162,17 +163,17 @@ TEST(DirentTests, ValidateDirentries) {
 
   LogTest("Normal read");
   master_length = undump_file(output_normal_read, buffer, 65536);
-  CHECK_EQUAL(8704, validate_normal_getdirentries(buffer, master_length));
+  CHECK_EQUAL(normal_read_target, validate_normal_getdirentries(buffer, master_length));
   LogTest("Normal getdirentries");
   master_length = undump_file(output_normal_getdirentries, buffer, 65536);
-  CHECK_EQUAL(8704, validate_normal_getdirentries(buffer, master_length));
+  CHECK_EQUAL(normal_getdirentries_target, validate_normal_getdirentries(buffer, master_length));
 
   LogTest("PFS read");
   master_length = undump_file(output_pfs_read, buffer, 65536);
-  CHECK_EQUAL(10616, validate_pfs_read(buffer, master_length));
+  CHECK_EQUAL(pfs_getdirentries_target, validate_pfs_read(buffer, master_length));
   LogTest("PFS getdirentries");
   master_length = undump_file(output_pfs_getdirentries, buffer, 65536);
-  CHECK_EQUAL(10616, validate_pfs_getdirentries(buffer, master_length));
+  CHECK_EQUAL(pfs_getdirentries_target, validate_pfs_getdirentries(buffer, master_length));
 }
 
 s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, struct oi::DirentCombinationRead* spec) {
@@ -192,29 +193,37 @@ s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64
 TEST(DirentTests, PFSRead) {
   LogTest("<<<< PFS read tests >>>>");
 
-  char      buffer[65536];
-  char      master_buffer[65536];
-  const s64 master_length = undump_file(output_pfs_read, master_buffer, 65536);
-  s64       end_ptr_position {};
+  char                      buffer[65536];
+  char                      master_buffer[65536];
+  const s64                 master_length = undump_file(output_pfs_read, master_buffer, 65536);
+  s64                       end_ptr_position {};
+  oi::DirentCombinationRead calc {};
+  s64                       spec_size {};
+  s64                       spec_offset {};
 
   LogTest("Master PFS read length is", master_length);
 
   fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
   add_fd(fd);
-  for (auto& spec: pfs_read_variants) {
-    memset(buffer, 'A', 65536);
 
-    CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+  for (const auto& spec: pfs_read_variants) {
+    spec_size   = spec.first;
+    spec_offset = spec.second;
+
+    memset(buffer, 'A', 65536);
+    calculate_pfs_read(&calc, buffer, master_length, spec_offset, spec_size);
+
+    CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
     errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, spec.read_size);
+    tbr              = sceKernelRead(fd, buffer, calc.read_size);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
 
-    LogTest(spec.read_size, spec.read_offset, spec.expected_result, spec.expected_end_position, "\t->\t", tbr, end_ptr_position, "\t",
+    LogTest(calc.read_size, calc.read_offset, calc.expected_result, calc.expected_end_position, "\t->\t", tbr, end_ptr_position, "\t",
             to_hex_string(buffer, 16, ""));
-    CHECK_EQUAL_TEXT(spec.expected_result, tbr, "Incorrect read size");
-    CHECK_EQUAL_TEXT(spec.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Incorrect read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
     CHECK_EQUAL_ZERO_TEXT(errno, "Incorrect errno");
-    compare_data_dump(master_buffer, buffer, 65536, tbr, &spec);
+    compare_data_dump(master_buffer, buffer, 65536, tbr, &calc);
   }
   sceKernelClose(fd);
 }
@@ -222,29 +231,37 @@ TEST(DirentTests, PFSRead) {
 TEST(DirentTests, NormalRead) {
   LogTest("<<<< Normal read tests >>>>");
 
-  char      buffer[65536];
-  char      master_buffer[65536];
-  const s64 master_length = undump_file(output_normal_read, master_buffer, 65536);
-  s64       end_ptr_position {};
+  char                      buffer[65536];
+  char                      master_buffer[65536];
+  const s64                 master_length = undump_file(output_normal_read, master_buffer, 65536);
+  s64                       end_ptr_position {};
+  oi::DirentCombinationRead calc {};
+  s64                       spec_size {};
+  s64                       spec_offset {};
 
   LogTest("Master Normal read length is", master_length);
 
   fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
   add_fd(fd);
-  for (auto& spec: normal_read_variants) {
-    memset(buffer, 'A', 65536);
 
-    CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+  for (const auto& spec: normal_read_variants) {
+    spec_size   = spec.first;
+    spec_offset = spec.second;
+
+    memset(buffer, 'A', 65536);
+    calculate_normal_read(&calc, buffer, master_length, spec_offset, spec_size);
+
+    CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
     errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, spec.read_size);
+    tbr              = sceKernelRead(fd, buffer, calc.read_size);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
 
-    LogTest(spec.read_size, spec.read_offset, spec.expected_result, spec.expected_end_position, "\t->\t", tbr, end_ptr_position, "\t",
+    LogTest(calc.read_size, calc.read_offset, calc.expected_result, calc.expected_end_position, "\t->\t", tbr, end_ptr_position, "\t",
             to_hex_string(buffer, 16, ""));
-    CHECK_EQUAL_TEXT(spec.expected_result, tbr, "Incorrect read size");
-    CHECK_EQUAL_TEXT(spec.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Incorrect read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
     CHECK_EQUAL_ZERO_TEXT(errno, "Incorrect errno");
-    compare_data_dump(master_buffer, buffer, 65536, tbr, &spec);
+    compare_data_dump(master_buffer, buffer, 65536, tbr, &calc);
   }
   sceKernelClose(fd);
 }
@@ -413,7 +430,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS read failed");
     LogTest("PFS read got", tbr, "bytes");
     if (tbr == 0) break;
-    CHECK_EQUAL_TEXT(65536, tbr, "Incorrect read size"); // not ready for multiples of buffer size
+    CHECK_EQUAL_TEXT(pfs_read_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
@@ -430,7 +447,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS sceKernelGetdirentries failed");
     LogTest("PFS sceKernelGetdirentries got", tbr, "bytes");
     if (tbr == 0) break;
-    CHECK_EQUAL_TEXT(10616, tbr, "Incorrect read size"); // not ready for multiples of buffer size
+    CHECK_EQUAL_TEXT(pfs_getdirentries_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
@@ -453,7 +470,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal read failed");
     LogTest("Normal read got", tbr, "bytes");
     if (tbr == 0) break;
-    CHECK_EQUAL_TEXT(8704, tbr, "Incorrect read size"); // not ready for multiples of buffer size
+    CHECK_EQUAL_TEXT(normal_read_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
@@ -469,7 +486,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_COMPARE_TEXT(tbr, >=, 0, "Normal sceKernelGetdirentries failed");
     LogTest("Normal sceKernelGetdirentries got", tbr, "bytes");
     if (tbr == 0) break;
-    CHECK_EQUAL_TEXT(8704, tbr, "Incorrect read size"); // not ready for multiples of buffer size
+    CHECK_EQUAL_TEXT(normal_getdirentries_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));

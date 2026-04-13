@@ -2,26 +2,27 @@
 
 #include <vector>
 
-std::vector<OrbisInternals::DirentCombinationRead> pfs_read_variants = {
-    {.read_size = 0, .read_offset = 0, .expected_result = 0, .expected_end_position = 0},                //  0
-    {.read_size = 64, .read_offset = 0, .expected_result = 64, .expected_end_position = 64},             //  64
-    {.read_size = 128, .read_offset = 0, .expected_result = 128, .expected_end_position = 128},          //  128
-    {.read_size = 256, .read_offset = 0, .expected_result = 256, .expected_end_position = 256},          //  256
-    {.read_size = 511, .read_offset = 0, .expected_result = 511, .expected_end_position = 511},          //  511
-    {.read_size = 511, .read_offset = 1, .expected_result = 511, .expected_end_position = 512},          //  512
-    {.read_size = 511, .read_offset = 2, .expected_result = 511, .expected_end_position = 513},          //  513
-    {.read_size = 512, .read_offset = 0, .expected_result = 512, .expected_end_position = 512},          //  512
-    {.read_size = 2048, .read_offset = 1245, .expected_result = 2048, .expected_end_position = 3293},    //  3293
-    {.read_size = 7257, .read_offset = 1245, .expected_result = 7257, .expected_end_position = 8502},    //  8502
-    {.read_size = 418, .read_offset = 574, .expected_result = 418, .expected_end_position = 992},        //  992
-    {.read_size = 9363, .read_offset = 1111, .expected_result = 9363, .expected_end_position = 10474},   //  10474
-    {.read_size = 37865, .read_offset = 936, .expected_result = 37865, .expected_end_position = 38801},  //  38801
-    {.read_size = 17543, .read_offset = 1245, .expected_result = 17543, .expected_end_position = 18788}, //  18788
-    {.read_size = 1024, .read_offset = 35565, .expected_result = 1024, .expected_end_position = 36589},  //  36589
-    {.read_size = 512, .read_offset = 65534, .expected_result = 2, .expected_end_position = 65536},      //  65536
-    {.read_size = 2048, .read_offset = 65534, .expected_result = 2, .expected_end_position = 65536},     //  65536
-    {.read_size = 4096, .read_offset = 8192, .expected_result = 4096, .expected_end_position = 12288},   //  12288
-    {.read_size = 1024, .read_offset = 8000, .expected_result = 1024, .expected_end_position = 9024},    //  9024
-    {.read_size = 1024, .read_offset = 10000, .expected_result = 1024, .expected_end_position = 11024},  //  11024
-    {.read_size = 4096, .read_offset = 10000, .expected_result = 4096, .expected_end_position = 14096},  //  14096
+// read size, read offset // HW return, HW end position
+std::vector<std::pair<s64, s64>> pfs_read_variants = {
+    {0, 0},        // return = 0        ,   endpos = 0
+    {64, 0},       // return = 64       ,   endpos = 64
+    {128, 0},      // return = 128      ,   endpos = 128
+    {256, 0},      // return = 256      ,   endpos = 256
+    {511, 0},      // return = 511      ,   endpos = 511
+    {511, 1},      // return = 511      ,   endpos = 512
+    {511, 2},      // return = 511      ,   endpos = 513
+    {512, 0},      // return = 512      ,   endpos = 512
+    {2048, 1245},  // return = 2048     ,   endpos = 3293
+    {7257, 1245},  // return = 7257     ,   endpos = 8502
+    {418, 574},    // return = 418      ,   endpos = 992
+    {9363, 1111},  // return = 9363     ,   endpos = 10474
+    {37865, 936},  // return = 37865    ,   endpos = 38801
+    {17543, 1245}, // return = 17543    ,   endpos = 18788
+    {1024, 35565}, // return = 1024     ,   endpos = 36589
+    {512, 65534},  // return = 2        ,   endpos = 65536
+    {2048, 65534}, // return = 2        ,   endpos = 65536
+    {4096, 8192},  // return = 4096     ,   endpos = 12288
+    {1024, 8000},  // return = 1024     ,   endpos = 9024
+    {1024, 10000}, // return = 1024     ,   endpos = 11024
+    {4096, 10000}, // return = 4096     ,   endpos = 14096
 };
