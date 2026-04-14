@@ -53,40 +53,50 @@ s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
   return -1;
 };
 
-#define VNG_NL(x)     (x > 0)                                  // single byte, just not a 0
-#define VNG_T(x)      (x >= 0 && x < 15)                       // TODO: check
-#define VNG_RL(x)     (x >= 12 && x <= 264 && (x & 0x03) == 0) // min/max possible reclen, aligned to 4
-#define VNG_NLE(x, y) (strnlen(x, 255) == y)                   // duuh
+s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
+  if (dirent->d_reclen == 0) return 0;
+  if ((dirent->d_reclen & 0x03) == 0) return -2;
+  if (ALUP(8 + dirent->d_namlen, 4) != dirent->d_reclen) return -2;
+  if (dirent->d_reclen < 12 || dirent->d_reclen > 264) return -2;
+  if (dirent->d_type > 15) return -3;
+  if (dirent->d_namlen == 0) return -4;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -5;
+  return 1;
+}
 
-s64 validate_normal_getdirentries(const void* data, const s64 bytes) {
+// pfs getdirentries returns normal direntries
+s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
+  if (dirent->d_reclen == 0) return 0;
+  if ((dirent->d_reclen & 0x07) == 0) return -2;
+  if (ALUP(16 + dirent->d_namlen, 8) != dirent->d_reclen) return -2;
+  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -2;
+  if (dirent->d_type > 15) return -3;
+  if (dirent->d_namlen == 0) return -4;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -5;
+  return 1;
+}
+
+// pfs getdirentries returns normal direntries
+s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
+  if (dirent->d_reclen == 0) return 0;
+  if ((dirent->d_reclen & 0x07) != 0) return -2;
+  if (ALUP(16 + dirent->d_namlen, 8) != dirent->d_reclen) return -2;
+  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -2;
+  if (dirent->d_type > 15) return -3;
+  if (dirent->d_namlen == 0) return -4;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -5;
+  return 1;
+}
+
+s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
   if (bytes < 0) return bytes;
 
-  const u8* data_ptr     = static_cast<const u8*>(data);
-  s64       total_size   = 0;
-  u32       current_size = 0;
+  s64 total_size   = 0;
+  u32 current_size = 0;
 
   while (total_size < bytes) { // this element is in bounds
-    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data_ptr + total_size);
-    if (dirent->d_reclen == 0) {
-      LogError("error: reclen = ", dirent->d_reclen);
-      break;
-    }; // likely went OOB
-    if (!VNG_NL(dirent->d_namlen)) {
-      LogError("error: namlen = ", dirent->d_namlen);
-      break;
-    };
-    if (!VNG_T(dirent->d_type)) {
-      LogError("error: type = ", dirent->d_type);
-      break;
-    };
-    if (!VNG_RL(dirent->d_reclen)) {
-      LogError("error: reclen = ", dirent->d_reclen);
-      break;
-    };
-    if (!VNG_NLE(dirent->d_name, dirent->d_namlen)) {
-      LogError("error: strlen = ", strlen(dirent->d_name));
-      break;
-    };
+    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + total_size);
+    if (validate_normal_dirent(dirent) != 1) break;
 
     s64 next_alignment = (total_size & (~0x1FF)) + 0x200;
     if ((total_size + dirent->d_reclen) > next_alignment)
@@ -97,74 +107,29 @@ s64 validate_normal_getdirentries(const void* data, const s64 bytes) {
   return total_size;
 }
 
-#define VPG_NL(x)     ((u16)x > 0 && (u16)x < 256)               // string, so that's obvious (255+null)
-#define VPG_T(x)      (x >= 0 && x < 15)                         // types cap at 15 i think
-#define VPG_RL(x)     (x >= 24 && x <= 272 && ((x & 0x07) == 0)) // min/max possible reclen, aligned to 8
-#define VPG_NLE(x, y) (strnlen(x, 255) == y)                     // duuh
-
-s64 validate_pfs_read(const void* data, const s64 bytes) {
+s64 validate_pfs_read(const char* data, const s64 bytes) {
   if (bytes <= 0) return 0;
 
-  const u8* data_ptr     = static_cast<const u8*>(data);
-  s64       total_size   = 0;
-  u32       current_size = 0;
+  s64 total_size   = 0;
+  u32 current_size = 0;
 
   while (total_size < bytes) { // this element is in bounds
-    const oi::PfsDirent* dirent = reinterpret_cast<const oi::PfsDirent*>(data_ptr + total_size);
-    if (dirent->d_reclen == 0) {
-      LogError("Zero reclen found");
-      break;
-    } // likely went OOB
-    if (!VPG_NL(dirent->d_namlen)) {
-      LogError("error: namlen = ", dirent->d_namlen);
-      break;
-    }
-    if (!VPG_T(dirent->d_type)) {
-      LogError("error: type = ", dirent->d_type);
-      break;
-    }
-    if (!VPG_RL(dirent->d_reclen)) {
-      LogError("error: reclen = ", dirent->d_reclen);
-      break;
-    }
-    if (!VPG_NLE(dirent->d_name, dirent->d_namlen)) {
-      LogError("error: strlen = ", strlen(dirent->d_name));
-      break;
-    }
+    const oi::PfsDirent* dirent = reinterpret_cast<const oi::PfsDirent*>(data);
+    if (validate_pfs_read_dirent(dirent) != 1) break;
     total_size += dirent->d_reclen;
   }
   return total_size;
 }
 
-s64 validate_pfs_getdirentries(const void* data, const s64 bytes) {
+s64 validate_pfs_getdirentries(const char* data, const s64 bytes) {
   if (bytes < 0) return bytes;
 
-  const u8* data_ptr     = static_cast<const u8*>(data);
-  s64       total_size   = 0;
-  u32       current_size = 0;
+  s64 total_size   = 0;
+  u32 current_size = 0;
 
   while (total_size < bytes) { // this element is in bounds
-    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data_ptr + total_size);
-    if (dirent->d_reclen == 0) {
-      LogError("Zero reclen found");
-      break;
-    } // likely went OOB
-    if (!VPG_NL(dirent->d_namlen)) {
-      LogError("error: namlen = ", dirent->d_namlen);
-      break;
-    }
-    if (!VPG_T(dirent->d_type)) {
-      LogError("error: type = ", dirent->d_type);
-      break;
-    }
-    if (!VPG_RL(dirent->d_reclen)) {
-      LogError("error: reclen = ", dirent->d_reclen);
-      break;
-    }
-    if (!VPG_NLE(dirent->d_name, dirent->d_namlen)) {
-      LogError("error: strlen = ", strlen(dirent->d_name));
-      break;
-    }
+    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + total_size);
+    if (validate_pfs_getdirentries_dirent(dirent) != 1) break;
     total_size += dirent->d_reclen;
   }
   return total_size;

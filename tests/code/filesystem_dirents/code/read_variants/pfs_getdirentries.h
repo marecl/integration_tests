@@ -37,10 +37,26 @@ std::vector<std::pair<s64, s64>> pfs_dirent_variants = {
 
     // apparent end = offset + length before checking dirents
 
-    {512, 0},      // 0        496        496
-    {512, -1},     // 496      0          496
-    {512, -1},     // 496      0          496
-    {512, 16},     // 16       472        488
+    {512, 0},  // 0        496        496
+    {512, -1}, // 496      0          496
+    {512, -1}, // 496      0          496
+    {512, 16}, // 16       472        488
+
+    //
+    // Important - find out how far it tries to backtrack
+    // because here it starts from 2nd dirent,
+    // unlike almost every other position
+    //
+    {512, 24},  // 24
+    {512, 32},  // 32
+    {512, 40},  // 40
+    {512, 48},  // 48
+    {512, 56},  // 56
+    {512, 64},  // 64
+    {512, 128}, // 128
+
+    //
+
     {512, 512},    // 512      480        992
     {513, 0},      // 0        496        496
     {536, 0},      // 0        496        496
