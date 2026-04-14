@@ -39,27 +39,20 @@ void calculate_normal_read(OrbisInternals::DirentCombinationRead* spec, const ch
   spec->expected_end_position = offset + spec->expected_result;
 }
 
-// returns positive offset (how much to back off) or -1 if not found
+// -1 on not found
 s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
-  // check test data for comments and how far it should look for dirents
-  s64 max_backoff = offset >= 272 ? offset - 272 : 0;
-  s64 max_front   = offset + 272 > size ? size - 24 : offset + 272;
-  // min dirent length is 24, so if we can't find it 24 bytes before end then we're not gonan find it at all
+  // max size is 272, last 23 bytes are never starting a dirent
+  s64 max_advance = std::max(size - offset, s64(272));
+  if (max_advance <= 0) return -1;
 
-  for (s64 new_offset = offset; new_offset >= max_backoff; new_offset -= 8) {
-    auto status = validate_pfs_getdirentries_dirent(reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + new_offset));
-    if (status == 1) {
-      LogError("Found a match backwards at", new_offset);
-      return new_offset;
-    }
-  }
+  s64 offset_aligned = ALUP(offset, 8);
 
-  for (s64 new_offset = offset; new_offset <= max_front; new_offset += 8) {
-    auto status = validate_pfs_getdirentries_dirent(reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + new_offset));
-    if (status == 1) {
-      LogError("Found a match forward at", new_offset);
-      return new_offset;
-    }
+  for (s64 out_offset = 0; out_offset <= max_advance; out_offset += 8) {
+    auto status = validate_pfs_getdirentries_dirent(reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + offset_aligned + out_offset));
+    if (status != 1) continue;
+
+    LogError("Found a match forward at", out_offset);
+    return out_offset + offset_aligned - offset;
   }
 
   LogError("No match");
@@ -93,29 +86,42 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     return;
   }
 
-  if (count > (size - offset)) return;
-
   if (offset >= size) {
-    offset                      = directory_size;
-    spec->expected_end_position = offset;
+    spec->expected_end_position = directory_size;
+    spec->expected_basep        = offset;
     spec->expected_result       = 0;
+    LogError("qweqweqwe");
     return;
   }
 
-  auto newidx = nearest_dirent(buffer, size, offset);
-  if (newidx < 0) LogError("Can't back off to nearest valid dirent:", newidx);
-  LogError("True starting offset is at", newidx);
-  offset = newidx;
+  if (count > (size - offset)) {
+    spec->expected_end_position = directory_size;
+    spec->expected_basep        = offset;
+    spec->expected_result       = 0;
+    LogError("cvcvcc");
+    return;
+  }
+
+  auto dirent_offset = nearest_dirent(buffer, size, offset);
+
+  if (dirent_offset < 0) LogError("Can't back off to nearest valid dirent:", dirent_offset);
+  LogError("True starting offset is at", dirent_offset);
 
   s64 bytes_written   = 0;
   s64 buffer_position = offset;
 
-  while (buffer_position < size) {
-    const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position);
+  while (buffer_position < apparent_end) {
+    const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position + dirent_offset);
 
-    if ((bytes_written + pfs_dirent->d_reclen) > count) break;
-    if ((bytes_written + pfs_dirent->d_reclen) > apparent_end_down) break;
     if (pfs_dirent->d_reclen == 0) break;
+    if ((bytes_written + pfs_dirent->d_reclen) > count) break;
+    // without dirent offset i think
+    // it sometimes underreads data at this line
+    // 
+    if ((buffer_position + pfs_dirent->d_reclen) >= (apparent_end_down + dirent_offset)) {
+      LogError("XVFED");
+      break;
+    }
 
     // align to 65536 when dir size is bigger?
     // if (Common::AlignUp(buffer_position, count) !=

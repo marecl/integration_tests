@@ -55,9 +55,17 @@ s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
 
 s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
   if (dirent->d_reclen == 0) return 0;
-  if ((dirent->d_reclen & 0x03) == 0) return -2;
-  if (ALUP(8 + dirent->d_namlen, 4) != dirent->d_reclen) return -2;
-  if (dirent->d_reclen < 12 || dirent->d_reclen > 264) return -2;
+  if ((dirent->d_reclen & 0x03) != 0) {
+    LogError("reclen alignment", dirent->d_reclen & 0x03, dirent->d_reclen);
+    return -2;
+  }
+
+  if (ALUP(8 + dirent->d_namlen + 1, 4) != dirent->d_reclen) {
+    LogError("reclen const", ALUP(8 + dirent->d_namlen + 1, 4), dirent->d_reclen);
+    return -2;
+  }
+
+  if ((dirent->d_reclen < 12) || (dirent->d_reclen > 264)) return -2;
   if (dirent->d_type > 15) return -3;
   if (dirent->d_namlen == 0) return -4;
   if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -5;
@@ -67,8 +75,14 @@ s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
   if (dirent->d_reclen == 0) return 0;
-  if ((dirent->d_reclen & 0x07) == 0) return -2;
-  if (ALUP(16 + dirent->d_namlen, 8) != dirent->d_reclen) return -2;
+  if ((dirent->d_reclen & 0x07) != 0) {
+    LogError("reclen alignment", dirent->d_reclen & 0x07, dirent->d_reclen);
+    return -2;
+  }
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) {
+    LogError("reclen const", ALUP(16 + dirent->d_namlen + 1, 8), dirent->d_reclen);
+    return -2;
+  }
   if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -2;
   if (dirent->d_type > 15) return -3;
   if (dirent->d_namlen == 0) return -4;
@@ -79,8 +93,14 @@ s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
   if (dirent->d_reclen == 0) return 0;
-  if ((dirent->d_reclen & 0x07) != 0) return -2;
-  if (ALUP(16 + dirent->d_namlen, 8) != dirent->d_reclen) return -2;
+  if ((dirent->d_reclen & 0x07) != 0) {
+    LogError("reclen alignment", dirent->d_reclen & 0x07, dirent->d_reclen);
+    return -2;
+  }
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) {
+    LogError("reclen const", ALUP(16 + dirent->d_namlen, 8) + 1, dirent->d_reclen);
+    return -2;
+  }
   if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -2;
   if (dirent->d_type > 15) return -3;
   if (dirent->d_namlen == 0) return -4;
@@ -96,9 +116,11 @@ s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
 
   while (total_size < bytes) { // this element is in bounds
     const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + total_size);
-    if (validate_normal_dirent(dirent) != 1) break;
-
-    s64 next_alignment = (total_size & (~0x1FF)) + 0x200;
+    auto                    vstat  = validate_normal_dirent(dirent);
+    if (vstat != 1) {
+      break;
+    }
+    s64 next_alignment = ALUP(total_size, 512);
     if ((total_size + dirent->d_reclen) > next_alignment)
       LogError("Dirent not aligned to 512 byte sector at", total_size, "leaking", total_size + dirent->d_reclen - next_alignment, "bytes");
 
