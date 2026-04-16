@@ -1,17 +1,39 @@
+<118>[SceLncService] spawnApp
+<118>[VCS]checkCpuUsage() [LNC->VCS] ShellUI is Bg. Reduce cpu usage.
+<118>[Syscore App] createApp TEST12345
+<118>[Syscore App]  ExpandCpuSetMode : disable
+<118>[Syscore App] processSpawn(pid, 0x60000f0d, 0x10f0d160, appParam, processParam, 1, 1, 1, param, debug, 0)
+<118>[Syscore App] appParam: appType = 0, rootPath = /mnt/sandbox/TEST12345_000, titleId = TEST12345
+<118>[Syscore App] processParam: elfPath = /app0/eboot.bin, fullPath = /mnt/sandbox/pfsmnt/TEST12345-app0-patch0-union/eboot.bin
+<118>[Syscore App] new pid=0x48[Syscore App] attributeExe= 0
+<118>[Syscore App] Ready to exec
+<118>[Syscore App] wait for NOTE_EXIT|NOTE_EXEC
+W:\Build\J02679829\sys\freebsd\sys\kern\kern_exec.c(534) do_execve
+[KERNEL] dmem_start_app_process pid: 72, map=0xfffff6ed4c95c000, app_maps_count[0], 0 -> 1
+<118>[Syscore App] Add event : pid=0x48
+<118>[AppMgr Trace]: New Process, pid=0x48, created.
+<118>[AppMgr Trace]: New App, appId=0x60000f0d, created
+<118>[Syscore App]  ExpandCpuSetMode : disable
+mDBG: Process 72 untraced!
+<118>[VCS]checkFocusStatus() [LNC->VCS] Focus Change. appType = 5(BIG_APP). appId = 0x60000f0d.
+<118>[VDECPROXY@A01B05F3:00000000]
+<118>[SceShellUI] I/PSM.UI : [NoDraw] : ClearFrameBuffer=False
+<118>[SceLncService] BG MiniApp Status: FLTZ00003, RSS 6 MiB (+0.234 MiB), PageOut -0.234 MiB
+<118>sync call performance warning tid:0x00018835 kid:0x000001d0 name:ScePartyIpcService method id:0x00210055 time:0000000000033225 micro sec
+<118>[AppDb] openDb()[1063]: [File:Open] openDb() call dbutil::Connection::Open() path[/65S8Ve6037/priv/mms/app.db] flags[0x10000002] result[0x0, 0]
+<118>[AppDb] AppInfoDbInitializeDaemon()[54]: [File:Open] AppInfoDbInitializeDaemon() call DbAccessor::Init() path[/65S8Ve6037/priv/mms/app.db] result[0x0, 0].
 <118>[SL] AppFocusChanged [NPXS20001] -> [TEST12345]
-<118>[AppDb] openDb()[1063]: [File:Open] openDb() call dbutil::Connection::Open() path[/4cPPNbrxEH/priv/mms/app.db] flags[0x10000002] result[0x0, 0]
-<118>[AppDb] AppInfoDbInitializeDaemon()[54]: [File:Open] AppInfoDbInitializeDaemon() call DbAccessor::Init() path[/4cPPNbrxEH/priv/mms/app.db] result[0x0, 0].
 <118>[AppDb] AppInfoDbTerminateDaemon()[67]: [File:Close] AppInfoDbTerminateDaemon() call DbAccessor::Terminate().
 <118>[AppDb] Terminate()[768]: [File:Close] DbAccessor::Terminate() call dbutil::Connection::Close().
+<118>[SceShellCore] Libc Heap Status: free 35%, in-use 3953.1 KB, trend +36.1 KB/min, peak 4399.3 KB, when 11954 [sec]
 <118>[SceShellUI] I/PSM.UI : [FirstClear] : ClearFrameBuffer=False
-<72> EXEC /app0/eboot.bin [user], vm#1, dmem#1  <87108 msec>
+<72> EXEC /app0/eboot.bin [user], vm#1, dmem#1  <11965557 msec>
  +++ num clients 2
 <118>**** Base Mode ****
 <118>[        main        ] [INFO]
 <118>[        main        ] [INFO] <<<< TESTS START >>>>
 <118>[        main        ] [INFO]
 <118>[     Obliterate     ] [INFO] << rm -rf [ /data/enderman ] >>
-<118>[     Obliterate     ] [FAIL] Cannot remove [ /data/enderman ] ( errno = 2 ) ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/fs_test_tools.cpp: 204 )
 <118>[     Obliterate     ] [SUCC] >> rm -rf [ /data/enderman ] <<
 <118>[    PrepareTests    ] [INFO] Cloned into 208 elements
 <118>[      testBody      ] [TEST] <<<< Dump everything >>>>
@@ -34,24 +56,24 @@
 <118>.[      testBody      ] [TEST] <<<< Normal read tests >>>>
 <118>[      testBody      ] [TEST] Master Normal read length is 8704
 <118>[      testBody      ] [TEST] 0 0 0 0 	->	 0 0 	 41414141414141414141414141414141
-<118>[      testBody      ] [TEST] 64 0 64 64 	->	 64 64 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 128 0 128 128 	->	 128 128 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 256 0 256 256 	->	 256 256 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 511 0 511 511 	->	 511 511 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 511 1 511 512 	->	 511 512 	 d40c010c0004012e00000019d40c010c
-<118>[      testBody      ] [TEST] 511 2 511 513 	->	 511 513 	 0c010c0004012e00000019d40c010c00
-<118>[      testBody      ] [TEST] 512 0 512 512 	->	 512 512 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 2048 1245 2048 3293 	->	 2048 3293 	 0000004cd40c011c00081066696c656e
-<118>[      testBody      ] [TEST] 7257 1245 7257 8502 	->	 7257 8502 	 0000004cd40c011c00081066696c656e
+<118>[      testBody      ] [TEST] 64 0 64 64 	->	 64 64 	 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 128 0 128 128 	->	 128 128 	 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 256 0 256 256 	->	 256 256 	 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 511 0 511 511 	->	 511 511 	 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 511 1 511 512 	->	 511 512 	 d40c010c0004012e000000f2d40c010c
+<118>[      testBody      ] [TEST] 511 2 511 513 	->	 511 513 	 0c010c0004012e000000f2d40c010c00
+<118>[      testBody      ] [TEST] 512 0 512 512 	->	 512 512 	 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 2048 1245 2048 3293 	->	 2048 3293 	 00000026d50c011c00081066696c656e
+<118>[      testBody      ] [TEST] 7257 1245 7257 8502 	->	 7257 8502 	 00000026d50c011c00081066696c656e
 <118>[      testBody      ] [TEST] 418 574 418 992 	->	 418 992 	 081066696c656e616d65646f74657874
 <118>[      testBody      ] [TEST] 9363 1111 7593 8704 	->	 7593 8704 	 011c00081066696c656e616d65646f74
 <118>[      testBody      ] [TEST] 37865 936 7768 8704 	->	 7768 8704 	 1c00081066696c656e616d65646f7465
-<118>[      testBody      ] [TEST] 17543 1245 7459 8704 	->	 7459 8704 	 0000004cd40c011c00081066696c656e
+<118>[      testBody      ] [TEST] 17543 1245 7459 8704 	->	 7459 8704 	 00000026d50c011c00081066696c656e
 <118>[      testBody      ] [TEST] 1024 35565 0 35565 	->	 0 35565 	 41414141414141414141414141414141
 <118>[      testBody      ] [TEST] 512 65534 0 65534 	->	 0 65534 	 41414141414141414141414141414141
 <118>[      testBody      ] [TEST] 2048 65534 0 65534 	->	 0 65534 	 41414141414141414141414141414141
-<118>[      testBody      ] [TEST] 4096 8192 512 8704 	->	 512 8704 	 e5d40c014000083466696c6577697468
-<118>[      testBody      ] [TEST] 1024 8000 704 8704 	->	 704 8704 	 e2d40c014000083466696c6577697468
+<118>[      testBody      ] [TEST] 4096 8192 512 8704 	->	 512 8704 	 bfd50c014000083466696c6577697468
+<118>[      testBody      ] [TEST] 1024 8000 704 8704 	->	 704 8704 	 bcd50c014000083466696c6577697468
 <118>[      testBody      ] [TEST] 1024 10000 0 10000 	->	 0 10000 	 41414141414141414141414141414141
 <118>[      testBody      ] [TEST] 4096 10000 0 10000 	->	 0 10000 	 41414141414141414141414141414141
 <118>.[      testBody      ] [TEST] <<<< PFS read tests >>>>
@@ -87,32 +109,32 @@
 <118>	                                               ^
 <118>
 <118>.[      testBody      ] [TEST] <<<< Normal getdirentries tests >>>>
-<118>[      testBody      ] [TEST] 513 0 0 512 512 	->	 0 512 512 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 512 0 0 512 512 	->	 0 512 512 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 512 -1 512 512 1024 	->	 512 512 1024 32d40c011c00081066696c656e616d65
-<118>[      testBody      ] [TEST] 1024 0 0 1024 1024 	->	 0 1024 1024 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 1024 511 511 513 1024 	->	 511 513 1024 0032d40c011c00081066696c656e616d
-<118>[      testBody      ] [TEST] 1024 512 512 1024 1536 	->	 512 1024 1536 32d40c011c00081066696c656e616d65
-<118>[      testBody      ] [TEST] 1024 513 513 1023 1536 	->	 513 1023 1536 d40c011c00081066696c656e616d6564
-<118>[      testBody      ] [TEST] 1025 513 513 1023 1536 	->	 513 1023 1536 d40c011c00081066696c656e616d6564
-<118>[      testBody      ] [TEST] 1026 513 513 1023 1536 	->	 513 1023 1536 d40c011c00081066696c656e616d6564
+<118>[      testBody      ] [TEST] 513 0 0 512 512 	->	 0 512 512 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 512 0 0 512 512 	->	 0 512 512 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 512 -1 512 512 1024 	->	 512 512 1024 0cd50c011c00081066696c656e616d65
+<118>[      testBody      ] [TEST] 1024 0 0 1024 1024 	->	 0 1024 1024 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 1024 511 511 513 1024 	->	 511 513 1024 000cd50c011c00081066696c656e616d
+<118>[      testBody      ] [TEST] 1024 512 512 1024 1536 	->	 512 1024 1536 0cd50c011c00081066696c656e616d65
+<118>[      testBody      ] [TEST] 1024 513 513 1023 1536 	->	 513 1023 1536 d50c011c00081066696c656e616d6564
+<118>[      testBody      ] [TEST] 1025 513 513 1023 1536 	->	 513 1023 1536 d50c011c00081066696c656e616d6564
+<118>[      testBody      ] [TEST] 1026 513 513 1023 1536 	->	 513 1023 1536 d50c011c00081066696c656e616d6564
 <118>[      testBody      ] [TEST] 8 504 504 8 512 	->	 504 8 512 7874313300000000aaaaaaaaaaaaaaaa
 <118>[      testBody      ] [TEST] 16 496 496 16 512 	->	 496 16 512 6e616d65646f74657874313300000000
 <118>[      testBody      ] [TEST] 24 488 488 24 512 	->	 488 24 512 1c00081066696c656e616d65646f7465
 <118>[      testBody      ] [TEST] 48 464 464 48 512 	->	 464 48 512 66696c656e616d65646f746578743132
-<118>[      testBody      ] [TEST] 64 448 448 64 512 	->	 448 64 512 787431310000000030d40c011c000810
+<118>[      testBody      ] [TEST] 64 448 448 64 512 	->	 448 64 512 78743131000000000ad50c011c000810
 <118>[      testBody      ] [TEST] 128 384 384 128 512 	->	 384 128 512 6e616d65646f74657874303900000000
-<118>[      testBody      ] [TEST] 256 256 256 256 512 	->	 256 256 512 0000000029d40c011c00081066696c65
-<118>[      testBody      ] [TEST] 511 1 1 511 512 	->	 1 511 512 d40c010c0004012e00000019d40c010c
+<118>[      testBody      ] [TEST] 256 256 256 256 512 	->	 256 256 512 0000000003d50c011c00081066696c65
+<118>[      testBody      ] [TEST] 511 1 1 511 512 	->	 1 511 512 d40c010c0004012e000000f2d40c010c
 <118>[      testBody      ] [TEST] 32 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
 <118>[      testBody      ] [TEST] 64 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
 <118>[      testBody      ] [TEST] 80 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
 <118>[      testBody      ] [TEST] 128 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
 <118>[      testBody      ] [TEST] 256 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
-<118>[      testBody      ] [TEST] 1024 0 0 1024 1024 	->	 0 1024 1024 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ] [TEST] 1024 -1 1024 1024 2048 	->	 1024 1024 2048 44d40c011c00081066696c656e616d65
-<118>[      testBody      ] [TEST] 1024 -1 2048 1024 3072 	->	 2048 1024 3072 62d40c012c00082066696c6577697468
-<118>[      testBody      ] [TEST] 32 480 480 32 512 	->	 480 32 512 0000000031d40c011c00081066696c65
+<118>[      testBody      ] [TEST] 1024 0 0 1024 1024 	->	 0 1024 1024 f3d40c010c0004012e000000f2d40c01
+<118>[      testBody      ] [TEST] 1024 -1 1024 1024 2048 	->	 1024 1024 2048 1ed50c011c00081066696c656e616d65
+<118>[      testBody      ] [TEST] 1024 -1 2048 1024 3072 	->	 2048 1024 3072 3cd50c012c00082066696c6577697468
+<118>[      testBody      ] [TEST] 32 480 480 32 512 	->	 480 32 512 000000000bd50c011c00081066696c65
 <118>.[      testBody      ] [TEST] <<<< PFS getdirentries tests >>>>
 <118>[      testBody      ] [TEST] 0 0 0 -2147352554 0 	->	 0 -2147352554 0 41414141414141414141414141414141
 <118>[      testBody      ] [TEST] 128 128 128 -2147352554 0 	->	 0 -2147352554 128 41414141414141414141414141414141
@@ -128,111 +150,127 @@
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 512 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 32 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 40 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 16 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 24 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 512 16 16 472 488 	->	 16 472 488 03000000180004022e2e000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 48 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 24 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
 <118>[      testBody      ] [TEST] 512 24 24 472 496 	->	 24 472 496 03000000180004022e2e000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 60 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 68 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 76 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 32 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 40 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 48 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 48 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 20 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 28 28 488 516 	->	 28 448 476 0c000000180008016100000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 72 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 80 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 28 28 448 476 	->	 28 448 476 0c000000180008016100000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 32 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 40 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 48 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 48 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 32 32 488 520 	->	 32 448 480 0c000000180008016100000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 80 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 88 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 32 32 448 480 	->	 32 448 480 0c000000180008016100000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 40 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 48 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 48 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 40 40 488 528 	->	 40 448 488 0c000000180008016100000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 95 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 40 40 448 488 	->	 40 448 488 0c000000180008016100000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 48 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 48 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 47 47 488 535 	->	 47 448 495 0c000000180008016100000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 96 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 47 47 448 495 	->	 47 448 495 0c000000180008016100000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 48 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 48 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 48 48 488 536 	->	 48 448 496 0c000000180008016100000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 105 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 113 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 121 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 48 48 448 496 	->	 48 448 496 0c000000180008016100000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 49 49 464 513 	->	 49 424 473 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 106 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 114 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 122 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 49 49 424 473 	->	 49 424 473 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 22 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 50 50 464 514 	->	 50 424 474 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 107 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 115 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 123 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 50 50 424 474 	->	 50 424 474 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 21 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 51 51 464 515 	->	 51 424 475 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 108 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 116 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 124 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 51 51 424 475 	->	 51 424 475 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 20 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 52 52 464 516 	->	 52 424 476 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 109 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 117 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 125 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 52 52 424 476 	->	 52 424 476 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 19 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 53 53 464 517 	->	 53 424 477 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 110 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 118 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 126 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 53 53 424 477 	->	 53 424 477 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp:[SceLncService] BG MiniApp Status: FLTZ00003, RSS 7 MiB (+0.469 MiB), PageOut -0.469 MiB
+<118> 55 )[SceShellCore] Main thread has frozen in sceLncServiceKeepAlive() for 1 seconds
+<118>
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 18 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 54 54 464 518 	->	 54 424 478 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 111 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 119 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 127 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 54 54 424 478 	->	 54 424 478 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
-<118>[calculate_pfs_getdir] [FAIL][SceLncService] BG MiniApp Status: FLTZ00003, RSS 7 MiB (+1.141 MiB), PageOut -1.141 MiB
-<118> True starting offset is at 17 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 55 55 464 519 	->	 55 424 479 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 112 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 120 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 128 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 17 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 55 55 424 479 	->	 55 424 479 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 56 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 56 56 464 520 	->	 56 424 480 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 121 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 129 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 56 56 424 480 	->	 56 424 480 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 15 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 57 57 464 521 	->	 57 424 481 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 128 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 136 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 57 57 424 481 	->	 57 424 481 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 64 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 72 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 72 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
-<118>[      testBody      ] [TEST] 512 64 64 464 528 	->	 64 424 488 0d000000180008026161000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 256 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 264 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 272 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[      testBody      ] [TEST] 512 64 64 424 488 	->	 64 424 488 0d000000180008026161000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 128 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 136 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 144 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 144 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 512 128 128 472 600 	->	 128 352 480 10000000180008056161616161000000
-<118>[   nearest_dirent   ] [FAIL] Testing 1024 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1032 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1040 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1048 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 512 128 128 352 480 	->	 128 352 480 10000000180008056161616161000000
+<118>[   nearest_dirent   ] [FAIL] Testing 512 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 512 512 512 480 992 	->	 512 480 992 1b0000002800081066696c656e616d65
@@ -245,231 +283,247 @@
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
 <118>[      testBody      ] [TEST] 536 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 2031 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1016 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 1016 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 64 1015 1015 40 1055 	->	 1015 0 1015 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 2032 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Found a match forward at 1016 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
-<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 64 1016 1016 40 1056 	->	 1016 0 1016 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 2041 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2049 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2057 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2065 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2073 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Found a match forward at 1056 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
-<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 39 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 64 1017 1017 0 1017 	->	 1017 0 1017 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 2031 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Found a match forward at 1016 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
-<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 80 1015 1015 40 1055 	->	 1015 0 1015 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 2032 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 64 1015 1015 0 1015 	->	 1015 0 1015 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 1016 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 1016 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
-<118>[      testBody      ] [TEST] 80 1016 1016 40 1056 	->	 1016 0 1016 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 2041 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2049 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2057 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2065 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 2073 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[      testBody      ] [TEST] 64 1016 1016 0 1016 	->	 1016 0 1016 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 1024 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1032 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1040 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1048 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1056 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 1056 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 39 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 80 1017 1017 40 1057 	->	 1017 0 1017 41414141414141414141414141414141
+<118>[      testBody      ] [TEST] 64 1017 1017 0 1017 	->	 1017 0 1017 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 1016 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Found a match forward at 1016 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
+<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 80 1015 1015 0 1015 	->	 1015 0 1015 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 1016 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Found a match forward at 1016 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
+<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 80 1016 1016 0 1016 	->	 1016 0 1016 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 1024 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1032 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1040 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1048 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 1056 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Found a match forward at 1056 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
+<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 39 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 80 1017 1017 0 1017 	->	 1017 0 1017 41414141414141414141414141414141
 <118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1023 0 0 1016 1016 	->	 0 496 496 07000000180004012e00000000000000
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1023 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
 <118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1023 0 0 1016 1016 	->	 0 496 496 07000000180004012e00000000000000
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1023 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
 <118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1023 0 0 1016 1016 	->	 0 496 496 07000000180004012e00000000000000
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1023 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
 <118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 1023 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1031 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1039 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1047 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 512 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1024 511 511 960 1471 	->	 511 480 991 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 1024 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1032 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1040 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1048 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1024 511 511 480 991 	->	 511 480 991 1b0000002800081066696c656e616d65
+<118>[   nearest_dirent   ] [FAIL] Testing 512 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
 <118>[      testBody      ] [TEST] 1024 512 512 960 1472 	->	 512 1000 1512 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 1033 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1041 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1049 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1024 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 1033 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1041 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1049 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1024 513 513 960 1473 	->	 513 1000 1513 1b0000002800081066696c656e616d65
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1025 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 1033 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1041 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1049 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1025 513 513 960 1473 	->	 513 1000 1513 1b0000002800081066696c656e616d65
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1026 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 1033 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1041 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1049 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1026 513 513 960 1473 	->	 513 1000 1513 1b0000002800081066696c656e616d65
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1026 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 512 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 1026 513 513 960 1473 	->	 513 1000 1513 1b0000002800081066696c656e616d65
+<118>[   nearest_dirent   ] [FAIL] Testing 256 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 256 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 256 256 256 240 496 	->	 256 240 496 140000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 512 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 256 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 256 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 256 256 256 240 496 	->	 256 240 496 140000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 1023 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1031 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1039 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1047 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 512 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 23 511 511 0 511 	->	 511 0 511 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 1023 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1031 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1039 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1047 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 512 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 24 511 511 0 511 	->	 511 0 511 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 1023 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1031 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1039 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1047 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 512 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 25 511 511 0 511 	->	 511 0 511 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 1008 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1016 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1024 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1032 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 1040 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 504 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 512 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 520 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 528 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 536 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 8 504 504 0 504 	->	 504 0 504 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 992 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 496 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 496 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 16 496 496 0 496 	->	 496 0 496 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 976 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 984 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 488 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 496 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 496 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 24 488 488 0 488 	->	 488 0 488 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 928 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 936 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 944 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 952 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 960 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 464 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 472 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 480 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 488 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 496 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 496 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 48 464 464 0 464 	->	 464 40 504 1a0000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 896 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 904 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 448 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 456 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 456 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 64 448 448 40 488 	->	 448 40 488 190000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 768 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 776 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 784 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 792 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 800 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 384 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 392 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 400 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 408 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 416 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 416 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 128 384 384 80 464 	->	 384 120 504 180000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 512 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 256 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 256 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 256 256 256 240 496 	->	 256 240 496 140000002800081066696c656e616d65
-<118>[   nearest_dirent   ] [FAIL] Testing 9 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 17 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 25 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 8 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 16 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 24 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 511 1 1 472 473 	->	 1 472 473 03000000180004022e2e000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 8128 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8136 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8144 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8152 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8160 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8168 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4064 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4072 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4080 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4088 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4096 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4104 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 4104 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 32 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 8128 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8136 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8144 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8152 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8160 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8168 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4064 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4072 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4080 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4088 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4096 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4104 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 4104 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 64 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 8128 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8136 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8144 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8152 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8160 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8168 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4064 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4072 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4080 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4088 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4096 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4104 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 4104 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 80 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 8128 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8136 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8144 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8152 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8160 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8168 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4064 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4072 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4080 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4088 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4096 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4104 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 4104 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 112 4064 4064 56 4120 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 8128 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8136 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8144 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8152 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8160 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8168 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 112 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 4064 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4072 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4080 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4088 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4096 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   [SceShellUI] I/PSM.UI : [NoDraw] : ClearFrameBuffer=False
+<118>] [FAIL] Testing 4104 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 4104 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 128 4064 4064 56 4120 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 8128 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8136 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8144 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8152 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8160 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8168 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 128 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 4064 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4072 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4080 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4088 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4096 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4104 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 4104 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 256 4064 4064 168 4232 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ] [FAIL] Testing 8128 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8136 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8144 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8152 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8160 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 8168 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
+<118>[      testBody      ] [TEST] 256 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
+<118>[   nearest_dirent   ] [FAIL] Testing 4064 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4072 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4080 -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4088 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4096 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 4104 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 4104 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[calculate_pfs_getdir] [FAIL] XVFED ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 131 )
@@ -477,19 +531,18 @@
 <118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
-<118>[      testBody      ] [TEST] 1024 0 0 1016 1016 	->	 0 1016 1016[SceShellUI] I/PSM.UI : [NoDraw] : ClearFrameBuffer=False
-<118> 07000000180004012e00000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
-<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
 <118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
-<118>[   nearest_dirent   ] [FAIL] Testing 960 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 968 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
-<118>[   nearest_dirent   ] [FAIL] Testing 976 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 0 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Found a match forward at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
+<118>[calculate_pfs_getdir] [FAIL] True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
+<118>[      testBody      ] [TEST] 1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
+<118>[   nearest_dirent   ] [FAIL] Testing 480 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 488 -12 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
+<118>[   nearest_dirent   ] [FAIL] Testing 496 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 55 )
 <118>[   nearest_dirent   ] [FAIL] Found a match forward at 496 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 58 )
 <118>[calculate_pfs_getdir] [FAIL] True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/calculator.cpp: 117 )
 <118>[      testBody      ] [TEST] 32 480 480 0 480 	->	 480 0 480 41414141414141414141414141414141
@@ -497,19 +550,19 @@
 <118>[      testBody      ] [TEST] 8192 10000 10000 0 65536 	->	 10000 648 65536 d30000004800083466696c6577697468
 <118>[      testBody      ] [TEST] 8192 35565 35565 0 65536 	->	 35565 0 65536 41414141414141414141414141414141
 <118>.
-<118>Errors (1 failures, 8 tests, 8 ran, 381 checks, 0 ignored, 0 filtered out, 5516 ms)
+<118>Errors (1 failures, 8 tests, 8 ran, 381 checks, 0 ignored, 0 filtered out, 5520 ms)
 <118>
 <118>[        main        ] [INFO]
 <118>[        main        ] [INFO] <<<< TESTS END >>>>
 <118>[        main        ] [INFO]
 <118>[SceLncService] tryLockSuspendBlock: appId={0x60000f0d}
 <118>[Syscore App] Kill for LoadExec(0x48)
-[KERNEL] dmem_handle_vmspace_exited pid: 72, ptype=0, 0xfffffc2c444aa290->pt_loaded is TRUE
+[KERNEL] dmem_handle_vmspace_exited pid: 72, ptype=0, 0xfffff6ed4c95c000->pt_loaded is TRUE
 <118>Game Close detected
 <118>GnmCompositor Reset Sequence Start
  +++ num clients 1
 <118>GnmCompositor set reset flag
-[KERNEL] dmem_handle_vmspace_exited map #0 0xfffffc2c444aa290
+[KERNEL] dmem_handle_vmspace_exited map #0 0xfffff6ed4c95c000
 [KERNEL] dmem_handle_vmspace_exited pid: 72, app_maps_count[0], 1 -> 0
 <118>[Syscore App] EVFILT_PROC NOTE_EXIT received : pid=0x48
 <118>[Syscore App] Kill for LoadExec(0x48) => 0
@@ -549,40 +602,38 @@ W:\Build\J02679829\sys\freebsd\sys\kern\kern_exec.c(534) do_execve
 <118>[Theme/I] : ActiveUserChanged : To   : [BLUE(userId = 13d4428f)]
 <118>[Theme/I] : Apply [BLUE] : [Option:111111]: with preloaded user
 <118>[SceShellUI] I/PSM.UI : [FirstClear] : ClearFrameBuffer=False
+<118>[SL] AppFocusChanged [TEST12345] -> [NPXS20001]
 <118>[SceLncService] ProcessTerm()
-<118>[UIProcess] malloc stats freeSize:41635200 (99%) inuseSize:307840 peakSize:310336 [pid:0x39]
 <118>[sceProcessStarter] ProcessTerm() big/mini app title_id = [TEST12345] root_dir = [/mnt/sandbox/TEST12345_000]
 <118>[sceProcessStarter] UnMountDownloadData() mount_path = [/mnt/sandbox/download/TEST12345]
-[PFS] umount[0x000003ee803adce2] finished 0
-[PFS] umount[0x000003ee803adfda] finished 0
+<118>[VCS]checkFocusStatus() [LNC->VCS] Focus Change. appType = 1(SHELL_UI). appId = 0x60000201.
+<118>[VCS]checkCpuUsage() [LNC->VCS] ShellUI is Fg. Recover cpu usage.
+[PFS] umount[0x00000983d7fa4cd7] finished 0
+[PFS] umount[0x0000098398ecbefc] finished 0
 <118>[BGFT] [641] GameStopped(TEST12345, 2) start
 <118>[BGFT] [643] GameStopped(TEST12345, 2) end
 <118>[SceLncService] ProcessTerm() returned
-<118>Task 000006ac : 0000000082458396(9100 msec) [type=3,subtype=6,slot=00] : ended (state=0,runstate=2,error=0x0)
-<118>[SL] AppFocusChanged [TEST12345] -> [NPXS20001]
-<118>[VCS]checkCpuUsage() [LNC->VCS] ShellUI is Fg. Recover cpu usage.
-<118>[VCS]checkFocusStatus() [LNC->VCS] Focus Change. appType = 1(SHELL_UI). appId = 0x60000201.
+<118>Task 000006b0 : 0000011961719888(9839 msec) [type=3,subtype=6,slot=00] : ended (state=0,runstate=2,error=0x0)
 <118>[VCS]checkApplicationStatus() [LNC->VCS] App was Killed. appId = 0x60000f0d.
 <118>GetPlusInfoJob : Run(Start)
 <118>GetPlusInfoJob : Run(End)
 <118>GetPlusInfoJob : Finish / Cancelled False / Result True
 <118>[UpdateUserInfoforPlus] upd_userId : 332677775 / type : None
-<118>[SceShellCore] Libc Heap Status: free 37%, in-use 3817.8 KB, trend +37.6 KB/min, peak 4191.4 KB, when 93 [sec]
-<118>[SceShellCore] VM Stats: RSS 566.6, kernel 262.4, wire count 319.3, swap out 0.0, page table CPU 2347/6144 GPU 366/2048
+<118>[SceShellCore] VM Stats: RSS 561.5, kernel 262.0, wire count 320.1, swap out 0.0, page table CPU 2346/6144 GPU 368/2048
 <118>[SceShellCore] FMEM   1.3/   4.5 NPXS20977 SceSysAvControl.elf
 <118>[SceShellCore] FMEM  10.9/  74.3 NPXS20991 SceSysCore.elf
 <118>[SceShellCore] FMEM   9.5/  54.3 NPXS20973 orbis_audiod.elf
 <118>[SceShellCore] FMEM   3.4/  11.2 NPXS20976 GnmCompositor.elf
-<118>[SceShellCore] FMEM  29.3/ 346.8 NPXS20000 SceShellCore
-<118>[SceShellCore] FMEM 347.0/ 865.4 NPXS20001 SceShellUI
+<118>[SceShellCore] FMEM  29.6/ 344.8 NPXS20000 SceShellCore
+<118>[SceShellCore] FMEM 341.4/ 858.8 NPXS20001 SceShellUI
 <118>[SceShellCore] FMEM   4.0/   9.1 NPXS21003 SceAvCapture
 <118>[SceShellCore] FMEM   9.4/  24.6 NPXS21000 SceGameLiveStreaming
 <118>[SceShellCore] FMEM  15.1/  48.4 NPXS21002 ScePartyDaemon
 <118>[SceShellCore] FMEM   4.6/  25.4 NPXS21004 SceVideoCoreServer
 <118>[SceShellCore] FMEM  10.8/  51.3 NPXS21006 SceRemotePlay
+<118>[SceShellCore] FMEM   8.1/  39.0 NPXS21010 SceCloudClientDaemon
+<118>[SceShellCore] FMEM   3.6/  10.9 NPXS21016 SceSpZeroConf
 <118>[SceShellCore] FMEM   9.0/ 156.0 NPXS21002 webrtc_daemon.self
-<118>[SceShellCore] FMEM   8.0/  37.0 NPXS21010 SceCloudClientDaemon
-<118>[SceShellCore] FMEM   3.5/  10.8 NPXS21016 SceSpZeroConf
 <118>[SceShellCore] FMEM   7.4/  18.1 NPXS21019 SceSocialScreenMgr
 <118>[SceShellCore] FMEM   5.5/   9.8 NPXS21007 SceMusicCoreServer
 <118>[SceShellCore] FMEM   7.7/  14.4 NPXS21020 SceVoiceAndAgent
@@ -590,8 +641,25 @@ W:\Build\J02679829\sys\freebsd\sys\kern\kern_exec.c(534) do_execve
 <118>[SceShellCore] FMEM   2.3/  10.2 NPXS20974 SceVdecProxy.elf
 <118>[SceShellCore] FMEM   2.3/  10.3 NPXS20975 SceVencProxy.elf
 <118>[SceShellCore] FMEM  23.8/ 263.9 NPXS20001 SecureUIProcess.self
-<118>[SceShellCore] FMEM  32.1/ 526.0 NPXS20001 SecureWebProcess.self
+<118>[SceShellCore] FMEM  32.1/ 526.1 NPXS20001 SecureWebProcess.self
 <118>[SceShellCore] FMEM  10.7/ 358.8 NPXS20001 orbis-jsc-compiler.self
-<118>[SceShellCore] FMEM   6.6/  35.0 FLTZ00003 eboot.bin
-^C
-mledworo@opiekacz:~$ 
+<118>[SceShellCore] FMEM   6.7/  41.0 FLTZ00003 eboot.bin
+<118>[SceShellCore] Libc Heap Status: free 35%, in-use 3925.8 KB, trend +11.1 KB/min, peak 4399.3 KB, when 11985 [sec]
+<118>[SL][00:00:00:000][Thread 0x00018848][INFO][TRACE][ALWAYS][MAIN STREAM][BEGIN][Heap]sanity OK, free 2204576 (35%), in-use 4021344 (65%), peak 4504896 (72%), when 12013 [sec]
+<118>[SL][00:00:00:000][Thread 0x00018848][INFO][TRACE][ALWAYS][MAIN STREAM][END  ][Heap]sanity OK, free 2203712 (35%), in-use 4022208 (65%), peak 4504896 (72%), when 12013 [sec]
+<118>[SceRnpsAppMgr] PERIODIC_CHECK_INTERVAL_SEC={600}
+<118>[SceRnpsAppMgr] CheckAllRnpsApps : trigger = 0, num_apps = 2
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_http.cpp(409) Request: RNPSAM_ISOK::0x804101e6
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_updater.cpp(720) Download: RNPSAM_ISOK::0x804101e6
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_http.cpp(409) Request: RNPSAM_ISOK::0x804101e6
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_updater.cpp(720) Download: RNPSAM_ISOK::0x804101e6
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_http.cpp(409) Request: RNPSAM_ISOK::0x804101e6
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_updater.cpp(720) Download: RNPSAM_ISOK::0x804101e6
+<118>[SceRnpsAppMgr] Failed to get NetworkTick. 0x80b50001
+<118>[SceRnpsAppMgr] Failed to get SecureTick. 0x800f0530
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_updater.cpp(661) DownloadAndInstall: RNPSAM_ISOK::0x804101e6
+<118>[SceRnpsAppMgr] W:\Build\J02679831\vsh\shell\shell_core\rnps_app_mgr\rnps_app_mgr_updater.cpp(1506) CheckAllRnpsApps: RNPSAM_ISOK::0x804101e6
+<118>[SceSystemStateMgr] No user input for 60 seconds
+<118>[SceShellCore] Libc Heap Status: free 35%, in-use 3927.4 KB, trend -26.8 KB/min, peak 4399.3 KB, when 12016 [sec]
+<118>[SceShellCore] Libc Heap Status: free 35%, in-use 3927.0 KB, trend -0.1 KB/min, peak 4399.3 KB, when 12047 [sec]
+

@@ -52,14 +52,14 @@ s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
   for (s64 out_offset = offset_adj; out_offset <= offset_adj + max_advance; out_offset += 8) {
     const OrbisInternals::FolderDirent* tested_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + out_offset);
     status                                            = validate_pfs_getdirentries_dirent(tested_dirent);
-    LogError("Testing", offset + out_offset, status);
+    // LogError("Testing", out_offset, status);
     if (status < 0) continue;
 
-    LogError("Found a match forward at", out_offset);
+    // LogError("Found a match forward at", out_offset);
     return out_offset - offset;
   }
 
-  LogError("No match");
+  // LogError("No match");
   return status;
 }
 
@@ -127,7 +127,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     // without dirent offset i think
     // it sometimes underreads data at this line
     //
-    if ((buffer_position + dirent_offset + pfs_dirent->d_reclen) >= apparent_end) {
+    if ((buffer_position + dirent_offset + pfs_dirent->d_reclen) >= apparent_end_down) {
       LogError("XVFED");
       break;
     }
