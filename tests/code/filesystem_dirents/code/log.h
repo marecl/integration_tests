@@ -9,6 +9,26 @@
 
 #define STR(x) std::to_string(x)
 
+namespace Style {
+typedef enum Style: unsigned {
+  RESET = 0,
+  BOLD,
+  NOTBOLD,
+  FG_BLACK,
+  FG_RED,
+  FG_GREEN,
+  FG_YELLOW,
+  FG_BLUE,
+  FG_MAGENTA,
+  FG_CYAN,
+  FG_WHITE,
+  __enum_end,
+} Style;
+
+} // namespace Style
+
+const char* GetSt(Style::Style code);
+
 std::ostream& center(std::ostream& os, const std::string& s, int width);
 std::string   center(const std::string& s, int width);
 std::ostream& right(std::ostream& os, const std::string& s, int width);
@@ -31,9 +51,14 @@ std::string to_hex(T value) {
 std::string to_hex_string(const void* data, long long length, std::string sep = " ");
 
 template <typename... Args>
-void LogCustom(const char* fn, const char* msg, Args&&... args) {
-  std::cout << "[" << center(fn, 20) << "] " << msg;
+void LogCustom(const char* fn, bool show_line, const char* msg, Args&&... args) {
+  std::cout << GetSt(Style::RESET) << "[" << center(fn, 20) << "] " << msg;
   ((std::cout << " " << args), ...);
+  std::cout << GetSt(Style::RESET);
+  if (show_line) {
+    std::cout << " ( " << __FILE__ << ":" << __LINE__ << " )";
+  }
+
   std::cout << std::endl;
 }
 
@@ -44,27 +69,27 @@ void ResetErrorCounter(void);
 
 #define Log(...)                                                                                                                                               \
   {                                                                                                                                                            \
-    LogCustom(__FUNCTION__, "[INFO]", ##__VA_ARGS__);                                                                                                          \
+    LogCustom(__FUNCTION__, false, "[INFO]", ##__VA_ARGS__);                                                                                                   \
   }
 
 #define LogTest(...)                                                                                                                                           \
   {                                                                                                                                                            \
-    LogCustom(__FUNCTION__, "\033[34;1m[TEST]\033[0m", ##__VA_ARGS__);                                                                                         \
+    LogCustom(__FUNCTION__, false, GetSt(Style::BOLD), GetSt(Style::FG_BLUE), "[TEST]", GetSt(Style::RESET), ##__VA_ARGS__);                                   \
   }
 
 #define LogError(...)                                                                                                                                          \
   {                                                                                                                                                            \
-    LogCustom(__FUNCTION__, "\033[31;1m[FAIL]\033[0m", ##__VA_ARGS__, "( " __FILE__ ":", __LINE__, ")");                                                       \
+    LogCustom(__FUNCTION__, true, GetSt(Style::BOLD), GetSt(Style::FG_RED), "[FAIL]", GetSt(Style::RESET), ##__VA_ARGS__);                                     \
   }
 
 #define LogWarning(...)                                                                                                                                        \
   {                                                                                                                                                            \
-    LogCustom(__FUNCTION__, "\033[33;1m[WARN]\033[0m", ##__VA_ARGS__, "( " __FILE__ ":", __LINE__, ")");                                                       \
+    LogCustom(__FUNCTION__, true, GetSt(Style::BOLD), GetSt(Style::FG_YELLOW), "[WARN]", GetSt(Style::RESET), ##__VA_ARGS__);                                  \
   }
 
 #define LogSuccess(...)                                                                                                                                        \
   {                                                                                                                                                            \
-    LogCustom(__FUNCTION__, "\033[32;1m[SUCC]\033[0m", ##__VA_ARGS__);                                                                                         \
+    LogCustom(__FUNCTION__, false, GetSt(Style::BOLD), GetSt(Style::FG_GREEN), "[SUCC]", GetSt(Style::RESET), ##__VA_ARGS__);                                  \
   }
 
 #define TEST_CASE(cond, success_str, fail_str, ...)                                                                                                            \

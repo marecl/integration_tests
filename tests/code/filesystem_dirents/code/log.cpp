@@ -3,6 +3,24 @@
 #include <iomanip>
 #include <sstream>
 
+namespace Style {
+static const unsigned style_size = __enum_end + 1;
+
+static const char* styles[style_size] = {
+    "\033[0m",  "\033[1m",                                                                          // res, bold
+    "\033[22m",                                                                                     // notbold
+    "\033[30m", "\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "\033[36m", "\033[37m", // FG
+    "",                                                                                             // end
+};
+
+} // namespace Style
+
+const char* GetSt(Style::Style style) {
+  using namespace Style;
+  if (style < style_size) return styles[style];
+  return styles[style_size - 1];
+}
+
 std::ostream& center(std::ostream& os, const std::string& s, int width) {
   int len = (int)s.size();
   if (width <= len) return os << s.substr(0, width);

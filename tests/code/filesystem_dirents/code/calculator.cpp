@@ -1,5 +1,7 @@
 #include "calculator.h"
 
+#include "log.h"
+
 /**
  * Do not update those routines!
  * Those should simulate how PS4 handles maths
@@ -52,7 +54,8 @@ s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
   for (s64 out_offset = offset_adj; out_offset <= offset_adj + max_advance; out_offset += 8) {
     const OrbisInternals::FolderDirent* tested_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + out_offset);
     status                                            = validate_pfs_getdirentries_dirent(tested_dirent);
-    // LogError("Testing", out_offset, status);
+    LogWarning(GetSt(Style::BOLD), "Testing", out_offset - offset, GetSt(Style::RESET), "=", GetSt(Style::FG_MAGENTA), status);
+
     if (status < 0) continue;
 
     // LogError("Found a match forward at", out_offset);
@@ -81,19 +84,31 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
   s64 apparent_end      = offset + count;
   s64 apparent_end_down = ALDN(apparent_end, 512);
   s64 file_offset_down  = ALDN(offset, 512);
+  s64 file_offset_up    = ALDN(offset, 512);
   s64 directory_size    = ALUP(size, 0x10000);
 
   // within the same sector or worse
   if (apparent_end_down <= file_offset_down) {
-    spec->expected_result = s64(einval_int);
-    spec->expected_errno  = EINVAL;
+    spec->expected_basep        = 0;
+    spec->expected_result       = s64(einval_int);
+    spec->expected_end_position = offset;
+    spec->expected_errno        = EINVAL;
+    return;
+  }
+
+  if ((apparent_end_down == file_offset_up) && (count < 512)) {
+    spec->expected_basep        = offset;
+    spec->expected_result       = 0;
+    spec->expected_end_position = offset;
+    spec->expected_errno        = 0;
+    // LogError("qweqweqwe");
     return;
   }
 
   if (offset >= size) {
-    spec->expected_end_position = directory_size;
     spec->expected_basep        = offset;
     spec->expected_result       = 0;
+    spec->expected_end_position = directory_size;
     // LogError("qweqweqwe");
     return;
   }
@@ -119,18 +134,23 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
   s64 bytes_written   = 0;
   s64 buffer_position = offset;
 
-  while (buffer_position < apparent_end) {
-    const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position + dirent_offset);
-
-    if (pfs_dirent->d_reclen == 0) break;
-    if ((bytes_written + dirent_offset + pfs_dirent->d_reclen) > count) break;
-    // without dirent offset i think
-    // it sometimes underreads data at this line
-    //
-    if ((buffer_position + dirent_offset + pfs_dirent->d_reclen) >= apparent_end_down) {
-      LogError("XVFED");
+  while (bytes_written < count) {
+    if (ALDN(buffer_position + dirent_offset, 8) >= apparent_end_down) {
+      LogError("QQWWERRR");
       break;
     }
+
+    const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position + dirent_offset);
+    if ((bytes_written + dirent_offset + pfs_dirent->d_reclen) >= count) {
+      LogError("AAAQWEEEEE");
+      break;
+    }
+    if (pfs_dirent->d_reclen == 0) break;
+
+    // if ((buffer_position + dirent_offset + pfs_dirent->d_reclen) >= apparent_end_down) {
+    //   LogError("XVFED");
+    //   break;
+    // }
 
     // align to 65536 when dir size is bigger?
     // if (Common::AlignUp(buffer_position, count) !=

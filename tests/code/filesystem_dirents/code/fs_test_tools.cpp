@@ -73,36 +73,48 @@ s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
 }
 
 /**
+ * reclen is basically a checksum
+ * i've never seen any other than -11, but i've attached others for verbosity
+ */
+
+// pfs getdirentries returns normal direntries
+s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
+  if (dirent->d_fileno == 0) return -10;
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -11;
+  // these don't fail so often
+  if (dirent->d_namlen == 0) return -12;
+  if (dirent->d_type == 0) return -13;
+  if (dirent->d_reclen == 0) return -14;
+  if ((dirent->d_reclen & 0x07) != 0) return -15;
+  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -16;
+  if (dirent->d_type > 15) return -17;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -18;
+  return 1;
+}
+
+// pfs getdirentries returns normal direntries
+s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
+  if (dirent->d_fileno == 0) return -10;
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -11;
+  // these don't fail so often
+  if (dirent->d_namlen == 0) return -12;
+  if (dirent->d_type == 0) return -13;
+  if (dirent->d_reclen == 0) return -14;
+  if ((dirent->d_reclen & 0x07) != 0) return -15;
+  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -16;
+  if (dirent->d_type > 15) return -17;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -18;
+  return 1;
+}
+
+/**
  * I suspect that pfs dirents are u32 but need to be mask
  * maybe Orbis uses normal types, but on disk each one is u32 instead of u32,u16,u8,u8
  * so we can clear lower bytes and check for anything above!
  */
 
 // pfs getdirentries returns normal direntries
-s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
-  if ((dirent->d_reclen & 0x07) != 0) return -11;
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -12;
-  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -13;
-  if (dirent->d_type > 15) return -14;
-  if (dirent->d_namlen == 0) return -15;
-  if ((strnlen(dirent->d_name, 255) + 1) != dirent->d_namlen) return -16;
-  return 1;
-}
-
-// pfs getdirentries returns normal direntries
-s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
-  if ((dirent->d_reclen & 0x07) != 0) return -11;
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -12;
-  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -13;
-  if (dirent->d_type > 15) return -14;
-  if (dirent->d_namlen == 0) return -15;
-  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -16;
-  return 1;
-}
-
-// pfs getdirentries returns normal direntries
 s64 validate_pfs_getdirentries_experimental(const oi::PfsDirent* dirent) {
-  if (dirent->d_fileno == u32(-1)) return -11;
   if (dirent->d_type & ~s32(0xFF)) return -12;
   if (dirent->d_namlen & ~s32(0xFF)) return -13;
   if (dirent->d_reclen & ~s32(0xFFFF)) return -14;

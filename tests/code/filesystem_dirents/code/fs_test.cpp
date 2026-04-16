@@ -111,7 +111,7 @@ TEST(DirentTests, PFSGetdirentries) {
   fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
   add_fd(fd);
   s64 basep {};
-  
+
   for (const auto& spec: pfs_dirent_variants) {
     spec_size   = spec.first;
     spec_offset = spec.second;
