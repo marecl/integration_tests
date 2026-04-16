@@ -42,26 +42,31 @@ void calculate_normal_read(OrbisInternals::DirentCombinationRead* spec, const ch
 // -1 on not found
 s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
   // max size is 272, last 23 bytes are never starting a dirent
-  s64 max_advance = std::max(size - offset, s64(272));
-  if (max_advance <= 0) return -1;
 
-  s64 offset_aligned = ALUP(offset, 8);
+  s64 offset_adj  = ISAL(offset, 8) ? offset : ALUP(offset, 8);
+  s64 max_advance = std::min(size - offset_adj, s64(272));
+  if (max_advance < 24) return -2;
 
-  for (s64 out_offset = 0; out_offset <= max_advance; out_offset += 8) {
-    auto status = validate_pfs_getdirentries_dirent(reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + offset_aligned + out_offset));
-    if (status != 1) continue;
+  s64 status {};
+
+  for (s64 out_offset = offset_adj; out_offset <= offset_adj + max_advance; out_offset += 8) {
+    const OrbisInternals::FolderDirent* tested_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + out_offset);
+    status                                            = validate_pfs_getdirentries_dirent(tested_dirent);
+    LogError("Testing", offset + out_offset, status);
+    if (status < 0) continue;
 
     LogError("Found a match forward at", out_offset);
-    return out_offset + offset_aligned - offset;
+    return out_offset - offset;
   }
 
   LogError("No match");
-  return -1;
+  return status;
 }
 
 void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries* spec, const char* buffer, s64 size, s64 offset, s64 count) {
   // down-aligned apparent end, last crossed sector
 
+  int        einval_int      = ORBIS_KERNEL_ERROR_EINVAL;
   static s64 previous_offset = 0;
   offset                     = offset == -1 ? previous_offset : offset;
   previous_offset            = offset;
@@ -80,8 +85,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
 
   // within the same sector or worse
   if (apparent_end_down <= file_offset_down) {
-    int tmp               = ORBIS_KERNEL_ERROR_EINVAL;
-    spec->expected_result = s64(tmp);
+    spec->expected_result = s64(einval_int);
     spec->expected_errno  = EINVAL;
     return;
   }
@@ -90,7 +94,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     spec->expected_end_position = directory_size;
     spec->expected_basep        = offset;
     spec->expected_result       = 0;
-    LogError("qweqweqwe");
+    // LogError("qweqweqwe");
     return;
   }
 
@@ -98,13 +102,18 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     spec->expected_end_position = directory_size;
     spec->expected_basep        = offset;
     spec->expected_result       = 0;
-    LogError("cvcvcc");
+    // LogError("cvcvcc");
     return;
   }
 
-  auto dirent_offset = nearest_dirent(buffer, size, offset);
+  s64 dirent_offset = nearest_dirent(buffer, size, offset);
 
-  if (dirent_offset < 0) LogError("Can't back off to nearest valid dirent:", dirent_offset);
+  if (dirent_offset < 0) {
+    LogError("Can't seek to the next dirent:", dirent_offset);
+    spec->expected_result = s64(einval_int);
+    spec->expected_errno  = EINVAL;
+    return;
+  };
   LogError("True starting offset is at", dirent_offset);
 
   s64 bytes_written   = 0;
@@ -114,11 +123,11 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position + dirent_offset);
 
     if (pfs_dirent->d_reclen == 0) break;
-    if ((bytes_written + pfs_dirent->d_reclen) > count) break;
+    if ((bytes_written + dirent_offset + pfs_dirent->d_reclen) > count) break;
     // without dirent offset i think
     // it sometimes underreads data at this line
-    // 
-    if ((buffer_position + pfs_dirent->d_reclen) >= (apparent_end_down + dirent_offset)) {
+    //
+    if ((buffer_position + dirent_offset + pfs_dirent->d_reclen) >= apparent_end) {
       LogError("XVFED");
       break;
     }

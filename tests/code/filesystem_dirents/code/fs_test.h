@@ -5,9 +5,9 @@
 
 #include <orbis/libkernel.h>
 
-#define ALUP(x, y) ((x & (~(y - 1))) + y)
-#define ALDN(x, y) ((x & (~(y - 1))))
-#define ISAL(x, y) ((x & (y - 1)) == 0)
+#define ALUP(x, y) (((x) & (~((y) - 1))) + (y))
+#define ALDN(x, y) (((x) & (~((y) - 1))))
+#define ISAL(x, y) (bool(((x) & ((y) - 1)) == 0))
 
 #define UNSIGNED_INT_EQUALS(expected, actual)            UNSIGNED_LONGS_EQUAL_LOCATION((uint32_t)expected, (uint32_t)actual, NULLPTR, __FILE__, __LINE__)
 #define UNSIGNED_INT_EQUALS_TEXT(expected, actual, text) UNSIGNED_LONGS_EQUAL_LOCATION((uint32_t)expected, (uint32_t)actual, text, __FILE__, __LINE__)
@@ -70,6 +70,7 @@ s64     fillcheck(const void* data, const u8 value, const u64 bytes);
 s64 validate_normal_dirent(const OrbisInternals::FolderDirent* dirent);
 s64 validate_pfs_read_dirent(const OrbisInternals::PfsDirent* dirent);
 s64 validate_pfs_getdirentries_dirent(const OrbisInternals::FolderDirent* dirent);
+s64 validate_pfs_getdirentries_experimental(const OrbisInternals::PfsDirent* dirent);
 
 s64 validate_normal_getdirentries(const char* data, const s64 bytes);
 s64 validate_pfs_read(const char* data, const s64 bytes);

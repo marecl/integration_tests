@@ -23,14 +23,14 @@ std::string center(const std::string& s, int width) {
   if (width <= len) return s.substr(0, width);
   int left  = (width - len) / 2;
   int right = width - len - left;
-  return std::string(left, ' ') + s + std::string(right, ' ');
+  return std::string(std::string(left, ' ') + s + std::string(right, ' '));
 }
 
 std::string right(const std::string& s, int width) {
   int len = (int)s.size();
   if (width <= len) return s.substr(0, width);
   int left = (width - len);
-  return std::string(left, ' ') + s;
+  return std::string(std::string(left, ' ') + s);
 }
 
 std::string to_hex_string(const void* data, long long length, std::string sep) {

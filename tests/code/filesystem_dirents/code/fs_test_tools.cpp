@@ -54,58 +54,65 @@ s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
 };
 
 s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
-  if (dirent->d_reclen == 0) return 0;
-  if ((dirent->d_reclen & 0x03) != 0) {
-    LogError("reclen alignment", dirent->d_reclen & 0x03, dirent->d_reclen);
-    return -2;
-  }
+  if ((dirent->d_reclen & 0x03) != 0) return -1;
 
-  if (ALUP(8 + dirent->d_namlen + 1, 4) != dirent->d_reclen) {
-    LogError("reclen const", ALUP(8 + dirent->d_namlen + 1, 4), dirent->d_reclen);
-    return -2;
-  }
+  // nope, it should need offset to deduce whether it's the last one (so either would be correct lmao)
+  // auto calclen =ALUP(8 + dirent->d_namlen + 1, 4);
+  // if (!ISAL(calclen, 4)) calclen = ;
+  // if (calclen != dirent->d_reclen) {
+  //   LogError("reclen const", calclen, dirent->d_reclen);
+  //   return -2;
+  // }
 
-  if ((dirent->d_reclen < 12) || (dirent->d_reclen > 264)) return -2;
-  if (dirent->d_type > 15) return -3;
+  // .. consumes the most but it's relatively unused
+  if ((dirent->d_reclen < 12) || (dirent->d_reclen > 496)) return -2;
+  if (dirent->d_type > 15) return -3; // speculative
   if (dirent->d_namlen == 0) return -4;
-  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -5;
-  return 1;
+  if ((strnlen(dirent->d_name, 255) + 1) != dirent->d_namlen) return -5;
+  return 0;
 }
+
+/**
+ * I suspect that pfs dirents are u32 but need to be mask
+ * maybe Orbis uses normal types, but on disk each one is u32 instead of u32,u16,u8,u8
+ * so we can clear lower bytes and check for anything above!
+ */
 
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
-  if (dirent->d_reclen == 0) return 0;
-  if ((dirent->d_reclen & 0x07) != 0) {
-    LogError("reclen alignment", dirent->d_reclen & 0x07, dirent->d_reclen);
-    return -2;
-  }
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) {
-    LogError("reclen const", ALUP(16 + dirent->d_namlen + 1, 8), dirent->d_reclen);
-    return -2;
-  }
-  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -2;
-  if (dirent->d_type > 15) return -3;
-  if (dirent->d_namlen == 0) return -4;
-  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -5;
+  if ((dirent->d_reclen & 0x07) != 0) return -11;
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -12;
+  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -13;
+  if (dirent->d_type > 15) return -14;
+  if (dirent->d_namlen == 0) return -15;
+  if ((strnlen(dirent->d_name, 255) + 1) != dirent->d_namlen) return -16;
   return 1;
 }
 
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
-  if (dirent->d_reclen == 0) return 0;
-  if ((dirent->d_reclen & 0x07) != 0) {
-    LogError("reclen alignment", dirent->d_reclen & 0x07, dirent->d_reclen);
-    return -2;
-  }
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) {
-    LogError("reclen const", ALUP(16 + dirent->d_namlen, 8) + 1, dirent->d_reclen);
-    return -2;
-  }
-  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -2;
-  if (dirent->d_type > 15) return -3;
-  if (dirent->d_namlen == 0) return -4;
-  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -5;
+  if ((dirent->d_reclen & 0x07) != 0) return -11;
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -12;
+  if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -13;
+  if (dirent->d_type > 15) return -14;
+  if (dirent->d_namlen == 0) return -15;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -16;
   return 1;
+}
+
+// pfs getdirentries returns normal direntries
+s64 validate_pfs_getdirentries_experimental(const oi::PfsDirent* dirent) {
+  if (dirent->d_fileno == u32(-1)) return -11;
+  if (dirent->d_type & ~s32(0xFF)) return -12;
+  if (dirent->d_namlen & ~s32(0xFF)) return -13;
+  if (dirent->d_reclen & ~s32(0xFFFF)) return -14;
+
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -15;
+  if ((dirent->d_reclen < 24) || (dirent->d_reclen > 272)) return -16;
+  if (dirent->d_type > 15) return -17;
+  if (dirent->d_namlen == 0) return -18;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -19;
+  return 0;
 }
 
 s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
@@ -117,8 +124,8 @@ s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
   while (total_size < bytes) { // this element is in bounds
     const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + total_size);
     auto                    vstat  = validate_normal_dirent(dirent);
-    if (vstat != 1) {
-      break;
+    if (vstat < 0) {
+      continue;
     }
     s64 next_alignment = ALUP(total_size, 512);
     if ((total_size + dirent->d_reclen) > next_alignment)

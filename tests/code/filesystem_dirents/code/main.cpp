@@ -8,7 +8,7 @@ IMPORT_TEST_GROUP(DirentTests);
 
 int main(int ac, char** av) {
   // No buffering
-  setvbuf(stdout, NULL, _IONBF, 0);
+  // setvbuf(stdout, NULL, _IONBF, 0);
 
   // Log tests start
   Log();

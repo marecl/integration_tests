@@ -25,7 +25,7 @@ template <typename T>
 std::string to_hex(T value) {
   std::ostringstream oss;
   oss << std::hex << value;
-  return oss.str();
+  return std::string(oss.str());
 }
 
 std::string to_hex_string(const void* data, long long length, std::string sep = " ");
