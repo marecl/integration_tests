@@ -119,17 +119,18 @@ TEST(DirentTests, PFSGetdirentries) {
     memset(buffer, 'A', 65536);
     calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec_offset, spec_size);
 
-    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
+    CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
     errno            = 0;
     tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     LogTest(calc.read_size, calc.read_offset, calc.expected_basep, calc.expected_result, calc.expected_end_position, "\t->\t", basep, tbr, end_ptr_position,
             to_hex_string(buffer, 16, ""));
 
-    // CHECK_EQUAL(calc.expected_basep, basep);
-    // CHECK_EQUAL(calc.expected_result, tbr);
-    // CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    // CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
+    CHECK_EQUAL_TEXT(calc.expected_basep, basep, "Bad starting position");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
+    // remember to compare them lmao
     // dump good ones to file
   }
   sceKernelClose(fd);
@@ -231,9 +232,9 @@ TEST(DirentTests, PFSRead) {
 
     LogTest(calc.read_size, calc.read_offset, calc.expected_result, calc.expected_end_position, "\t->\t", tbr, end_ptr_position, "\t",
             to_hex_string(buffer, 16, ""));
-    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Incorrect read size");
-    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
     compare_data_dump(master_buffer, buffer, 65536, tbr, &calc);
   }
   sceKernelClose(fd);

@@ -79,8 +79,8 @@ s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
 
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
-  if (dirent->d_fileno == 0) return -10;
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -11;
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -10;
+  if (dirent->d_fileno == 0) return -11;
   // these don't fail so often
   if (dirent->d_namlen == 0) return -12;
   if (dirent->d_type == 0) return -13;
@@ -94,8 +94,8 @@ s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
 
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
-  if (dirent->d_fileno == 0) return -10;
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -11;
+  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -10;
+  if (dirent->d_fileno == 0) return -11;
   // these don't fail so often
   if (dirent->d_namlen == 0) return -12;
   if (dirent->d_type == 0) return -13;
