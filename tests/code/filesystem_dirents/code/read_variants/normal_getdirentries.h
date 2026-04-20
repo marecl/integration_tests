@@ -2,44 +2,77 @@
 
 #include <vector>
 
-std::vector<OrbisInternals::DirentCombinationGetdirentries> normal_dirent_variants = {
-
-    /**
-    What i (again) think is that the entire 512byte buffer must be iterated? or sth
-    read can occur as long as read descriptor passes 512aligned mark, i.e.
-    it will read a couple of bytes if end position falls couple of bytes after the end
-    for example read 8@510 offset will read 2 bytes
-    2 bytes, because thet's the farthest the current sector can go
-    however this is a bit different for larger reads. large reads still have this condition, but they include every buffer on their way
-
-    so the only way this can read stuff is when end position crosses current sector border
-    otherwise EINVAL
-    */
-
-    {.read_size = 513, .read_offset = 0, .expected_basep = 0, .expected_result = 512, .expected_end_position = 512},
-    {.read_size = 512, .read_offset = 0, .expected_basep = 0, .expected_result = 512, .expected_end_position = 512},     //
-    {.read_size = 512, .read_offset = -1, .expected_basep = 512, .expected_result = 512, .expected_end_position = 1024}, //
-    {.read_size = 1024, .read_offset = 0, .expected_basep = 0, .expected_result = 1024, .expected_end_position = 1024},
-    {.read_size = 1024, .read_offset = 511, .expected_basep = 511, .expected_result = 513, .expected_end_position = 1024},
-    {.read_size = 1024, .read_offset = 512, .expected_basep = 512, .expected_result = 1024, .expected_end_position = 1536},
-    {.read_size = 1024, .read_offset = 513, .expected_basep = 513, .expected_result = 1023, .expected_end_position = 1536},
-    {.read_size = 1025, .read_offset = 513, .expected_basep = 513, .expected_result = 1023, .expected_end_position = 1536},
-    {.read_size = 1026, .read_offset = 513, .expected_basep = 513, .expected_result = 1023, .expected_end_position = 1536},
-    {.read_size = 8, .read_offset = 504, .expected_basep = 504, .expected_result = 8, .expected_end_position = 512},
-    {.read_size = 16, .read_offset = 496, .expected_basep = 496, .expected_result = 16, .expected_end_position = 512},
-    {.read_size = 24, .read_offset = 488, .expected_basep = 488, .expected_result = 24, .expected_end_position = 512},
-    {.read_size = 48, .read_offset = 464, .expected_basep = 464, .expected_result = 48, .expected_end_position = 512},
-    {.read_size = 64, .read_offset = 448, .expected_basep = 448, .expected_result = 64, .expected_end_position = 512},
-    {.read_size = 128, .read_offset = 384, .expected_basep = 384, .expected_result = 128, .expected_end_position = 512},
-    {.read_size = 256, .read_offset = 256, .expected_basep = 256, .expected_result = 256, .expected_end_position = 512},
-    {.read_size = 511, .read_offset = 1, .expected_basep = 1, .expected_result = 511, .expected_end_position = 512},
-    {.read_size = 32, .read_offset = 4064, .expected_basep = 4064, .expected_result = 32, .expected_end_position = 4096},
-    {.read_size = 64, .read_offset = 4064, .expected_basep = 4064, .expected_result = 32, .expected_end_position = 4096},
-    {.read_size = 80, .read_offset = 4064, .expected_basep = 4064, .expected_result = 32, .expected_end_position = 4096},
-    {.read_size = 128, .read_offset = 4064, .expected_basep = 4064, .expected_result = 32, .expected_end_position = 4096},
-    {.read_size = 256, .read_offset = 4064, .expected_basep = 4064, .expected_result = 32, .expected_end_position = 4096},
-    {.read_size = 1024, .read_offset = 0, .expected_basep = 0, .expected_result = 1024, .expected_end_position = 1024},
-    {.read_size = 1024, .read_offset = -1, .expected_basep = 1024, .expected_result = 1024, .expected_end_position = 2048},
-    {.read_size = 1024, .read_offset = -1, .expected_basep = 2048, .expected_result = 1024, .expected_end_position = 3072},
-    {.read_size = 32, .read_offset = 480, .expected_basep = 480, .expected_result = 32, .expected_end_position = 512},
+std::vector<std::pair<s64, s64>> normal_dirent_variants = {
+    {0, 0},        //
+    {128, 128},    //
+    {512, 1024},   //
+    {128, 128},    //
+    {512, 0},      //
+    {512, -1},     //
+    {512, -1},     //
+    {512, 16},     //
+    {512, 24},     //
+    {512, 28},     //
+    {512, 32},     //
+    {512, 40},     //
+    {512, 47},     //
+    {512, 48},     //
+    {512, 49},     //
+    {512, 50},     //
+    {512, 51},     //
+    {512, 52},     //
+    {512, 53},     //
+    {512, 54},     //
+    {512, 55},     //
+    {512, 56},     //
+    {512, 57},     //
+    {512, 64},     //
+    {512, 128},    //
+    {512, 512},    //
+    {513, 0},      //
+    {536, 0},      //
+    {64, 1015},    //
+    {64, 1016},    //
+    {64, 1017},    //
+    {80, 1015},    //
+    {80, 1016},    //
+    {80, 1017},    //
+    {1023, 0},     //
+    {1023, -1},    //
+    {1023, -1},    //
+    {1024, 0},     //
+    {1024, 511},   //
+    {1024, 512},   //
+    {1024, 513},   //
+    {1025, 513},   //
+    {1026, 513},   //
+    {1026, -1},    //
+    {256, 256},    //
+    {256, -1},     //
+    {23, 511},     //
+    {24, 511},     //
+    {25, 511},     //
+    {8, 504},      //
+    {16, 496},     //
+    {24, 488},     //
+    {48, 464},     //
+    {64, 448},     //
+    {128, 384},    //
+    {256, 256},    //
+    {511, 1},      //
+    {32, 4064},    //
+    {64, 4064},    //
+    {80, 4064},    //
+    {112, 4064},   //
+    {128, 4064},   //
+    {256, 4064},   //
+    {544, 4064},   //
+    {1024, 0},     //
+    {1024, -1},    //
+    {32, 480},     //
+    {1024, 10000}, //
+    {8192, 10000}, //
+    {8192, 35565}, //
+    {511, 1024},   //
+    {128, 4096},   //
 };

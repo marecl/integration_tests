@@ -11,6 +11,8 @@ namespace oi = OrbisInternals;
 // -1 = equal, anything positive - idx of first differing element
 // does not adhere to memcmp spec, i want differing indexes, not values!
 s64 imemcmp(const void* object, const void* reflection, s64 bytes) {
+  if (bytes <= 0) return 1;
+
   u32        longs            = (bytes & ~0x7) >> 3; // bytes to longs (divide by 8 basically)
   const u64* object_ptr64     = static_cast<const u64*>(object);
   const u64* reflection_ptr64 = static_cast<const u64*>(reflection);
@@ -28,10 +30,10 @@ s64 imemcmp(const void* object, const void* reflection, s64 bytes) {
   // longlong->byte conversion
   // worst case scenario 8 iterations
   for (idx <<= 3; idx < bytes; idx++) {
-    if (*(object_ptr8 + idx) != *(reflection_ptr8 + idx)) return idx;
+    if (*(object_ptr8 + idx) != *(reflection_ptr8 + idx)) return -idx;
   }
 
-  return -1;
+  return 1;
 }
 
 s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
@@ -61,7 +63,7 @@ s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
   // if (_reclen != dirent->d_reclen) return -10;
 
   // best case scenario tbh
-  if(dirent->d_reclen&0x03)return -10;
+  if (dirent->d_reclen & 0x03) return -10;
   if (dirent->d_fileno == 0) return -11;
 
   // these don't fail so often
@@ -142,7 +144,7 @@ s64 validate_pfs_getdirentries_experimental(const oi::PfsDirent* dirent) {
 s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
   if (bytes < 0) return bytes;
 
-  s64 offset   = 0;
+  s64 offset       = 0;
   u32 current_size = 0;
 
   while (offset < bytes) { // this element is in bounds

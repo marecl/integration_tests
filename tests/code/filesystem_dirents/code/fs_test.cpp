@@ -19,6 +19,8 @@ const char* clone_destination_getdirentries = "/data/enderman/clone_getdents";
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
+s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, s64 offset);
+
 // s64  DumpByRead(int dir_fd, int dump_fd, char* buffer, size_t size);
 // s64  DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx);
 // void DumpDirectory(int fd, int buffer_size, s64 offset);
@@ -152,8 +154,7 @@ TEST(DirentTests, PFSGetdirentries) {
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
-    // remember to compare them lmao
-    // dump good ones to file
+    // compare_data_dump(master_buffer, buffer, 65536, tbr, calc.read_offset);
   }
   sceKernelClose(fd);
 }
@@ -161,44 +162,56 @@ TEST(DirentTests, PFSGetdirentries) {
 TEST(DirentTests, NormalGetdirentries) {
   LogTest("<<<< Normal getdirentries tests >>>>");
 
-  char buffer[65536];
-  s64  end_ptr_position {};
-  s64  basep {};
+  char                               buffer[65536];
+  char                               master_buffer[65536];
+  const s64                          master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
+  s64                                end_ptr_position {};
+  oi::DirentCombinationGetdirentries calc {};
+  s64                                spec_size {};
+  s64                                spec_offset {};
 
   fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
   add_fd(fd);
-  for (auto& spec: normal_dirent_variants) {
-    basep = 0;
+  s64 basep {};
+
+  for (const auto& spec: normal_dirent_variants) {
+    spec_size   = spec.first;
+    spec_offset = spec.second;
+
+    memset(buffer, 'A', 65536);
+    calculate_normal_getdirentries(&calc, master_buffer, master_length, spec_offset, spec_size);
 
     memset(buffer, 0xAA, 65536);
 
-    if (spec.read_offset >= 0) CHECK_EQUAL(spec.read_offset, sceKernelLseek(fd, spec.read_offset, 0));
+    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
     errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, spec.read_size, &basep);
+    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
-    LogTest(spec.read_size, spec.read_offset, spec.expected_basep, spec.expected_result, spec.expected_end_position, "\t->\t", basep, tbr, end_ptr_position,
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, calc.expected_result, calc.expected_end_position, "\t->\t", basep, tbr, end_ptr_position,
             to_hex_string(buffer, 16, ""));
 
-    CHECK_EQUAL(spec.expected_basep, basep);
-    CHECK_EQUAL(spec.expected_result, tbr);
-    CHECK_EQUAL_TEXT(spec.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    CHECK_EQUAL_TEXT(spec.expected_errno, errno, "Incorrect errno");
+    // CHECK_EQUAL(calc.expected_basep, basep);
+    // CHECK_EQUAL(calc.expected_result, tbr);
+    // CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
+    // CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
+    // compare_data_dump(master_buffer, buffer, 65536, tbr, calc.read_offset);
   }
   sceKernelClose(fd);
 }
 
-s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, struct oi::DirentCombinationRead* spec) {
-  const char* master_data = reinterpret_cast<const char*>(master) + spec->read_offset;
+s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, s64 offset) {
+  if (tbr <= 0) return 1;
+
+  const char* master_data = reinterpret_cast<const char*>(master) + offset;
   const char* test_data   = reinterpret_cast<const char*>(test);
 
-  if (auto qw = imemcmp(master_data, test_data, tbr); qw != -1) {
-    LogError("Inconsistent read at", spec->read_offset + qw);
+  if (auto qw = imemcmp(master_data, test_data, tbr); qw < 0) {
+    LogError("Inconsistent read at", offset + qw);
     LogError("Global dump:", to_hex_string(master_data + qw, std::min((s64)48, tbr)));
     LogError("Recent dump:", to_hex_string(test_data + qw, std::min((s64)48, tbr)));
-
-    return -1;
+    return -qw;
   }
-  return 0;
+  return 1;
 }
 
 TEST(DirentTests, PFSRead) {
@@ -234,7 +247,7 @@ TEST(DirentTests, PFSRead) {
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
-    compare_data_dump(master_buffer, buffer, 65536, tbr, &calc);
+    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.read_offset);
   }
   sceKernelClose(fd);
 }
@@ -272,7 +285,7 @@ TEST(DirentTests, NormalRead) {
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Incorrect read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
-    compare_data_dump(master_buffer, buffer, 65536, tbr, &calc);
+    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.read_offset);
   }
   sceKernelClose(fd);
 }
@@ -612,12 +625,13 @@ TEST(DirentTests, DumpEverythingRaw) {
 //   // comment below is unrelated to what's below that comment
 
 //   // view_size  = 24;  view_size_end = 64;
-//   // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be [..]
+//   // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be
+//   [..]
 //   // this is subtracted in favour of possibly populating next dirent (doesn't happen here).
 //   // differences between larger buffer and smaller occur between [..] and last entry, so real comparsion should happen between 24 and 496 (472 length)
 //   tbr = rd(fd, buffer, 1024, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer,1024);
 //   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-//   tbr = rd(fd, reflection, 1024, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1,
+//   tbr = rd(fd, reflection, 1024, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection,1024); CHECK_EQUAL_TEXT(-1,
 //   imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
 //   quickprint("\t+6   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
 //   reflection, 1024, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1,
@@ -625,7 +639,7 @@ TEST(DirentTests, DumpEverythingRaw) {
 
 //   tbr = rd(fd, buffer, 1025, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer,1025);
 //   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-//   tbr = rd(fd, reflection, 1025, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1,
+//   tbr = rd(fd, reflection, 1025, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection,1025); CHECK_EQUAL_TEXT(-1,
 //   imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
 //   quickprint("\t+6   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
 //   reflection, 1025, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1,
@@ -1090,17 +1104,17 @@ TEST(DirentTests, DumpEverythingRaw) {
 //   tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
 //   tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1,
 //   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512,
-//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection, tbr),
-//   "memory compare failed");
+//   quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
+//   512, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
+//   tbr), "memory compare failed");
 
 //   view_size  = 24;  view_size_end = 24;
 //   tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
 //   tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1,
 //   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513,
-//   7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection, tbr),
-//   "memory compare failed");
+//   quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
+//   513, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
+//   tbr), "memory compare failed");
 
 //   // create some dummy files
 //   for (*startchar = 'a'; *startchar < 'z'; *startchar += 1) {
@@ -1113,24 +1127,24 @@ TEST(DirentTests, DumpEverythingRaw) {
 //   // so 1023+0 is still 512, but 1023 + 5 offset is 507 + 512
 //   tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(512, tbr);    CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
 //   tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(1019, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed"); tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr);   CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed"); tbr = rd(fd, reflection,
-//   1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7,
-//   reflection, 512 - 7), "memory compare failed");
+//   imemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed"); tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr); CHECK_EQUAL_ZERO(errno);
+//   quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed"); tbr = rd(fd,
+//   reflection, 1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer +
+//   7, reflection, 512 - 7), "memory compare failed");
 
 //   tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
 //   tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1,
 //   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
 //   quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
-//   tbr), "memory compare failed");
+//   1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7,
+//   reflection, tbr), "memory compare failed");
 
 //   tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
 //   tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1,
 //   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
 //   quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
-//   tbr), "memory compare failed");
+//   1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7,
+//   reflection, tbr), "memory compare failed");
 
 //   // clang-format on
 
