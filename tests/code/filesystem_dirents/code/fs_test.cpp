@@ -96,6 +96,28 @@ TEST_GROUP (DirentTests) {
   }
 };
 
+TEST(DirentTests, ValidateDirentries) {
+  LogTest("<<<< Dirent structure validation >>>>");
+  char buffer[65536];
+  s64  master_length {};
+  s64  offset {};
+
+  // these tests are not done yet
+  LogTest("Normal read");
+  master_length = undump_file(output_normal_read, buffer, 65536);
+  CHECK_EQUAL(normal_read_target, validate_normal_getdirentries(buffer, master_length));
+  // LogTest("Normal getdirentries");
+  // master_length = undump_file(output_normal_getdirentries, buffer, 65536);
+  // CHECK_EQUAL(normal_getdirentries_target, validate_normal_getdirentries(buffer, master_length));
+
+  LogTest("PFS read");
+  master_length = undump_file(output_pfs_read, buffer, 65536);
+  CHECK_EQUAL(pfs_read_target, validate_pfs_read(buffer, master_length));
+  LogTest("PFS getdirentries");
+  master_length = undump_file(output_pfs_getdirentries, buffer, 65536);
+  CHECK_EQUAL(pfs_getdirentries_target, validate_pfs_getdirentries(buffer, master_length));
+}
+
 TEST(DirentTests, PFSGetdirentries) {
   LogTest("<<<< PFS getdirentries tests >>>>");
 
@@ -161,31 +183,8 @@ TEST(DirentTests, NormalGetdirentries) {
     CHECK_EQUAL(spec.expected_result, tbr);
     CHECK_EQUAL_TEXT(spec.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
     CHECK_EQUAL_TEXT(spec.expected_errno, errno, "Incorrect errno");
-    // dump good ones to file
   }
   sceKernelClose(fd);
-}
-
-TEST(DirentTests, ValidateDirentries) {
-  LogTest("<<<< Dirent structure validation >>>>");
-  char buffer[65536];
-  s64  master_length {};
-  s64  offset {};
-
-  // these tests are not done yet
-  // LogTest("Normal read");
-  // master_length = undump_file(output_normal_read, buffer, 65536);
-  // CHECK_EQUAL(normal_read_target, validate_normal_getdirentries(buffer, master_length));
-  // LogTest("Normal getdirentries");
-  // master_length = undump_file(output_normal_getdirentries, buffer, 65536);
-  // CHECK_EQUAL(normal_getdirentries_target, validate_normal_getdirentries(buffer, master_length));
-
-  LogTest("PFS read");
-  master_length = undump_file(output_pfs_read, buffer, 65536);
-  CHECK_EQUAL(pfs_getdirentries_target, validate_pfs_read(buffer, master_length));
-  LogTest("PFS getdirentries");
-  master_length = undump_file(output_pfs_getdirentries, buffer, 65536);
-  CHECK_EQUAL(pfs_getdirentries_target, validate_pfs_getdirentries(buffer, master_length));
 }
 
 s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, struct oi::DirentCombinationRead* spec) {
@@ -351,6 +350,7 @@ s64 NormalComparator(const char* read, const char* getdirentries, u64 length) {
     if (dirent_read->d_reclen != dirent_getdirentries->d_reclen) break;
     if (dirent_read->d_type != dirent_getdirentries->d_type) break;
     if (memcmp(dirent_read->d_name, dirent_getdirentries->d_name, dirent_read->d_namlen)) break; // namlen is the same
+    if (offset + dirent_read->d_reclen > length) break;
     offset += dirent_read->d_reclen;
     if (dirent_read->d_reclen == 0) break;
     entry_counter++;
@@ -390,8 +390,8 @@ s64 PFSComparator(const char* read, const char* getdirentries, u64 length) {
     // if (dirent_read->d_type != dirent_getdirentries->d_type) break;
     if (memcmp(dirent_read->d_name, dirent_getdirentries->d_name, dirent_read->d_namlen)) break; // namlen is the same
     if (dirent_read->d_reclen == 0) break;                                                       // reclen is the same
+    if (offset + dirent_read->d_reclen > length) break;
     offset += dirent_read->d_reclen;
-    if (dirent_read->d_reclen == 0) break;
   }
 
   Log("Compared", entry_counter, "entries");
@@ -442,7 +442,7 @@ TEST(DirentTests, DumpEverythingRaw) {
     CHECK_COMPARE_TEXT(tbr, >=, 0, "PFS read failed");
     LogTest("PFS read got", tbr, "bytes");
     if (tbr == 0) break;
-    CHECK_EQUAL_TEXT(pfs_read_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
+    CHECK_EQUAL_TEXT(pfs_read_file_size_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));

@@ -93,7 +93,6 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     spec->expected_result       = s64(einval_int);
     spec->expected_end_position = offset;
     spec->expected_errno        = EINVAL;
-    LogError("OD");
     return;
   }
 
@@ -104,7 +103,6 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     spec->expected_result       = 0;
     spec->expected_end_position = directory_size;
     spec->expected_errno        = 0;
-    LogError("DAT");
     return;
   }
   // we can now assume that offset always includes some data
@@ -113,12 +111,10 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
 
   if (dirent_offset < 0) {
     // highly unlikely but you never know
-    LogError("Can't seek to the next dirent:", dirent_offset);
     spec->expected_basep        = offset;
     spec->expected_result       = s64(einval_int);
     spec->expected_end_position = offset;
     spec->expected_errno        = EINVAL;
-    LogError("NF");
     return;
   };
   // LogError("True starting offset is at", dirent_offset);
@@ -140,7 +136,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
   }
 
   spec->expected_result = bytes_written;
-  LogError("Ended with buffer position =", buffer_position, ", adj =", buffer_position + dirent_offset, ", size =", size);
+  // LogError("Ended with buffer position =", buffer_position, ", adj =", buffer_position + dirent_offset, ", size =", size);
   spec->expected_end_position = ((buffer_position + dirent_offset) >= size) ? directory_size : static_cast<s64>(offset + bytes_written);
 }
 

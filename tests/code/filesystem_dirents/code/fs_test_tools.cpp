@@ -54,22 +54,21 @@ s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
 };
 
 s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
-  if ((dirent->d_reclen & 0x03) != 0) return -1;
+  auto _reclen = 8 + dirent->d_namlen + 1;
+  _reclen      = ISAL(_reclen, 8) ? _reclen : ALUP(_reclen, 8);
+  if (_reclen != dirent->d_reclen) return -10;
+  if (dirent->d_fileno == 0) return -11;
 
-  // nope, it should need offset to deduce whether it's the last one (so either would be correct lmao)
-  // auto calclen =ALUP(8 + dirent->d_namlen + 1, 4);
-  // if (!ISAL(calclen, 4)) calclen = ;
-  // if (calclen != dirent->d_reclen) {
-  //   LogError("reclen const", calclen, dirent->d_reclen);
-  //   return -2;
-  // }
+  // these don't fail so often
+  if (dirent->d_namlen == 0) return -12;
+  if (dirent->d_type == 0) return -13;
+  if (dirent->d_reclen == 0) return -14;
+  if ((dirent->d_reclen & 0x03) != 0) return -15;
+  if (dirent->d_reclen < 12 || dirent->d_reclen > 496) return -16;
+  if (dirent->d_type > 15) return -17;
+  if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -18;
 
-  // .. consumes the most but it's relatively unused
-  if ((dirent->d_reclen < 12) || (dirent->d_reclen > 496)) return -2;
-  if (dirent->d_type > 15) return -3; // speculative
-  if (dirent->d_namlen == 0) return -4;
-  if ((strnlen(dirent->d_name, 255) + 1) != dirent->d_namlen) return -5;
-  return 0;
+  return 1;
 }
 
 /**
@@ -79,8 +78,11 @@ s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
 
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -10;
+  auto _reclen = 16 + dirent->d_namlen + 1;
+  _reclen      = ISAL(_reclen, 8) ? _reclen : ALUP(_reclen, 8);
+  if (_reclen != dirent->d_reclen) return -10;
   if (dirent->d_fileno == 0) return -11;
+
   // these don't fail so often
   if (dirent->d_namlen == 0) return -12;
   if (dirent->d_type == 0) return -13;
@@ -89,13 +91,17 @@ s64 validate_pfs_read_dirent(const oi::PfsDirent* dirent) {
   if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -16;
   if (dirent->d_type > 15) return -17;
   if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -18;
+
   return 1;
 }
 
 // pfs getdirentries returns normal direntries
 s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
-  if (ALUP(16 + dirent->d_namlen + 1, 8) != dirent->d_reclen) return -10;
+  auto _reclen = 16 + dirent->d_namlen + 1;
+  _reclen      = ISAL(_reclen, 8) ? _reclen : ALUP(_reclen, 8);
+  if (_reclen != dirent->d_reclen) return -10;
   if (dirent->d_fileno == 0) return -11;
+
   // these don't fail so often
   if (dirent->d_namlen == 0) return -12;
   if (dirent->d_type == 0) return -13;
@@ -104,6 +110,7 @@ s64 validate_pfs_getdirentries_dirent(const oi::FolderDirent* dirent) {
   if (dirent->d_reclen < 24 || dirent->d_reclen > 272) return -16;
   if (dirent->d_type > 15) return -17;
   if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -18;
+
   return 1;
 }
 
@@ -136,13 +143,13 @@ s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
   while (total_size < bytes) { // this element is in bounds
     const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + total_size);
     auto                    vstat  = validate_normal_dirent(dirent);
-    if (vstat < 0) {
-      continue;
-    }
-    s64 next_alignment = ALUP(total_size, 512);
-    if ((total_size + dirent->d_reclen) > next_alignment)
-      LogError("Dirent not aligned to 512 byte sector at", total_size, "leaking", total_size + dirent->d_reclen - next_alignment, "bytes");
+    if (vstat < 0) break;
 
+    s64 next_alignment = ALUP(total_size, 512);
+    if ((total_size + dirent->d_reclen) > next_alignment) {
+      LogError("Dirent not aligned to 512 byte sector at", total_size, "leaking", total_size + dirent->d_reclen - next_alignment, "bytes");
+      break;
+    }
     total_size += dirent->d_reclen;
   }
   return total_size;
@@ -151,29 +158,29 @@ s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
 s64 validate_pfs_read(const char* data, const s64 bytes) {
   if (bytes <= 0) return 0;
 
-  s64 total_size   = 0;
-  u32 current_size = 0;
+  s64 offset = 0;
 
-  while (total_size < bytes) { // this element is in bounds
-    const oi::PfsDirent* dirent = reinterpret_cast<const oi::PfsDirent*>(data);
-    if (validate_pfs_read_dirent(dirent) != 1) break;
-    total_size += dirent->d_reclen;
+  while (offset < bytes) { // this element is in bounds
+    const oi::PfsDirent* dirent = reinterpret_cast<const oi::PfsDirent*>(data + offset);
+    if (auto ret = validate_pfs_read_dirent(dirent); ret < 0) break;
+    if (offset + dirent->d_reclen > bytes) break;
+    offset += dirent->d_reclen;
   }
-  return total_size;
+  return offset;
 }
 
 s64 validate_pfs_getdirentries(const char* data, const s64 bytes) {
   if (bytes < 0) return bytes;
 
-  s64 total_size   = 0;
-  u32 current_size = 0;
+  s64 offset = 0;
 
-  while (total_size < bytes) { // this element is in bounds
-    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + total_size);
-    if (validate_pfs_getdirentries_dirent(dirent) != 1) break;
-    total_size += dirent->d_reclen;
+  while (offset < bytes) { // this element is in bounds
+    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + offset);
+    if (auto ret = validate_pfs_getdirentries_dirent(dirent); ret < 0) break;
+    if (offset + dirent->d_reclen > bytes) break;
+    offset += dirent->d_reclen;
   }
-  return total_size;
+  return offset;
 }
 
 bool is_directory_relatives(const char* data) {
