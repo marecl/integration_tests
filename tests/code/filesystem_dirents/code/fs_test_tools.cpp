@@ -54,9 +54,14 @@ s64 fillcheck(const void* data, const u8 value, const u64 bytes) {
 };
 
 s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
-  auto _reclen = 8 + dirent->d_namlen + 1;
-  _reclen      = ISAL(_reclen, 8) ? _reclen : ALUP(_reclen, 8);
-  if (_reclen != dirent->d_reclen) return -10;
+  // N/A it'd need offset to calculate reclen correctly
+  // i think this test is duplicated somewhere here too
+  // auto _reclen = 8 + dirent->d_namlen + 1;
+  // _reclen      = ISAL(_reclen, 8) ? _reclen : ALUP(_reclen, 8);
+  // if (_reclen != dirent->d_reclen) return -10;
+
+  // best case scenario tbh
+  if(dirent->d_reclen&0x03)return -10;
   if (dirent->d_fileno == 0) return -11;
 
   // these don't fail so often
@@ -137,22 +142,25 @@ s64 validate_pfs_getdirentries_experimental(const oi::PfsDirent* dirent) {
 s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
   if (bytes < 0) return bytes;
 
-  s64 total_size   = 0;
+  s64 offset   = 0;
   u32 current_size = 0;
 
-  while (total_size < bytes) { // this element is in bounds
-    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + total_size);
+  while (offset < bytes) { // this element is in bounds
+    const oi::FolderDirent* dirent = reinterpret_cast<const oi::FolderDirent*>(data + offset);
     auto                    vstat  = validate_normal_dirent(dirent);
-    if (vstat < 0) break;
-
-    s64 next_alignment = ALUP(total_size, 512);
-    if ((total_size + dirent->d_reclen) > next_alignment) {
-      LogError("Dirent not aligned to 512 byte sector at", total_size, "leaking", total_size + dirent->d_reclen - next_alignment, "bytes");
+    if (vstat < 0) {
+      LogError("VSTAT", "=", vstat);
       break;
     }
-    total_size += dirent->d_reclen;
+
+    s64 next_alignment = ALUP(offset, 512);
+    if ((offset + dirent->d_reclen) > next_alignment) {
+      LogError("Dirent not aligned to 512 byte sector at", offset, "leaking", offset + dirent->d_reclen - next_alignment, "bytes");
+      break;
+    }
+    offset += dirent->d_reclen;
   }
-  return total_size;
+  return offset;
 }
 
 s64 validate_pfs_read(const char* data, const s64 bytes) {

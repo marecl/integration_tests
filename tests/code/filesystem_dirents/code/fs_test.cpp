@@ -106,9 +106,9 @@ TEST(DirentTests, ValidateDirentries) {
   LogTest("Normal read");
   master_length = undump_file(output_normal_read, buffer, 65536);
   CHECK_EQUAL(normal_read_target, validate_normal_getdirentries(buffer, master_length));
-  // LogTest("Normal getdirentries");
-  // master_length = undump_file(output_normal_getdirentries, buffer, 65536);
-  // CHECK_EQUAL(normal_getdirentries_target, validate_normal_getdirentries(buffer, master_length));
+  LogTest("Normal getdirentries");
+  master_length = undump_file(output_normal_getdirentries, buffer, 65536);
+  CHECK_EQUAL(normal_getdirentries_target, validate_normal_getdirentries(buffer, master_length));
 
   LogTest("PFS read");
   master_length = undump_file(output_pfs_read, buffer, 65536);
