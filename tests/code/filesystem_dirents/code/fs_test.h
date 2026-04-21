@@ -1,6 +1,8 @@
 #ifndef FS_TEST_H
 #define FS_TEST_H
 
+#pragma once
+
 #include "log.h"
 
 #include <orbis/libkernel.h>
@@ -24,24 +26,31 @@ using u64 = uint64_t;
 
 namespace OrbisInternals {
 
-typedef struct DirentCombinationRead {
+typedef struct {
+  s64 size;
+  s64 offset;
+} spec_t;
+
+typedef struct {
   s64 read_size;
   s64 read_offset;
+  s64 expected_startpos;
   s64 expected_result;
   s64 expected_end_position;
   int expected_errno;
 } DirentCombinationRead;
 
-typedef struct DirentCombinationGetdirentries {
+typedef struct {
   s64 read_size;
   s64 read_offset;
   s64 expected_basep;
   s64 expected_result;
   s64 expected_end_position;
   int expected_errno;
+  s64 meta_dirent_start; // offset relative to offset of the first dirent
 } DirentCombinationGetdirentries;
 
-typedef struct PfsDirent {
+typedef struct {
   s32  d_fileno;
   s32  d_type;
   s32  d_namlen;
@@ -49,7 +58,7 @@ typedef struct PfsDirent {
   char d_name[256];
 } PfsDirent;
 
-typedef struct FolderDirent {
+typedef struct {
   u32  d_fileno;
   u16  d_reclen;
   u8   d_type;

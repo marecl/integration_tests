@@ -1,7 +1,7 @@
-#pragma once
-
 #ifndef LOG_H
 #define LOG_H
+
+#pragma once
 
 #include <iomanip>
 #include <iostream>
@@ -101,4 +101,4 @@ void ResetErrorCounter(void);
     }                                                                                                                                                          \
   }
 
-#endif
+#endif // LOG_H

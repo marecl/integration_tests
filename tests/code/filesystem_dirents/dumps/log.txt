@@ -21,467 +21,275 @@
 <118>[   PFSComparator    ] [INFO] Compared 0 entries
 <118>.[      testBody      ]   [TEST]  <<<< Normal read and getdirentries consistency >>>>
 <118>[  NormalComparator  ] [INFO] Compared 210 entries
+<118>.[      testBody      ]   [TEST]  <<<< Dirent structure validation >>>>
+<118>[      testBody      ]   [TEST]  Normal read
+<118>[      testBody      ]   [TEST]  Normal getdirentries
+<118>[      testBody      ]   [TEST]  PFS read
+<118>[      testBody      ]   [TEST]  PFS getdirentries
 <118>.[      testBody      ]   [TEST]  <<<< Normal read tests >>>>
 <118>[      testBody      ]   [TEST]  Master Normal read length is 8704
-<118>[      testBody      ]   [TEST]  0 0 0 0 	->	 0 0 	 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  64 0 64 64 	->	 64 64 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  128 0 128 128 	->	 128 128 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  256 0 256 256 	->	 256 256 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  511 0 511 511 	->	 511 511 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  511 1 511 512 	->	 511 512 	 d40c010c0004012e00000019d40c010c
-<118>[      testBody      ]   [TEST]  511 2 511 513 	->	 511 513 	 0c010c0004012e00000019d40c010c00
-<118>[      testBody      ]   [TEST]  512 0 512 512 	->	 512 512 	 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  2048 1245 2048 3293 	->	 2048 3293 	 00000050d40c011c00081066696c656e
-<118>[      testBody      ]   [TEST]  7257 1245 7257 8502 	->	 7257 8502 	 00000050d40c011c00081066696c656e
-<118>[      testBody      ]   [TEST]  418 574 418 992 	->	 418 992 	 081066696c656e616d65646f74657874
-<118>[      testBody      ]   [TEST]  9363 1111 7593 8704 	->	 7593 8704 	 011c00081066696c656e616d65646f74
-<118>[      testBody      ]   [TEST]  37865 936 7768 8704 	->	 7768 8704 	 1c00081066696c656e616d65646f7465
-<118>[      testBody      ]   [TEST]  17543 1245 7459 8704 	->	 7459 8704 	 00000050d40c011c00081066696c656e
-<118>[      testBody      ]   [TEST]  1024 35565 0 35565 	->	 0 35565 	 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  512 65534 0 65534 	->	 0 65534 	 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  2048 65534 0 65534 	->	 0 65534 	 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  4096 8192 512 8704 	->	 512 8704 	 e9d40c014000083466696c6577697468
-<118>[      testBody      ]   [TEST]  1024 8000 704 8704 	->	 704 8704 	 e6d40c014000083466696c6577697468
-<118>[      testBody      ]   [TEST]  1024 10000 0 10000 	->	 0 10000 	 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  4096 10000 0 10000 	->	 0 10000 	 41414141414141414141414141414141
+<118>[      testBody      ]   [TEST]  0 0 0 0 	->	 0 0 0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  64 0 64 64 	->	 0 64 64 	 04d40c010c0004012e00000003d40c01
+<118>[      testBody      ]   [TEST]  128 0 128 128 	->	 0 128 128 	 04d40c010c0004012e00000003d40c01
+<118>[      testBody      ]   [TEST]  256 0 256 256 	->	 0 256 256 	 04d40c010c0004012e00000003d40c01
+<118>[      testBody      ]   [TEST]  511 0 511 511 	->	 0 511 511 	 04d40c010c0004012e00000003d40c01
+<118>[      testBody      ]   [TEST]  511 1 511 512 	->	 1 511 512 	 d40c010c0004012e00000003d40c010c
+<118>[      testBody      ]   [TEST]  511 2 511 513 	->	 2 511 513 	 0c010c0004012e00000003d40c010c00
+<118>[      testBody      ]   [TEST]  512 0 512 512 	->	 0 512 512 	 04d40c010c0004012e00000003d40c01
+<118>[      testBody      ]   [TEST]  2048 1245 2048 3293 	->	 1245 2048 3293 	 0000001ed50c011c00081066696c656e
+<118>[      testBody      ]   [TEST]  7257 1245 7257 8502 	->	 1245 7257 8502 	 0000001ed50c011c00081066696c656e
+<118>[      testBody      ]   [TEST]  418 574 418 992 	->	 574 418 992 	 081066696c656e616d65646f74657874
+<118>[      testBody      ]   [TEST]  9363 1111 7593 8704 	->	 1111 7593 8704 	 011c00081066696c656e616d65646f74
+<118>[      testBody      ]   [TEST]  37865 936 7768 8704 	->	 936 7768 8704 	 1c00081066696c656e616d65646f7465
+<118>[      testBody      ]   [TEST]  17543 1245 7459 8704 	->	 1245 7459 8704 	 0000001ed50c011c00081066696c656e
+<118>[      testBody      ]   [TEST]  1024 35565 0 35565 	->	 35565 0 35565 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  512 65534 0 65534 	->	 65534 0 65534 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  2048 65534 0 65534 	->	 65534 0 65534 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  4096 8192 512 8704 	->	 8192 512 8704 	 b7d50c014000083466696c6577697468
+<118>[      testBody      ]   [TEST]  1024 8000 704 8704 	->	 8000 704 8704 	 b4d50c014000083466696c6577697468
+<118>[      testBody      ]   [TEST]  1024 10000 0 10000 	->	 10000 0 10000 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  4096 10000 0 10000 	->	 10000 0 10000 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 <118>.[      testBody      ]   [TEST]  <<<< PFS read tests >>>>
 <118>[      testBody      ]   [TEST]  Master PFS read length is 65536
-<118>[      testBody      ]   [TEST]  0 0 0 0 	->	 0 0 	 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  64 0 64 64 	->	 64 64 	 07000000040000000100000018000000
-<118>[      testBody      ]   [TEST]  128 0 128 128 	->	 128 128 	 07000000040000000100000018000000
-<118>[      testBody      ]   [TEST]  256 0 256 256 	->	 256 256 	 07000000040000000100000018000000
-<118>[      testBody      ]   [TEST]  511 0 511 511 	->	 511 511 	 07000000040000000100000018000000
-<118>[      testBody      ]   [TEST]  511 1 511 512 	->	 511 512 	 0000000400000001000000180000002e
-<118>[      testBody      ]   [TEST]  511 2 511 513 	->	 511 513 	 00000400000001000000180000002e00
-<118>[      testBody      ]   [TEST]  512 0 512 512 	->	 512 512 	 07000000040000000100000018000000
-<118>[      testBody      ]   [TEST]  2048 1245 2048 3293 	->	 2048 3293 	 74323500000000000000002d00000002
-<118>[      testBody      ]   [TEST]  7257 1245 7257 8502 	->	 7257 8502 	 74323500000000000000002d00000002
-<118>[      testBody      ]   [TEST]  418 574 418 992 	->	 418 992 	 00001c00000002000000100000002800
-<118>[      testBody      ]   [TEST]  9363 1111 9363 10474 	->	 9363 10474 	 0066696c656e616d65646f7465787432
-<118>[      testBody      ]   [TEST]  37865 936 37865 38801 	->	 37865 38801 	 25000000020000001000000028000000
-<118>[      testBody      ]   [TEST]  17543 1245 17543 18788 	->	 17543 18788 	 74323500000000000000002d00000002
-<118>[      testBody      ]   [TEST]  1024 35565 1024 36589 	->	 1024 36589 	 00000000000000000000000000000000
-<118>[      testBody      ]   [TEST]  512 65534 2 65536 	->	 2 65536 	 00004141414141414141414141414141
-<118>[      testBody      ]   [TEST]  2048 65534 2 65536 	->	 2 65536 	 00004141414141414141414141414141
-<118>[      testBody      ]   [TEST]  4096 8192 4096 12288 	->	 4096 12288 	 746865766572796f6e65313600000000
-<118>[      testBody      ]   [TEST]  1024 8000 1024 9024 	->	 1024 9024 	 340000004800000066696c6577697468
-<118>[      testBody      ]   [TEST]  1024 10000 1024 11024 	->	 1024 11024 	 6e65343100000000d300000002000000
-<118>[      testBody      ]   [TEST]  4096 10000 4096 14096 	->	 4096 14096 	 6e65343100000000d300000002000000
-<118>.[      testBody      ]   [TEST]  <<<< Dirent structure validation >>>>
-<118>[      testBody      ]   [TEST]  PFS read
-<118>
-<118>/home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/fs_test.cpp:184: error: Failure in TEST(DirentTests, ValidateDirentries)
-<118>	expected <10656>
-<118>	but was  <65544>
-<118>	difference starts at position 0 at: <          65544     >
-<118>	                                               ^
-<118>
-<118>.[      testBody      ]   [TEST]  <<<< Normal getdirentries tests >>>>
-<118>[      testBody      ]   [TEST]  513 0 0 512 512 	->	 0 512 512 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  512 0 0 512 512 	->	 0 512 512 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  512 -1 512 512 1024 	->	 512 512 1024 36d40c011c00081066696c656e616d65
-<118>[      testBody      ]   [TEST]  1024 0 0 1024 1024 	->	 0 1024 1024 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  1024 511 511 513 1024 	->	 511 513 1024 0036d40c011c00081066696c656e616d
-<118>[      testBody      ]   [TEST]  1024 512 512 1024 1536 	->	 512 1024 1536 36d40c011c00081066696c656e616d65
-<118>[      testBody      ]   [TEST]  1024 513 513 1023 1536 	->	 513 1023 1536 d40c011c00081066696c656e616d6564
-<118>[      testBody      ]   [TEST]  1025 513 513 1023 1536 	->	 513 1023 1536 d40c011c00081066696c656e616d6564
-<118>[      testBody      ]   [TEST]  1026 513 513 1023 1536 	->	 513 1023 1536 d40c011c00081066696c656e616d6564
-<118>[      testBody      ]   [TEST]  8 504 504 8 512 	->	 504 8 512 7874313300000000aaaaaaaaaaaaaaaa
-<118>[      testBody      ]   [TEST]  16 496 496 16 512 	->	 496 16 512 6e616d65646f74657874313300000000
-<118>[      testBody      ]   [TEST]  24 488 488 24 512 	->	 488 24 512 1c00081066696c656e616d65646f7465
-<118>[      testBody      ]   [TEST]  48 464 464 48 512 	->	 464 48 512 66696c656e616d65646f746578743132
-<118>[      testBody      ]   [TEST]  64 448 448 64 512 	->	 448 64 512 787431310000000034d40c011c000810
-<118>[      testBody      ]   [TEST]  128 384 384 128 512 	->	 384 128 512 6e616d65646f74657874303900000000
-<118>[      testBody      ]   [TEST]  256 256 256 256 512 	->	 256 256 512 000000002dd40c011c00081066696c65
-<118>[      testBody      ]   [TEST]  511 1 1 511 512 	->	 1 511 512 d40c010c0004012e00000019d40c010c
-<118>[      testBody      ]   [TEST]  32 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
-<118>[      testBody      ]   [TEST]  64 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
-<118>[      testBody      ]   [TEST]  80 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
-<118>[      testBody      ]   [TEST]  128 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
-<118>[      testBody      ]   [TEST]  256 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
-<118>[      testBody      ]   [TEST]  1024 0 0 1024 1024 	->	 0 1024 1024 1cd40c010c0004012e00000019d40c01
-<118>[      testBody      ]   [TEST]  1024 -1 1024 1024 2048 	->	 1024 1024 2048 48d40c011c00081066696c656e616d65
-<118>[      testBody      ]   [TEST]  1024 -1 2048 1024 3072 	->	 2048 1024 3072 66d40c012c00082066696c6577697468
-<118>[      testBody      ]   [TEST]  32 480 480 32 512 	->	 480 32 512 0000000035d40c011c00081066696c65
+<118>[      testBody      ]   [TEST]  0 0 0 0 	->	 0 0 0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  64 0 64 64 	->	 0 64 64 	 07000000040000000100000018000000
+<118>[      testBody      ]   [TEST]  128 0 128 128 	->	 0 128 128 	 07000000040000000100000018000000
+<118>[      testBody      ]   [TEST]  256 0 256 256 	->	 0 256 256 	 07000000040000000100000018000000
+<118>[      testBody      ]   [TEST]  511 0 511 511 	->	 0 511 511 	 07000000040000000100000018000000
+<118>[      testBody      ]   [TEST]  511 1 511 512 	->	 1 511 512 	 0000000400000001000000180000002e
+<118>[      testBody      ]   [TEST]  511 2 511 513 	->	 2 511 513 	 00000400000001000000180000002e00
+<118>[      testBody      ]   [TEST]  512 0 512 512 	->	 0 512 512 	 07000000040000000100000018000000
+<118>[      testBody      ]   [TEST]  2048 1245 2048 3293 	->	 1245 2048 3293 	 74323500000000000000002d00000002
+<118>[      testBody      ]   [TEST]  7257 1245 7257 8502 	->	 1245 7257 8502 	 74323500000000000000002d00000002
+<118>[      testBody      ]   [TEST]  418 574 418 992 	->	 574 418 992 	 00001c00000002000000100000002800
+<118>[      testBody      ]   [TEST]  9363 1111 9363 10474 	->	 1111 9363 10474 	 0066696c656e616d65646f7465787432
+<118>[      testBody      ]   [TEST]  37865 936 37865 38801 	->	 936 37865 38801 	 25000000020000001000000028000000
+<118>[      testBody      ]   [TEST]  17543 1245 17543 18788 	->	 1245 17543 18788 	 74323500000000000000002d00000002
+<118>[      testBody      ]   [TEST]  1024 35565 1024 36589 	->	 35565 1024 36589 	 00000000000000000000000000000000
+<118>[      testBody      ]   [TEST]  512 65534 2 65536 	->	 65534 2 65536 	 0000aaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  2048 65534 2 65536 	->	 65534 2 65536 	 0000aaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  4096 8192 4096 12288 	->	 8192 4096 12288 	 746865766572796f6e65313600000000
+<118>[      testBody      ]   [TEST]  1024 8000 1024 9024 	->	 8000 1024 9024 	 340000004800000066696c6577697468
+<118>[      testBody      ]   [TEST]  1024 10000 1024 11024 	->	 10000 1024 11024 	 6e65343100000000d300000002000000
+<118>[      testBody      ]   [TEST]  4096 10000 4096 14096 	->	 10000 4096 14096 	 6e65343100000000d300000002000000
 <118>.[      testBody      ]   [TEST]  <<<< PFS getdirentries tests >>>>
-<118>[      testBody      ]   [TEST]  0 0 0 -2147352554 0 	->	 0 -2147352554 0 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  128 128 0 -2147352554 128 	->	 0 -2147352554 128 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  Master PFS getdirentries length is 10656
+<118>[      testBody      ]   [TEST]  512 1024 1024 480 1504 	->	 1024 480 1504 280000002800081066696c656e616d65
 <118>[      testBody      ]   [TEST]  512 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  512 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  512 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  512 16 16 472 488 	->	 16 472 488 03000000180004022e2e000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  512 24 24 472 496 	->	 24 472 496 03000000180004022e2e000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 4  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 12  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 20  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 20 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 28 28 488 516 	->	 28 448 476 0c000000180008016100000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 32 32 488 520 	->	 32 448 480 0c000000180008016100000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 40 40 488 528 	->	 40 448 488 0c000000180008016100000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 47 47 488 535 	->	 47 448 495 0c000000180008016100000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 48 48 488 536 	->	 48 448 496 0c000000180008016100000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 49 49 464 513 	->	 49 424 473 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 6  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 14  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 22  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 22 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 50 50 464 514 	->	 50 424 474 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 5  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 13  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 21  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 21 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 51 51 464 515 	->	 51 424 475 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 4  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 12  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 20  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 20 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 52 52 464 516 	->	 52 424 476 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 3  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 11  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 19  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 19 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 53 53 464 517 	->	 53 424 477 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 2  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 10  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 18  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 18 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 54 54 464 518 	->	 54 424 478 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 9  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 17  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 17 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 55 55 464 519 	->	 55 424 479 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 56 56 464 520 	->	 56 424 480 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 15 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 57 57 464 521 	->	 57 424 481 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 64 64 464 528 	->	 64 424 488 0d000000180008026161000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  512 128 128 392 520 	->	 128 352 480 10000000180008056161616161000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 28 28 448 476 	->	 28 448 476 0c000000180008016100000000000000
+<118>[      testBody      ]   [TEST]  512 32 32 448 480 	->	 32 448 480 0c000000180008016100000000000000
+<118>[      testBody      ]   [TEST]  512 40 40 448 488 	->	 40 448 488 0c000000180008016100000000000000
+<118>[      testBody      ]   [TEST]  512 47 47 448 495 	->	 47 448 495 0c000000180008016100000000000000
+<118>[      testBody      ]   [TEST]  512 48 48 448 496 	->	 48 448 496 0c000000180008016100000000000000
+<118>[      testBody      ]   [TEST]  512 49 49 424 473 	->	 49 424 473 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 50 50 424 474 	->	 50 424 474 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 51 51 424 475 	->	 51 424 475 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 52 52 424 476 	->	 52 424 476 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 53 53 424 477 	->	 53 424 477 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 54 54 424 478 	->	 54 424 478 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 55 55 424 479 	->	 55 424 479 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 56 56 424 480 	->	 56 424 480 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 57 57 424 481 	->	 57 424 481 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 64 64 424 488 	->	 64 424 488 0d000000180008026161000000000000
+<118>[      testBody      ]   [TEST]  512 128 128 352 480 	->	 128 352 480 10000000180008056161616161000000
 <118>[      testBody      ]   [TEST]  512 512 512 480 992 	->	 512 480 992 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  513 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  536 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  64 1015 1015 40 1055 	->	 1015 0 1015 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  64 1016 1016 40 1056 	->	 1016 0 1016 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 31  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 39  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 39 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  64 1017 1017 0 1017 	->	 1017 0 1017 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  80 1015 1015 40 1055 	->	 1015 0 1015 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  80 1016 1016 40 1056 	->	 1016 0 1016 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 31  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 39  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 39 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  80 1017 1017 0 1017 	->	 1017 0 1017 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  1023 0 0 536 536 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  1023 0 0 536 536 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  1023 0 0 536 536 	->	 0 496 496 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 1008 1008 0 1008 	->	 1008 0 1008 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  64 1012 1012 0 1012 	->	 1012 0 1012 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  64 1015 1015 0 1015 	->	 1015 0 1015 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  64 1016 1016 0 1016 	->	 1016 0 1016 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  64 1017 1017 0 1017 	->	 1017 0 1017 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  80 1015 1015 0 1015 	->	 1015 0 1015 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  80 1016 1016 0 1016 	->	 1016 0 1016 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  80 1017 1017 0 1017 	->	 1017 0 1017 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  1023 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
+<118>[      testBody      ]   [TEST]  1023 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
+<118>[      testBody      ]   [TEST]  1023 0 0 496 496 	->	 0 496 496 07000000180004012e00000000000000
 <118>[      testBody      ]   [TEST]  1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 9  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 17  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 25  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  1024 511 511 520 1031 	->	 511 480 991 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1024 511 511 480 991 	->	 511 480 991 1b0000002800081066696c656e616d65
 <118>[      testBody      ]   [TEST]  1024 512 512 1000 1512 	->	 512 1000 1512 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  1024 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  1025 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  1026 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  1026 513 513 1000 1513 	->	 513 1000 1513 1b0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  256 256 256 240 496 	->	 256 240 496 140000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  256 256 256 240 496 	->	 256 240 496 140000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 9  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 17  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 25  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  23 511 511 0 511 	->	 511 0 511 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 9  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 17  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 25  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  24 511 511 0 511 	->	 511 0 511 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 1  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 9  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 17  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 25  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  25 511 511 0 511 	->	 511 0 511 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  8 504 504 0 504 	->	 504 0 504 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  16 496 496 0 496 	->	 496 0 496 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  24 488 488 0 488 	->	 488 0 488 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  23 511 511 0 511 	->	 511 0 511 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  24 511 511 0 511 	->	 511 0 511 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  25 511 511 0 511 	->	 511 0 511 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  8 504 504 0 504 	->	 504 0 504 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  16 496 496 0 496 	->	 496 0 496 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  24 488 488 0 488 	->	 488 0 488 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 <118>[      testBody      ]   [TEST]  48 464 464 40 504 	->	 464 40 504 1a0000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  64 448 448 40 488 	->	 448 40 488 190000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  128 384 384 120 504 	->	 384 120 504 180000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  256 256 256 240 496 	->	 256 240 496 140000002800081066696c656e616d65
-<118>[   nearest_dirent   ]   [WARN]   Testing 7  =  -11 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 15  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 23  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  511 1 1 472 473 	->	 1 472 473 03000000180004022e2e000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 40  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  32 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 40  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  64 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 40  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  80 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 40  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  112 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 40  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  128 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h[SceShellCore] Libc Heap Status: free 35%, in-use 3960.4 KB, trend +109.4 KB/min, peak 4398.9 KB, when 1543 [sec]
-<118>:59 )
-<118>[SceShellCore] Main thread has frozen in ::ShellCoreMain::Update() for 1 seconds
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 40  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  256 4064 4064 0 4064 	->	 4064 0 4064 41414141414141414141414141414141
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  -14 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 24  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 32  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 40  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 40 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  QQWWERRR ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  32 4064 4064 0 4064 	->	 4064 0 4064 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  64 4064 4064 0 4064 	->	 4064 0 4064 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  80 4064 4064 0 4064 	->	 4064 0 4064 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  112 4064 4064 0 4064 	->	 4064 0 4064 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  128 4064 4064 0 4064 	->	 4064 0 4064 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  256 4064 4064 0 4064 	->	 4064 0 4064 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 <118>[      testBody      ]   [TEST]  544 4064 4064 504 4568 	->	 4064 504 4568 670000003800082066696c6577697468
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>[      testBody      ]   [TEST]  1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 0 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  1024 0 0 1016 1016 	->	 0 1016 1016 07000000180004012e00000000000000
-<118>[   nearest_dirent   ]   [WARN]   Testing 0  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 8  =  -10 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[   nearest_dirent   ]   [WARN]   Testing 16  =  1 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  True starting offset is at 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[calculate_pfs_getdir]   [FAIL]  AAAQWEEEEE ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
-<118>[      testBody      ]   [TEST]  32 480 480 0 480 	->	 480 0 480 41414141414141414141414141414141
-<118>[      testBody      ]   [TEST]  1024 10000 10000 0 65536 	->	 10000 648 65536 d30000004800083466696c6577697468
-<118>[      testBody      ]   [TEST]  8192 10000 10000 0 65536 	->	 10000 648 65536 d30000004800083466696c6577697468
-<118>[      testBody      ]   [TEST]  8192 35565 35565 0 65536 	->	 35565 0 65536 41414141414141414141414141414141
+<118>[      testBody      ]   [TEST]  32 480 480 0 480 	->	 480 0 480 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  1024 10000 10000 648 65536 	->	 10000 648 65536 d30000004800083466696c6577697468
+<118>[      testBody      ]   [TEST]  8192 10000 10000 648 65536 	->	 10000 648 65536 d30000004800083466696c6577697468
+<118>[      testBody      ]   [TEST]  8192 35565 35565 0 65536 	->	 35565 0 65536 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>.[      testBody      ]   [TEST]  <<<< Normal getdirentries tests >>>>
+<118>[      testBody      ]   [TEST]  Master Normal getdirentries length is 8704
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 1536 appdn 1536 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 1024 1024 512 1536 	->	 1024 512 1536 16d50c011c00081066696c656e616d65
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 512 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 512 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 512 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 496 app 528 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 16 16 496 512 	->	 16 496 512 0c0004022e2e000019d40c010c000801
+<118>[calculate_normal_get]   [FAIL]  Allowed 488 app 536 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 24 24 488 512 	->	 24 488 512 19d40c010c000801610000001dd40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 484 app 540 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 28 28 484 512 	->	 28 484 512 0c000801610000001dd40c010c000802
+<118>[calculate_normal_get]   [FAIL]  Allowed 480 app 544 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 32 32 480 512 	->	 32 480 512 610000001dd40c010c00080261610000
+<118>[calculate_normal_get]   [FAIL]  Allowed 472 app 552 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 40 40 472 512 	->	 40 472 512 0c00080261610000f0d40c010c000803
+<118>[calculate_normal_get]   [FAIL]  Allowed 465 app 559 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 47 47 465 512 	->	 47 465 512 00f0d40c010c00080361616100f1d40c
+<118>[calculate_normal_get]   [FAIL]  Allowed 464 app 560 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 48 48 464 512 	->	 48 464 512 f0d40c010c00080361616100f1d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 463 app 561 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 49 49 463 512 	->	 49 463 512 d40c010c00080361616100f1d40c0110
+<118>[calculate_normal_get]   [FAIL]  Allowed 462 app 562 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 50 50 462 512 	->	 50 462 512 0c010c00080361616100f1d40c011000
+<118>[calculate_normal_get]   [FAIL]  Allowed 461 app 563 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 51 51 461 512 	->	 51 461 512 010c00080361616100f1d40c01100008
+<118>[calculate_normal_get]   [FAIL]  Allowed 460 app 564 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 52 52 460 512 	->	 52 460 512 0c00080361616100f1d40c0110000804
+<118>[calculate_normal_get]   [FAIL]  Allowed 459 app 565 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 53 53 459 512 	->	 53 459 512 00080361616100f1d40c011000080461
+<118>[calculate_normal_get]   [FAIL]  Allowed 458 app 566 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 54 54 458 512 	->	 54 458 512 080361616100f1d40c01100008046161
+<118>[calculate_normal_get]   [FAIL]  Allowed 457 app 567 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 55 55 457 512 	->	 55 457 512 0361616100f1d40c0110000804616161
+<118>[calculate_normal_get]   [FAIL]  Allowed 456 app 568 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 56 56 456 512 	->	 56 456 512 61616100f1d40c011000080461616161
+<118>[calculate_normal_get]   [FAIL]  Allowed 455 app 569 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 57 57 455 512 	->	 57 455 512 616100f1d40c01100008046161616100
+<118>[calculate_normal_get]   [FAIL]  Allowed 448 app 576 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 64 64 448 512 	->	 64 448 512 100008046161616100000000f2d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 384 app 640 appdn 512 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 128 128 384 512 	->	 128 384 512 f6d40c011400080a6161616161616161
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 1024 appdn 1024 cnt 512 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  512 512 512 512 1024 	->	 512 512 1024 04d50c011c00081066696c656e616d65
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 513 appdn 512 cnt 513 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  513 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 536 appdn 512 cnt 536 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  536 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 16 app 1072 appdn 1024 cnt 64 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 1008 1008 16 1024 	->	 1008 16 1024 78743331000000000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 12 app 1076 appdn 1024 cnt 64 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 1012 1012 12 1024 	->	 1012 12 1024 000000000000000000000000aaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 9 app 1079 appdn 1024 cnt 64 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 1015 1015 9 1024 	->	 1015 9 1024 000000000000000000aaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 8 app 1080 appdn 1024 cnt 64 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 1016 1016 8 1024 	->	 1016 8 1024 0000000000000000aaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 7 app 1081 appdn 1024 cnt 64 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 1017 1017 7 1024 	->	 1017 7 1024 00000000000000aaaaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 9 app 1095 appdn 1024 cnt 80 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  80 1015 1015 9 1024 	->	 1015 9 1024 000000000000000000aaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 8 app 1096 appdn 1024 cnt 80 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  80 1016 1016 8 1024 	->	 1016 8 1024 0000000000000000aaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 7 app 1097 appdn 1024 cnt 80 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  80 1017 1017 7 1024 	->	 1017 7 1024 00000000000000aaaaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 1023 appdn 512 cnt 1023 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1023 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 1023 appdn 512 cnt 1023 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1023 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 512 app 1023 appdn 512 cnt 1023 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1023 0 0 512 512 	->	 0 512 512 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 1024 app 1024 appdn 1024 cnt 1024 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1024 0 0 1024 1024 	->	 0 1024 1024 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 513 app 1535 appdn 1024 cnt 1024 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1024 511 511 513 1024 	->	 511 513 1024 0004d50c011c00081066696c656e616d
+<118>[calculate_normal_get]   [FAIL]  Allowed 1024 app 1536 appdn 1536 cnt 1024 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1024 512 512 1024 1536 	->	 512 1024 1536 04d50c011c00081066696c656e616d65
+<118>[calculate_normal_get]   [FAIL]  Allowed 1023 app 1537 appdn 1536 cnt 1024 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1024 513 513 1023 1536 	->	 513 1023 1536 d50c011c00081066696c656e616d6564
+<118>[calculate_normal_get]   [FAIL]  Allowed 1023 app 1538 appdn 1536 cnt 1025 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1025 513 513 1023 1536 	->	 513 1023 1536 d50c011c00081066696c656e616d6564
+<118>[calculate_normal_get]   [FAIL]  Allowed 1023 app 1539 appdn 1536 cnt 1026 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1026 513 513 1023 1536 	->	 513 1023 1536 d50c011c00081066696c656e616d6564
+<118>[calculate_normal_get]   [FAIL]  Allowed 1023 app 1539 appdn 1536 cnt 1026 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1026 513 513 1023 1536 	->	 513 1023 1536 d50c011c00081066696c656e616d6564
+<118>[calculate_normal_get]   [FAIL]  Allowed 256 app 512 appdn 512 cnt 256 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  256 256 256 256 512 	->	 256 256 512 00000000fbd40c011c00081066696c65
+<118>[calculate_normal_get]   [FAIL]  Allowed 256 app 512 appdn 512 cnt 256 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  256 256 256 256 512 	->	 256 256 512 00000000fbd40c011c00081066696c65
+<118>[calculate_normal_get]   [FAIL]  Allowed 1 app 534 appdn 512 cnt 23 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  23 511 511 1 512 	->	 511 1 512 00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 1 app 535 appdn 512 cnt 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  24 511 511 1 512 	->	 511 1 512 00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 1 app 536 appdn 512 cnt 25 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  25 511 511 1 512 	->	 511 1 512 00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 8 app 512 appdn 512 cnt 8 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  8 504 504 8 512 	->	 504 8 512 7874313300000000aaaaaaaaaaaaaaaa
+<118>[calculate_normal_get]   [FAIL]  Allowed 16 app 512 appdn 512 cnt 16 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  16 496 496 16 512 	->	 496 16 512 6e616d65646f74657874313300000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 24 app 512 appdn 512 cnt 24 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  24 488 488 24 512 	->	 488 24 512 1c00081066696c656e616d65646f7465
+<118>[calculate_normal_get]   [FAIL]  Allowed 48 app 512 appdn 512 cnt 48 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  48 464 464 48 512 	->	 464 48 512 66696c656e616d65646f746578743132
+<118>[calculate_normal_get]   [FAIL]  Allowed 64 app 512 appdn 512 cnt 64 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 448 448 64 512 	->	 448 64 512 787431310000000002d50c011c000810
+<118>[calculate_normal_get]   [FAIL]  Allowed 128 app 512 appdn 512 cnt 128 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  128 384 384 128 512 	->	 384 128 512 6e616d65646f74657874303900000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 256 app 512 appdn 512 cnt 256 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  256 256 256 256 512 	->	 256 256 512 00000000fbd40c011c00081066696c65
+<118>[calculate_normal_get]   [FAIL]  Allowed 511 app 512 appdn 512 cnt 511 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  511 1 1 511 512 	->	 1 511 512 d40c010c0004012e00000003d40c010c
+<118>[calculate_normal_get]   [FAIL]  Allowed 32 app 4096 appdn 4096 cnt 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  32 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 32 app 4128 appdn 4096 cnt 64 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  64 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 32 app 4144 appdn 4096 cnt 80 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  80 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 32 app 4176 appdn 4096 cnt 112 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  112 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 32 app 4192 appdn 4096 cnt 128 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  128 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 32 app 4320 appdn 4096 cnt 256 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  256 4064 4064 32 4096 	->	 4064 32 4096 676e616d653037000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 544 app 4608 appdn 4608 cnt 544 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  544 4064 4064 544 4608 	->	 4064 544 4608 676e616d653037000000000000000000
+<118>[calculate_normal_get]   [FAIL]  Allowed 1024 app 1024 appdn 1024 cnt 1024 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1024 0 0 1024 1024 	->	 0 1024 1024 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 1024 app 1024 appdn 1024 cnt 1024 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  1024 0 0 1024 1024 	->	 0 1024 1024 04d40c010c0004012e00000003d40c01
+<118>[calculate_normal_get]   [FAIL]  Allowed 32 app 512 appdn 512 cnt 32 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>[      testBody      ]   [TEST]  32 480 480 32 512 	->	 480 32 512 0000000003d50c011c00081066696c65
+<118>[      testBody      ]   [TEST]  1024 10000 10000 0 10000 	->	 10000 0 10000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  8192 10000 10000 0 10000 	->	 10000 0 10000 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>[      testBody      ]   [TEST]  8192 35565 35565 0 35565 	->	 35565 0 35565 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+<118>.[      testBody      ]   [TEST]  <<<< Normal read fuzzing test >>>>
+<118>[      testBody      ]   [TEST]  Master Normal read length is 8704 , testing 100 samples
+<118>[      testBody      ]   [FAIL]  -3872 -3218 0 -3218 	->	 -3218 EINVAL 0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
+<118>
+<118>/home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/fs_test.cpp:139: error: Failure in TEST(DirentTests, NormalReadFuzz)
+<118>	Bad prediction for sample 0
+<118>
+<118>[      teardown      ]   [WARN]  Closed leftover fd: 13 ( /home/mledworo/github/integration_tests/tests/code/filesystem_dirents/code/log.h:59 )
 <118>.
-<118>Errors (1 failures, 8 tests, 8 ran, 381 checks, 0 ignored, 0 filtered out, 5564 ms)
+<118>Errors (1 failures, 9 tests, 9 ran, 879 checks, 0 ignored, 0 filtered out, 1895 ms)
 <118>
 <118>[        main        ] [INFO]
 <118>[        main        ] [INFO] <<<< TESTS END >>>>

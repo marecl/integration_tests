@@ -8,7 +8,7 @@
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
-// -1 = equal, anything positive - idx of first differing element
+// 1 = equal, <=0 = diff idx
 // does not adhere to memcmp spec, i want differing indexes, not values!
 s64 imemcmp(const void* object, const void* reflection, s64 bytes) {
   if (bytes <= 0) return 1;
@@ -18,7 +18,7 @@ s64 imemcmp(const void* object, const void* reflection, s64 bytes) {
   const u64* reflection_ptr64 = static_cast<const u64*>(reflection);
   const u8*  object_ptr8      = static_cast<const u8*>(object);
   const u8*  reflection_ptr8  = static_cast<const u8*>(reflection);
-  u64        idx              = 0;
+  s64        idx              = 0;
 
   for (idx = 0; idx < longs; idx++) {
     // target is 64bit, so one step is 8 bytes

@@ -14,6 +14,7 @@ void calculate_pfs_read(OrbisInternals::DirentCombinationRead* spec, const char*
 
   spec->read_size             = count;
   spec->read_offset           = offset;
+  spec->expected_startpos     = offset;
   spec->expected_result       = 0;
   spec->expected_end_position = offset;
   spec->expected_errno        = 0;
@@ -25,23 +26,48 @@ void calculate_pfs_read(OrbisInternals::DirentCombinationRead* spec, const char*
 }
 
 void calculate_normal_read(OrbisInternals::DirentCombinationRead* spec, const char* buffer, s64 size, s64 offset, s64 count) {
-  static s64 previous_offset = 0;
-  offset                     = offset == -1 ? previous_offset : offset;
-  previous_offset            = offset;
+  constexpr int einval_int      = ORBIS_KERNEL_ERROR_EINVAL;
+  static s64    previous_offset = 0;
+  static s64    previous_end    = 0;
+  offset                        = offset == -1 ? previous_offset : offset;
 
-  spec->read_size             = count;
-  spec->read_offset           = offset;
+  spec->read_size   = count;
+  spec->read_offset = offset;
+
+  spec->expected_startpos     = offset;
   spec->expected_result       = 0;
   spec->expected_end_position = offset;
   spec->expected_errno        = 0;
+
+  // TODO:
+  // i think negative count sets einval
+  // negative offset sets previous end AND einval
+
+  if (count < 0) {
+    spec->expected_startpos     = offset;
+    spec->expected_result       = 0;
+    spec->expected_end_position = offset;
+    return;
+  }
+
+  if (offset < 0) {
+    // spec->expected_startpos     = offset;
+    spec->expected_result       = einval_int;
+    spec->expected_end_position = previous_end;
+    spec->expected_errno        = EINVAL;
+    return;
+  }
 
   if (offset > size) return;
 
   spec->expected_result       = std::min<s64>(size - offset, static_cast<s64>(count));
   spec->expected_end_position = offset + spec->expected_result;
+  previous_end                = spec->expected_end_position;
+  previous_offset             = offset;
 }
 
 // -1 on not found
+// this returns relative offset to starting position
 s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
   // max size is 272, last 23 bytes are never starting a dirent
 
@@ -69,8 +95,6 @@ s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
 }
 
 void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries* spec, const char* buffer, s64 size, s64 offset, s64 count) {
-  // down-aligned apparent end, last crossed sector
-
   constexpr int einval_int      = ORBIS_KERNEL_ERROR_EINVAL;
   static s64    previous_offset = 0;
   offset                        = offset == -1 ? previous_offset : offset;
@@ -81,6 +105,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
   spec->expected_end_position = 0;
   spec->expected_result       = 0;
   spec->expected_errno        = 0;
+  spec->meta_dirent_start     = 0;
 
   s64 apparent_end      = offset + count;
   s64 apparent_end_down = ALDN(apparent_end, 512);
@@ -135,14 +160,13 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombinationGetdirentries*
     buffer_position += pfs_dirent->d_reclen;
   }
 
-  spec->expected_result = bytes_written;
+  spec->meta_dirent_start = offset + dirent_offset;
+  spec->expected_result   = bytes_written;
   // LogError("Ended with buffer position =", buffer_position, ", adj =", buffer_position + dirent_offset, ", size =", size);
   spec->expected_end_position = ((buffer_position + dirent_offset) >= size) ? directory_size : static_cast<s64>(offset + bytes_written);
 }
 
 void calculate_normal_getdirentries(OrbisInternals::DirentCombinationGetdirentries* spec, const char* buffer, s64 size, s64 offset, s64 count) {
-  // down-aligned apparent end, last crossed sector
-
   constexpr int einval_int      = ORBIS_KERNEL_ERROR_EINVAL;
   static s64    previous_offset = 0;
   offset                        = offset == -1 ? previous_offset : offset;
@@ -153,14 +177,13 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombinationGetdirentri
   spec->expected_end_position = 0;
   spec->expected_result       = 0;
   spec->expected_errno        = 0;
+  spec->meta_dirent_start     = offset;
 
   s64 apparent_end      = offset + count;
   s64 apparent_end_down = ALDN(apparent_end, 512);
-  s64 file_offset_down  = ALDN(offset, 512);
-  s64 directory_size    = ALUP(size, 512);
 
   // within the same sector, no 512b alignment inbetween
-  if (apparent_end_down <= file_offset_down) {
+  if (apparent_end_down <= ALDN(offset, 512)) {
     spec->expected_basep        = previous_offset;
     spec->expected_result       = s64(einval_int);
     spec->expected_end_position = offset;
@@ -173,43 +196,40 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombinationGetdirentri
   if (offset >= size) {
     spec->expected_basep        = offset;
     spec->expected_result       = 0;
-    spec->expected_end_position = directory_size;
+    spec->expected_end_position = offset;
     spec->expected_errno        = 0;
     return;
   }
   // we can now assume that offset always includes some data
 
-  // s64 dirent_offset = nearest_dirent(buffer, size, offset);
-
-  // if (dirent_offset < 0) {
-  //   // highly unlikely but you never know
-  //   spec->expected_basep        = offset;
-  //   spec->expected_result       = s64(einval_int);
-  //   spec->expected_end_position = offset;
-  //   spec->expected_errno        = EINVAL;
-  //   return;
-  // };
-  // LogError("True starting offset is at", dirent_offset);
-
   s64 bytes_written   = 0;
   s64 buffer_position = offset;
+  s64 allowed_count   = std::min(apparent_end_down - offset, count);
+  LogError("Allowed", allowed_count, "app", apparent_end, "appdn", apparent_end_down, "cnt", count);
+  bytes_written = allowed_count;
 
-  s64 allowed_count = std::min(apparent_end_down - offset, count);
+  // while (bytes_written < allowed_count) {
+  //   const OrbisInternals::FolderDirent* normal_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position);
+  //   bytes+w
+  //   if ((bytes_written + normal_dirent->d_reclen) >= allowed_count) {
+  //     bytes_written = allowed_count; // memcpy from bw to ac
+  //     LogError("AC");
+  //     break;
+  //   }
+  //   if (normal_dirent->d_reclen == 0) {
+  //     LogError("RL");
+  //     LogError(bytes_written, normal_dirent->d_reclen, allowed_count);
+  //     break;
+  //   }
 
-  while (bytes_written < allowed_count) {
-    const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position + offset);
-    if ((bytes_written + pfs_dirent->d_reclen) >= allowed_count) break;
-    if (pfs_dirent->d_reclen == 0) break;
+  // reclen for both is the same despite difference in var sizes, extra 0s are padded after
+  // the name
+  // bytes_written += normal_dirent->d_reclen;
+  // buffer_position += normal_dirent->d_reclen;
+  // }
 
-    // reclen for both is the same despite difference in var sizes, extra 0s are padded after
-    // the name
-    bytes_written += pfs_dirent->d_reclen;
-    buffer_position += pfs_dirent->d_reclen;
-  }
-
-  spec->expected_result = bytes_written;
-  // LogError("Ended with buffer position =", buffer_position, ", adj =", buffer_position + dirent_offset, ", size =", size);
-  spec->expected_end_position = ((buffer_position + offset) >= size) ? directory_size : static_cast<s64>(offset + bytes_written);
+  spec->expected_result       = bytes_written;
+  spec->expected_end_position = static_cast<s64>(offset + bytes_written);
 }
 
 // void calculate_normal_getdirentries(OrbisInternals::DirentCombinationGetdirentries* spec, const char* buffer, s64 size, s64 offset, s64 count);
