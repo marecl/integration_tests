@@ -202,34 +202,9 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombinationGetdirentri
   }
   // we can now assume that offset always includes some data
 
-  s64 bytes_written   = 0;
-  s64 buffer_position = offset;
-  s64 allowed_count   = std::min(apparent_end_down - offset, count);
-  LogError("Allowed", allowed_count, "app", apparent_end, "appdn", apparent_end_down, "cnt", count);
-  bytes_written = allowed_count;
-
-  // while (bytes_written < allowed_count) {
-  //   const OrbisInternals::FolderDirent* normal_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position);
-  //   bytes+w
-  //   if ((bytes_written + normal_dirent->d_reclen) >= allowed_count) {
-  //     bytes_written = allowed_count; // memcpy from bw to ac
-  //     LogError("AC");
-  //     break;
-  //   }
-  //   if (normal_dirent->d_reclen == 0) {
-  //     LogError("RL");
-  //     LogError(bytes_written, normal_dirent->d_reclen, allowed_count);
-  //     break;
-  //   }
-
-  // reclen for both is the same despite difference in var sizes, extra 0s are padded after
-  // the name
-  // bytes_written += normal_dirent->d_reclen;
-  // buffer_position += normal_dirent->d_reclen;
-  // }
-
-  spec->expected_result       = bytes_written;
-  spec->expected_end_position = static_cast<s64>(offset + bytes_written);
+  s64 allowed_count           = std::min(apparent_end_down - offset, count);
+  spec->expected_result       = allowed_count;
+  spec->expected_end_position = static_cast<s64>(offset + allowed_count);
 }
 
 // void calculate_normal_getdirentries(OrbisInternals::DirentCombinationGetdirentries* spec, const char* buffer, s64 size, s64 offset, s64 count);
