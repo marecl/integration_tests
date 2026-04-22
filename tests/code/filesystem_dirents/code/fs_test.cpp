@@ -80,13 +80,12 @@ const char* output_pfs_getdirentries    = "/data/enderman/dump/pfs_getdirent.bin
 const char* output_normal_read          = "/data/enderman/dump/normal_read.bin";
 const char* output_normal_getdirentries = "/data/enderman/dump/normal_getdirent.bin";
 
-static std::vector<int> open_fd {};
-
-static void add_fd(int fd) {
-  open_fd.emplace_back(fd);
-}
-
 TEST_GROUP (DirentTests) {
+  std::vector<int> open_fd {};
+
+  void add_fd(int fd) {
+    open_fd.emplace_back(fd);
+  }
 
   void setup() {
     open_fd.clear();
@@ -269,7 +268,7 @@ TEST(DirentTests, PFSReadFuzz) {
   s64                   real_start {};
   s64                   end_ptr_position {};
 
-  CHECK_EQUAL(pfs_read_target, master_length);
+  CHECK_EQUAL(pfs_read_file_size_target, master_length);
   LogTest("Master PFS read length is", master_length, ",", "testing", FUZZ_MAX_ITERATIONS, "samples", ",", "max", FUZZ_MAX_FAILURES, "failures allowed");
 
   srand(time(nullptr));
@@ -341,15 +340,13 @@ TEST(DirentTests, PFSGetdirentries) {
     fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
     add_fd(fd);
     CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
-    errno = 0;
-    tbr   = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
-    // if (tbr >= 0)
+    errno            = 0;
+    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
-            is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
-    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t",
+            is_einval_str(calc.expected_lseek), basep, is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
 
     compare_data_dump(master_buffer, buffer, 65536, tbr, calc.meta_dirent_start);
     CHECK_EQUAL_TEXT(calc.expected_basep, basep, "Bad starting position");
@@ -381,21 +378,19 @@ TEST(DirentTests, NormalGetdirentries) {
     fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
     add_fd(fd);
     CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
-    errno = 0;
-    tbr   = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
-    // if (tbr >= 0)
+    errno            = 0;
+    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
-            is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
-    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t",
+            is_einval_str(calc.expected_lseek), basep, is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
 
     compare_data_dump(master_buffer, buffer, 65536, tbr, calc.meta_dirent_start);
-    CHECK_EQUAL(calc.expected_basep, basep);
-    CHECK_EQUAL(calc.expected_result, tbr);
-    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
+    CHECK_EQUAL_TEXT(calc.expected_basep, basep, "Bad starting position");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
   }
 }
 
@@ -411,7 +406,7 @@ TEST(DirentTests, PFSRead) {
   s64                   real_start {};
   s64                   end_ptr_position {};
 
-  CHECK_EQUAL(pfs_read_target, master_length);
+  CHECK_EQUAL(pfs_read_file_size_target, master_length);
   LogTest("Master PFS read length is", master_length);
 
   for (const auto& spec: pfs_read_variants) {
@@ -421,16 +416,14 @@ TEST(DirentTests, PFSRead) {
     fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
     add_fd(fd);
     CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
-    real_start = sceKernelLseek(fd, 0, 1);
-    errno      = 0;
-    tbr        = sceKernelRead(fd, buffer, calc.read_size);
-    // if (tbr >= 0)
+    real_start       = sceKernelLseek(fd, 0, 1);
+    errno            = 0;
+    tbr              = sceKernelRead(fd, buffer, calc.read_size);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", real_start,
-            is_einval_str(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
-    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", "\t", to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t",
+            is_einval_str(calc.expected_lseek), real_start, is_einval_str(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
 
     compare_data_dump(master_buffer, buffer, 65536, tbr, calc.expected_basep);
     CHECK_EQUAL_TEXT(calc.expected_basep, real_start, "Bad starting position");
@@ -462,16 +455,14 @@ TEST(DirentTests, NormalRead) {
     fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
     add_fd(fd);
     CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
-    real_start = sceKernelLseek(fd, 0, 1);
-    errno      = 0;
-    tbr        = sceKernelRead(fd, buffer, calc.read_size);
-    // if (tbr >= 0)
+    real_start       = sceKernelLseek(fd, 0, 1);
+    errno            = 0;
+    tbr              = sceKernelRead(fd, buffer, calc.read_size);
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", real_start,
-            is_einval_str(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
-    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", "\t", to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t",
+            is_einval_str(calc.expected_lseek), real_start, is_einval_str(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
 
     compare_data_dump(master_buffer, buffer, 65536, tbr, calc.expected_basep);
     CHECK_EQUAL_TEXT(calc.expected_basep, real_start, "Bad starting position");
