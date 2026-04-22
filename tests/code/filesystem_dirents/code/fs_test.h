@@ -27,28 +27,16 @@ using u64 = uint64_t;
 namespace OrbisInternals {
 
 typedef struct {
-  s64 size;
-  s64 offset;
-} spec_t;
-
-typedef struct {
-  s64 read_size;
-  s64 read_offset;
-  s64 expected_startpos;
-  s64 expected_result;
-  s64 expected_end_position;
+  s64 read_size;   // user-defined
+  s64 read_offset; // user-defined
+  // results, calculated:
+  s64 expected_lseek;        // lseek result
+  s64 expected_basep;        // read start position
+  s64 meta_dirent_start;     // offset relative to offset of the first dirent (PFS getdirentries only)
+  s64 expected_result;       // return from read/getdirentries
+  s64 expected_end_position; // file pointer
   int expected_errno;
-} DirentCombinationRead;
-
-typedef struct {
-  s64 read_size;
-  s64 read_offset;
-  s64 expected_basep;
-  s64 expected_result;
-  s64 expected_end_position;
-  int expected_errno;
-  s64 meta_dirent_start; // offset relative to offset of the first dirent
-} DirentCombinationGetdirentries;
+} DirentCombination;
 
 typedef struct {
   s32  d_fileno;

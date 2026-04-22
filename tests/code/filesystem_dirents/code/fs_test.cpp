@@ -80,140 +80,65 @@ const char* output_pfs_getdirentries    = "/data/enderman/dump/pfs_getdirent.bin
 const char* output_normal_read          = "/data/enderman/dump/normal_read.bin";
 const char* output_normal_getdirentries = "/data/enderman/dump/normal_getdirent.bin";
 
-static int open_fd[64];
-static int open_fd_count = 0;
+static std::vector<int> open_fd {};
 
 static void add_fd(int fd) {
-  open_fd[open_fd_count++] = fd;
+  open_fd.emplace_back(fd);
 }
-
-volatile static int fd;
-volatile static s64 tbr;
 
 TEST_GROUP (DirentTests) {
 
   void setup() {
-    open_fd_count = 0;
+    open_fd.clear();
   }
 
   void teardown() {
-    for (int idx = 0; idx < open_fd_count; idx++) {
-      int ofd = open_fd[idx];
-      sceKernelLseek(ofd, 0, 0); // experimental, see commit message
-      if (sceKernelClose(ofd) < 0) continue;
-      LogWarning("Closed leftover fd:", ofd);
+    for (const auto fd: open_fd) {
+      if (sceKernelClose(fd) < 0) continue;
+      LogWarning("Closed leftover fd:", fd);
     }
+    open_fd.clear();
   }
 };
 
-TEST(DirentTests, NormalReadFuzz) {
-  LogTest("<<<< Normal read fuzzing test >>>>");
+TEST(DirentTests, PFSGetdirentriesFuzz) {
+  LogTest("<<<< PFS getdirentries fuzzing test >>>>");
 
-  char                      buffer[65536];
-  char                      master_buffer[65536];
-  const s64                 master_length = undump_file(output_normal_read, master_buffer, 65536);
-  s64                       end_ptr_position {};
-  oi::DirentCombinationRead calc {};
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   basep {};
+  s64                   end_ptr_position {};
 
-  LogTest("Master Normal read length is", master_length, ",", "testing", FUZZ_SAMPLES, "samples");
+  CHECK_EQUAL(pfs_getdirentries_target, master_length);
+  LogTest("Master PFS getdirentries length is", master_length);
 
-  fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
-  add_fd(fd);
   srand(time(nullptr));
 
-  for (s64 sample = FUZZ_SAMPLES; sample >= 0; sample -= 1) {
+  s64 sample_num {};
+  s64 failed_samples {};
+  for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = rand() % master_length * 2 - master_length;
     s64 spec_size   = rand() % master_length * 2 - master_length;
 
     memset(buffer, 0xAA, 65536);
-    calculate_normal_read(&calc, master_buffer, master_length, spec_offset, spec_size);
+    calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec_offset, spec_size);
 
-    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
-    errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+    add_fd(fd);
+    CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    // if (tbr >= 0)
     end_ptr_position = sceKernelLseek(fd, 0, 1);
-
-    if (calc.expected_result != tbr || calc.expected_end_position != end_ptr_position || calc.expected_errno != errno) {
-      LogError(calc.read_size, calc.read_offset, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", calc.expected_startpos,
-               is_einval_str(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
-      FAIL(std::string(std::string("Bad prediction for sample ") + std::to_string(FUZZ_SAMPLES - sample)).c_str());
-    }
-
-    if (s64 idx = compare_data_dump(master_buffer, buffer, 65536, tbr, calc.read_offset); idx <= 0) {
-      LogError("Inconsistent read at", calc.read_offset - idx);
-      LogError("Global dump:", to_hex_string(master_buffer - idx, 48, ""));
-      LogError("Recent dump:", to_hex_string(buffer - idx, 48, ""));
-    }
-  }
-  sceKernelLseek(fd, 0, 0);
-  sceKernelClose(fd);
-}
-
-TEST(DirentTests, NormalGetdirentries) {
-  LogTest("<<<< Normal getdirentries tests >>>>");
-
-  char                               buffer[65536];
-  char                               master_buffer[65536];
-  const s64                          master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
-  s64                                end_ptr_position {};
-  oi::DirentCombinationGetdirentries calc {};
-  s64                                basep {};
-
-  LogTest("Master Normal getdirentries length is", master_length);
-
-  fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
-  add_fd(fd);
-
-  for (const auto& spec: normal_dirent_variants) {
-
-    memset(buffer, 0xAA, 65536);
-    calculate_normal_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
-
-    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
-    errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
-    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
 
     LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
             is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
-
-    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.meta_dirent_start);
-    CHECK_EQUAL(calc.expected_basep, basep);
-    CHECK_EQUAL(calc.expected_result, tbr);
-    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
-    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
-  }
-  sceKernelLseek(fd, 0, 0);
-  sceKernelClose(fd);
-}
-
-TEST(DirentTests, PFSGetdirentries) {
-  LogTest("<<<< PFS getdirentries tests >>>>");
-
-  char                               buffer[65536];
-  char                               master_buffer[65536];
-  const s64                          master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
-  s64                                end_ptr_position {};
-  oi::DirentCombinationGetdirentries calc {};
-  s64                                basep {};
-
-  LogTest("Master PFS getdirentries length is", master_length);
-
-  fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
-  add_fd(fd);
-
-  for (const auto& spec: pfs_dirent_variants) {
-
-    memset(buffer, 0xAA, 65536);
-    calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
-
-    CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
-    errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
-    end_ptr_position = sceKernelLseek(fd, 0, 1);
-
-    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
-            is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
+    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", to_hex_string(buffer, 16, ""));
 
     compare_data_dump(master_buffer, buffer, 65536, tbr, calc.meta_dirent_start);
     CHECK_EQUAL_TEXT(calc.expected_basep, basep, "Bad starting position");
@@ -221,80 +146,339 @@ TEST(DirentTests, PFSGetdirentries) {
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
   }
-  sceKernelLseek(fd, 0, 0);
-  sceKernelClose(fd);
+}
+
+TEST(DirentTests, NormalGetdirentriesFuzz) {
+  LogTest("<<<< Normal getdirentries fuzzing test >>>>");
+
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   basep {};
+  s64                   end_ptr_position {};
+
+  CHECK_EQUAL(normal_getdirentries_target, master_length);
+  LogTest("Master Normal getdirentries length is", master_length);
+
+  srand(time(nullptr));
+
+  s64 sample_num {};
+  s64 failed_samples {};
+  for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
+    s64 spec_offset = rand() % master_length * 2 - master_length;
+    s64 spec_size   = rand() % master_length * 2 - master_length;
+
+    memset(buffer, 0xAA, 65536);
+    calculate_normal_getdirentries(&calc, master_buffer, master_length, spec_offset, spec_size);
+
+    fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+    add_fd(fd);
+    CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    // if (tbr >= 0)
+    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
+
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
+            is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
+    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", to_hex_string(buffer, 16, ""));
+
+    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.meta_dirent_start);
+    CHECK_EQUAL(calc.expected_basep, basep);
+    CHECK_EQUAL(calc.expected_result, tbr);
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
+  }
+}
+
+TEST(DirentTests, NormalReadFuzz) {
+  LogTest("<<<< Normal read fuzzing test >>>>");
+
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_normal_read, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   real_start {};
+  s64                   end_ptr_position {};
+
+  CHECK_EQUAL(normal_read_target, master_length);
+  LogTest("Master Normal read length is", master_length, ",", "testing", FUZZ_MAX_ITERATIONS, "samples", ",", "max", FUZZ_MAX_FAILURES, "failures allowed");
+
+  srand(time(nullptr));
+
+  s64 sample_num {};
+  s64 failed_samples {};
+  for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
+    s64 spec_offset = rand() % master_length * 2 - master_length;
+    s64 spec_size   = rand() % master_length * 2 - master_length;
+
+    memset(buffer, 0xAA, 65536);
+    calculate_pfs_read(&calc, master_buffer, master_length, spec_offset, spec_size);
+
+    fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+    add_fd(fd);
+    if (real_start = sceKernelLseek(fd, calc.read_offset, 0); real_start != calc.expected_lseek) {
+      LogError("lseek() expected:", calc.expected_lseek, ",", "return:", real_start);
+      // FAIL("Incorrect lseek() return");
+      ++failed_samples;
+      continue;
+    }
+    errno            = 0;
+    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
+
+    s64 diff_idx = compare_data_dump(master_buffer, buffer, 65536, tbr, calc.expected_basep);
+
+    if (diff_idx <= 0) {
+      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
+      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+    }
+
+    if (calc.expected_result != tbr || calc.expected_end_position != end_ptr_position || calc.expected_errno != errno || diff_idx <= 0) {
+      ++failed_samples;
+      LogError(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", real_start,
+               is_einval_str(tbr), end_ptr_position);
+    }
+  }
+
+  double fail_rate = 100.0f * failed_samples / sample_num;
+  if (fail_rate == 0.0f) {
+    LogSuccess("Fuzzing passed!");
+    return;
+  }
+  Log("Failure rate%:", fail_rate, "(", failed_samples, "/", sample_num, "failed )");
+}
+
+TEST(DirentTests, PFSReadFuzz) {
+  LogTest("<<<< PFS read fuzzing test >>>>");
+
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_pfs_read, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   real_start {};
+  s64                   end_ptr_position {};
+
+  CHECK_EQUAL(pfs_read_target, master_length);
+  LogTest("Master PFS read length is", master_length, ",", "testing", FUZZ_MAX_ITERATIONS, "samples", ",", "max", FUZZ_MAX_FAILURES, "failures allowed");
+
+  srand(time(nullptr));
+
+  s64 sample_num {};
+  s64 failed_samples {};
+  for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
+    s64 spec_offset = rand() % master_length * 2 - master_length;
+    s64 spec_size   = rand() % master_length * 2 - master_length;
+
+    memset(buffer, 0xAA, 65536);
+    calculate_pfs_read(&calc, master_buffer, master_length, spec_offset, spec_size);
+
+    fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+    add_fd(fd);
+    if (real_start = sceKernelLseek(fd, calc.read_offset, 0); real_start != calc.expected_lseek) {
+      LogError("lseek() expected:", calc.expected_lseek, ",", "return:", real_start);
+      // FAIL("Incorrect lseek() return");
+      ++failed_samples;
+      continue;
+    }
+    errno            = 0;
+    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
+
+    s64 diff_idx = compare_data_dump(master_buffer, buffer, 65536, tbr, calc.expected_basep);
+
+    if (diff_idx <= 0) {
+      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
+      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+    }
+
+    if (calc.expected_result != tbr || calc.expected_end_position != end_ptr_position || calc.expected_errno != errno || diff_idx <= 0) {
+      ++failed_samples;
+      LogError(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", real_start,
+               is_einval_str(tbr), end_ptr_position);
+    }
+  }
+
+  double fail_rate = 100.0f * failed_samples / sample_num;
+  if (fail_rate == 0.0f) {
+    LogSuccess("Fuzzing passed!");
+    return;
+  }
+  Log("Failure rate%:", fail_rate, "(", failed_samples, "/", sample_num, "failed )");
+}
+
+TEST(DirentTests, PFSGetdirentries) {
+  LogTest("<<<< PFS getdirentries tests >>>>");
+
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   basep {};
+  s64                   end_ptr_position {};
+
+  CHECK_EQUAL(pfs_getdirentries_target, master_length);
+  LogTest("Master PFS getdirentries length is", master_length);
+
+  for (const auto& spec: pfs_dirent_variants) {
+    memset(buffer, 0xAA, 65536);
+    calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
+
+    fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+    add_fd(fd);
+    CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    // if (tbr >= 0)
+    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
+
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
+            is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
+    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", to_hex_string(buffer, 16, ""));
+
+    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.meta_dirent_start);
+    CHECK_EQUAL_TEXT(calc.expected_basep, basep, "Bad starting position");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
+  }
+}
+
+TEST(DirentTests, NormalGetdirentries) {
+  LogTest("<<<< Normal getdirentries tests >>>>");
+
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   basep {};
+  s64                   end_ptr_position {};
+
+  CHECK_EQUAL(normal_getdirentries_target, master_length);
+  LogTest("Master Normal getdirentries length is", master_length);
+
+  for (const auto& spec: normal_dirent_variants) {
+    memset(buffer, 0xAA, 65536);
+    calculate_normal_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
+
+    fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+    add_fd(fd);
+    CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
+    errno = 0;
+    tbr   = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    // if (tbr >= 0)
+    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
+
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
+            is_einval_str(tbr), end_ptr_position, to_hex_string(buffer, 16, ""));
+    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", to_hex_string(buffer, 16, ""));
+
+    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.meta_dirent_start);
+    CHECK_EQUAL(calc.expected_basep, basep);
+    CHECK_EQUAL(calc.expected_result, tbr);
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
+  }
 }
 
 TEST(DirentTests, PFSRead) {
   LogTest("<<<< PFS read tests >>>>");
 
-  char                      buffer[65536];
-  char                      master_buffer[65536];
-  const s64                 master_length = undump_file(output_pfs_read, master_buffer, 65536);
-  s64                       end_ptr_position {};
-  oi::DirentCombinationRead calc {};
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_pfs_read, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   real_start {};
+  s64                   end_ptr_position {};
 
+  CHECK_EQUAL(pfs_read_target, master_length);
   LogTest("Master PFS read length is", master_length);
 
-  fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
-  add_fd(fd);
-
   for (const auto& spec: pfs_read_variants) {
-
     memset(buffer, 0xAA, 65536);
     calculate_pfs_read(&calc, master_buffer, master_length, spec.offset, spec.size);
 
-    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
-    errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+    add_fd(fd);
+    CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
+    real_start = sceKernelLseek(fd, 0, 1);
+    errno      = 0;
+    tbr        = sceKernelRead(fd, buffer, calc.read_size);
+    // if (tbr >= 0)
     end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
 
-    LogTest(calc.read_size, calc.read_offset, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", calc.expected_startpos,
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", real_start,
             is_einval_str(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
+    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", "\t", to_hex_string(buffer, 16, ""));
 
-    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.read_offset);
+    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.expected_basep);
+    CHECK_EQUAL_TEXT(calc.expected_basep, real_start, "Bad starting position");
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
   }
-  sceKernelLseek(fd, 0, 0);
-  sceKernelClose(fd);
 }
 
 TEST(DirentTests, NormalRead) {
   LogTest("<<<< Normal read tests >>>>");
 
-  char                      buffer[65536];
-  char                      master_buffer[65536];
-  const s64                 master_length = undump_file(output_normal_read, master_buffer, 65536);
-  s64                       end_ptr_position {};
-  oi::DirentCombinationRead calc {};
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_normal_read, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   real_start {};
+  s64                   end_ptr_position {};
 
+  CHECK_EQUAL(normal_read_target, master_length);
   LogTest("Master Normal read length is", master_length);
 
-  fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
-  add_fd(fd);
-
   for (const auto& spec: normal_read_variants) {
-
     memset(buffer, 0xAA, 65536);
     calculate_normal_read(&calc, master_buffer, master_length, spec.offset, spec.size);
 
-    if (calc.read_offset >= 0) CHECK_EQUAL(calc.read_offset, sceKernelLseek(fd, calc.read_offset, 0));
-    errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+    add_fd(fd);
+    CHECK_EQUAL(calc.expected_lseek, sceKernelLseek(fd, calc.read_offset, 0));
+    real_start = sceKernelLseek(fd, 0, 1);
+    errno      = 0;
+    tbr        = sceKernelRead(fd, buffer, calc.read_size);
+    // if (tbr >= 0)
     end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
 
-    LogTest(calc.read_size, calc.read_offset, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", calc.expected_startpos,
+    LogTest(calc.read_size, calc.read_offset, calc.expected_basep, is_einval_str(calc.expected_result), calc.expected_end_position, "\t->\t", real_start,
             is_einval_str(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
+    // is_einval_str(tbr), (tbr >= 0) ? std::to_string(end_ptr_position) : "[unavailable]", "\t", to_hex_string(buffer, 16, ""));
 
-    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.read_offset);
+    compare_data_dump(master_buffer, buffer, 65536, tbr, calc.expected_basep);
+    CHECK_EQUAL_TEXT(calc.expected_basep, real_start, "Bad starting position");
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Incorrect read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Incorrect pointer position after read");
     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Incorrect errno");
   }
-  sceKernelLseek(fd, 0, 0);
-  sceKernelClose(fd);
 }
 
 TEST(DirentTests, ValidateDirentries) {
@@ -402,6 +586,7 @@ TEST(DirentTests, DumpEverythingRaw) {
   int  fd_read {};
   int  fd_dump {};
   char buffer[65536];
+  s64  tbr {};
 
   RegenerateDir(output_dir);
 
@@ -500,636 +685,6 @@ s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64
   }
   return 1;
 }
-
-// TEST(DirentTests, DirentPFSGetdirentries) {
-//   LogTest("<<<< PFS getdirentries basic test >>>>");
-
-//   const char* dir_test = "/app0/assets/misc";
-
-//   s32           tbr {};
-//   constexpr u32 buffer_size   = 65536;
-//   u32           view_size     = 48;
-//   u32           view_size_end = 24;
-//   u32           zero          = 0;
-//   char          buffer[buffer_size] {0};
-//   char          reflection[buffer_size] {0};
-
-//   auto quickprint = [&view_size, &view_size_end](std::string title, const void* array, size_t size) -> void {
-//     std::string out {title};
-//     for (u32 idx = 0; idx < view_size; ++idx) {
-//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
-//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-//     }
-//     if (0 == view_size_end) {
-//       Log(out);
-//       return;
-//     }
-//     out += "\r\n\t\t\t\t\t\t----------";
-//     for (u32 idx = 0; idx < view_size_end; ++idx) {
-//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + size - view_size_end + idx));
-//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-//     }
-//     Log(out);
-//   };
-
-//   auto rd = [bs = &buffer_size](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
-//     auto buffer_ptr = static_cast<char*>(buffer);
-//     errno           = 0;
-//     CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
-//     CHECK_EQUAL_ZERO(errno);
-//     memset(buffer_ptr, 0xAA, *bs);
-//     errno = 0;
-//     return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
-//   };
-
-//   // clang-format off
-//   errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
-
-//   LogTest("EINVAL when size+offset falls before first 512 bytes");
-//   for(u16 len=0; len < 512; len+=1){
-//     tbr = rd(fd,buffer, len, 511-len);
-//     if(tbr >= 0)
-//       LogError("Incorrect returns for read size", len, "with offset",511-len);
-//     CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr);
-//     CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, 0xAA, len));
-//   }
-
-//   view_size  = 48;  view_size_end = 48;
-//   tbr = rd(fd, buffer, 512, 0);
-//   CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R512", buffer,512);
-//   CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
-//   *(reinterpret_cast<u32*>(buffer))=0;
-//   *(reinterpret_cast<u32*>(buffer+24))=0;
-//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
-//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
-
-//   for (auto idx = 1; idx < 24; idx++){
-//     tbr = rd(fd, reflection, 512, idx); CHECK_EQUAL(472, tbr);  CHECK_EQUAL_ZERO(errno);
-//     CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
-//     *(reinterpret_cast<u32*>(reflection))=0;
-//     CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, tbr), "memory compare failed");
-//   }
-
-//   view_size=32;view_size_end=32;
-//   tbr = rd(fd, buffer, 600, 0); quickprint("\t+0 R600", buffer,600); CHECK_EQUAL(496, tbr);
-//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
-
-//   tbr = rd(fd, buffer, 700, 0); quickprint("\t+0 R700", buffer,700); CHECK_EQUAL(496, tbr);
-//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
-
-//   tbr = rd(fd, buffer, 800, 0); quickprint("\t+0 R800", buffer,800); CHECK_EQUAL(496, tbr);
-//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
-
-//   tbr = rd(fd, buffer, 900, 0); quickprint("\t+0 R900", buffer,900); CHECK_EQUAL(496, tbr);
-//   CHECK_EQUAL(tbr, validate_pfs_getdirentries(buffer, tbr));
-
-//   //
-
-//   view_size  = 48;  view_size_end = 48;
-//   tbr = rd(fd, buffer, 1023, 0);
-//   CHECK_EQUAL(496, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0 R1023", buffer,1023);
-//   CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(buffer, tbr),"Direntries are likely corrupted");
-//   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer, pfs_dirent_entry_dot, 24), "[.] failed");
-//   CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, pfs_dirent_entry_dotdot, 24), "[..] failed");
-
-//   for (auto idx = 1; idx < 24; idx++){
-//     tbr = rd(fd, reflection, 1023, idx); CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
-//     CHECK_EQUAL_TEXT(tbr, validate_pfs_getdirentries(reflection, tbr),"Direntries are likely corrupted");
-//     *(reinterpret_cast<u32*>(reflection))=0;
-//     CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 472), "memory compare failed");
-//   }
-
-//   // comment below is unrelated to what's below that comment
-
-//   // view_size  = 24;  view_size_end = 64;
-//   // okay, this is complicated. first dirent is always rounded up to the nearest upper one, so for any offset <=24 first dirent presented is going to be
-//   [..]
-//   // this is subtracted in favour of possibly populating next dirent (doesn't happen here).
-//   // differences between larger buffer and smaller occur between [..] and last entry, so real comparsion should happen between 24 and 496 (472 length)
-//   tbr = rd(fd, buffer, 1024, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer,1024);
-//   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-//   tbr = rd(fd, reflection, 1024, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection,1024); CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
-//   reflection, 1024, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection,1024);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 24, reflection, 992), "memory compare failed");
-
-//   tbr = rd(fd, buffer, 1025, 0);        CHECK_EQUAL(1016, tbr); CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer,1025);
-//   *(reinterpret_cast<u32*>(buffer))=0;  *(reinterpret_cast<u32*>(buffer+24))=0;
-//   tbr = rd(fd, reflection, 1025, 5);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection,1025); CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 24, reflection, 992), "memory compare failed"); tbr = rd(fd,
-//   reflection, 1025, 7);    CHECK_EQUAL(992, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection,1025);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 24, reflection, 992), "memory compare failed");
-
-//   // clang-format on
-
-//   CHECK_EQUAL_ZERO(sceKernelClose(fd));
-// }
-
-// s64 DumpByRead(int dir_fd, int dump_fd, char* buffer, size_t size) {
-//   memset(buffer, 0xAA, size);
-
-//   s64 tbr = sceKernelRead(dir_fd, buffer, size);
-//   // Log("Read got", tbr, "/", size, "bytes, ptr =", sceKernelLseek(dir_fd, 0, 1));
-
-//   if (tbr < 0) {
-//     LogError("Read finished with error:", tbr);
-//     return tbr;
-//   }
-
-//   if (s64 tbw = sceKernelWrite(dump_fd, buffer, tbr); tbw != tbr) LogError("Written", tbw, "bytes out of", tbr, "bytes");
-//   return tbr;
-// }
-
-// s64 DumpByDirent(int dir_fd, int dump_fd, char* buffer, size_t size, s64* idx) {
-//   // magic to determine how many trailing elements were cut
-//   memset(buffer, 0xAA, size);
-
-//   s64 tbr = sceKernelGetdirentries(dir_fd, buffer, size, idx);
-//   // Log("Dirent got", tbr, "/", size, "bytes, ptr =", sceKernelLseek(dir_fd, 0, 1), "idx =", *idx);
-
-//   if (tbr < 0) {
-//     LogError("Dirent finished with error:", tbr);
-//     return tbr;
-//   }
-
-//   if (s64 tbw = sceKernelWrite(dump_fd, buffer, tbr); tbw != tbr) LogError("Written", tbw, "bytes out of", tbr, "bytes");
-//   return tbr;
-// }
-
-// void DumpDirectory(int fd, int buffer_size, s64 offset) {
-//   char* buffer = new char[buffer_size] {0};
-
-//   std::string file_basename = "dump_" + std::to_string(buffer_size) + '+' + std::to_string(offset);
-
-//   fs::path read_path       = "/data/enderman/dump_data_read/" + file_basename + ".bin";
-//   fs::path dirent_path     = "/data/enderman/dump_data_getdents/" + file_basename + ".bin";
-//   fs::path read_cue_path   = "/data/enderman/dump_data_read/" + file_basename + ".cue";
-//   fs::path dirent_cue_path = "/data/enderman/dump_data_getdents/" + file_basename + ".cue";
-
-//   LogTest("normal", "directory, fd =", fd, "buffer size =", buffer_size, "starting offset =", offset);
-
-//   s64 tbr         = 0;
-//   u16 max_loops   = 0; // 65536 iterations lmao
-//   int fd_read     = sceKernelOpen(read_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   int fd_read_cue = sceKernelOpen(read_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-//   while (--max_loops) {
-//     tbr = DumpByRead(fd, fd_read, buffer, buffer_size);
-//     sceKernelWrite(fd_read_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-//     if (tbr <= 0) break;
-//   }
-//   if (0 == max_loops) LogError("Aborted");
-//   sceKernelClose(fd_read);
-//   sceKernelClose(fd_read_cue);
-
-//   s64 idx           = 0;
-//   max_loops         = 0;
-//   int fd_dirent     = sceKernelOpen(dirent_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   int fd_dirent_cue = sceKernelOpen(dirent_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-//   while (--max_loops) {
-//     tbr = DumpByDirent(fd, fd_dirent, buffer, buffer_size, &idx);
-//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&idx), sizeof(s64) / sizeof(u8));
-//     if (tbr <= 0) break;
-//   }
-//   if (0 == max_loops) LogError("Aborted");
-//   sceKernelClose(fd_dirent);
-//   sceKernelClose(fd_dirent_cue);
-
-//   delete[] buffer;
-// }
-
-// void DumpDirectoryPFS(int fd, int buffer_size, s64 offset) {
-//   char* buffer = new char[buffer_size] {0};
-
-//   std::string file_basename = "dump_" + std::to_string(buffer_size) + '+' + std::to_string(offset);
-
-//   fs::path read_path       = "/data/enderman/dump_pfs_read/read_" + file_basename + ".bin";
-//   fs::path dirent_path     = "/data/enderman/dump_pfs_getdents/dirent_" + file_basename + ".bin";
-//   fs::path read_cue_path   = "/data/enderman/dump_pfs_read/read_" + file_basename + ".cue";
-//   fs::path dirent_cue_path = "/data/enderman/dump_pfs_getdents/dirent_" + file_basename + ".cue";
-
-//   LogTest("PFS directory, fd =", fd, "buffer size =", buffer_size, "starting offset =", offset);
-
-//   s64 tbr         = 0;
-//   u16 max_loops   = 0; // 65536 iterations lmao
-//   int fd_read     = sceKernelOpen(read_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   int fd_read_cue = sceKernelOpen(read_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-//   while (--max_loops) {
-//     tbr = DumpByRead(fd, fd_read, buffer, buffer_size);
-//     sceKernelWrite(fd_read_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-//     if (tbr <= 0) break;
-//   }
-//   if (0 == max_loops) LogError("Aborted");
-//   sceKernelClose(fd_read);
-//   sceKernelClose(fd_read_cue);
-
-//   s64 idx           = 0;
-//   max_loops         = 0;
-//   int fd_dirent     = sceKernelOpen(dirent_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   int fd_dirent_cue = sceKernelOpen(dirent_cue_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0777);
-//   if (int _tmp = sceKernelLseek(fd, offset, 0); _tmp != offset) LogError("Lseek failed:", _tmp);
-//   while (--max_loops) {
-//     tbr = DumpByDirent(fd, fd_dirent, buffer, buffer_size, &idx);
-//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&tbr), sizeof(s64) / sizeof(u8));
-//     sceKernelWrite(fd_dirent_cue, reinterpret_cast<u8*>(&idx), sizeof(s64) / sizeof(u8));
-//     if (tbr <= 0) break;
-//   }
-//   if (0 == max_loops) LogError("Aborted");
-//   sceKernelClose(fd_dirent);
-//   sceKernelClose(fd_dirent_cue);
-
-//   delete[] buffer;
-// }
-
-// OK, whole block
-// applies for PFS read
-// s64 dump_clone_pfs_read(const char* dump_path, oi::PfsDirent* dirent) {
-//   std::string filename           = std::string(dirent->d_name, dirent->d_namlen);
-//   fs::path    dump_path_full     = fs::path(dump_path) / filename;
-//   const char* dump_path_full_ptr = dump_path_full.c_str();
-
-//   if (dirent->d_type == 2) {
-//     s64 fd_tmp = sceKernelOpen(dump_path_full_ptr, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-//     if (fd_tmp < 0) return fd_tmp;
-//     return sceKernelClose(fd_tmp);
-//   } else if (dirent->d_type == 4)
-//     return sceKernelMkdir(dump_path_full_ptr, 0777);
-//   return 0;
-// }
-
-// // applies for normal read+getdirentries, PFS getdirentries
-// s64 dump_clone_read(const char* dump_path, oi::FolderDirent* dirent) {
-//   std::string filename           = std::string(dirent->d_name, dirent->d_namlen);
-//   fs::path    dump_path_full     = fs::path(dump_path) / filename;
-//   const char* dump_path_full_ptr = dump_path_full.c_str();
-
-//   if (dirent->d_type == 8) {
-//     s64 fd_tmp = sceKernelOpen(dump_path_full_ptr, O_CREAT | O_TRUNC | O_WRONLY, 0777);
-//     if (fd_tmp < 0) return fd_tmp;
-//     return sceKernelClose(fd_tmp);
-//   } else if (dirent->d_type == 4)
-//     return sceKernelMkdir(dump_path_full_ptr, 0777);
-//   return 0;
-// }
-
-// s64 iterate_pfs_read(const char* source_path, const std::function<s64(oi::PfsDirent*)>& entry_cb = nullptr) {
-//   constexpr int clone_buffer_size = 1024;
-//   char          clone_buffer[clone_buffer_size] {0};
-
-//   int fd_src {0};
-//   s64 read_start_position {0};
-//   u32 entry_offset {0};
-//   s64 bytes_read {0};
-//   u16 _canary {0};
-
-//   oi::PfsDirent* dirent {0};
-
-//   memset(clone_buffer, 0, clone_buffer_size);
-
-//   //
-
-//   fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
-//   if (fd_src < 0) return fd_src;
-
-//   do {
-//     entry_offset        = 0;
-//     read_start_position = sceKernelLseek(fd_src, 0, 1);
-//     if (read_start_position < 0) return read_start_position;
-//     bytes_read = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
-//     if (bytes_read < 0) return bytes_read;
-//     //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
-//     if (bytes_read <= 0) break;
-
-//     dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer);
-//     while (dirent->d_reclen > 0) {
-//       // get current dirent, see what we have
-//       // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name, "type:", dirent->d_type,
-//       //     "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
-
-//       // current dirent is >=24 bytes but OOB
-//       if ((entry_offset + dirent->d_reclen) > bytes_read) {
-//         break;
-//       }
-
-//       // current dirent fits
-//       if (entry_cb) {
-//         if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
-//       }
-//       entry_offset += dirent->d_reclen;
-
-//       // peek at next entry, if less than 24 bytes are available, break
-//       dirent = reinterpret_cast<oi::PfsDirent*>(clone_buffer + entry_offset);
-//       if ((bytes_read - (entry_offset + 1)) < 24) {
-//         // Log("Not enough data available at", entry_offset);
-//         break;
-//       }
-//     }
-
-//     // unless entry offset moved by bytes read, we didn't consume the entire buffer
-//     if (((entry_offset + 1) != bytes_read) && (entry_offset > 0)) {
-//       // if we're here, then we did not. back off to the end of the last dirent
-//       sceKernelLseek(fd_src, read_start_position + entry_offset, 0);
-//     }
-//     // Log("End position:", entry_offset, "/", clone_buffer_size);
-//   } while (--_canary);
-
-//   // Log("Dump ended with status", bytes_read);
-//   sceKernelClose(fd_src);
-//   return 0;
-// }
-
-// s64 iterate_normal_read(const char* source_path, const std::function<s64(oi::FolderDirent*)>& entry_cb = nullptr) {
-//   constexpr int clone_buffer_size = 1024;
-//   char          clone_buffer[clone_buffer_size] {0};
-
-//   int fd_src {0};
-//   s64 read_start_position {0};
-//   u32 entry_offset {0};
-//   s64 bytes_read {0};
-//   u16 _canary {0};
-
-//   oi::FolderDirent* dirent {0};
-
-//   memset(clone_buffer, 0, clone_buffer_size);
-
-//   //
-
-//   fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
-//   do {
-//     entry_offset        = 0;
-//     read_start_position = sceKernelLseek(fd_src, 0, 1);
-//     bytes_read          = sceKernelRead(fd_src, clone_buffer, clone_buffer_size);
-//     //   Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
-//     if (bytes_read <= 0) break;
-
-//     dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
-//     while (dirent->d_reclen > 0) {
-//       // get current dirent, see what we have
-//       // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent_pfs->d_fileno, "name:", dirent_pfs->d_name, "type:", dirent_pfs->d_type,
-//       //     "namelen:", static_cast<u16>(dirent_pfs->d_namlen), "reclen:", dirent_pfs->d_reclen);
-
-//       // current dirent is >=24 bytes but OOB
-//       if ((entry_offset + dirent->d_reclen) >= bytes_read) {
-//         break;
-//       }
-
-//       // current dirent fits
-//       if (entry_cb) {
-//         if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
-//       }
-//       entry_offset += dirent->d_reclen;
-
-//       // peek at next entry, if less than 24 bytes are available, break
-//       dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
-//       if ((bytes_read - (entry_offset + 1)) < 24) {
-//         // Log("Not enough data available at", entry_offset);
-//         break;
-//       }
-//     }
-
-//     // unless entry offset moved by bytes read, we didn't consume the entire buffer
-//     if (((entry_offset + 1) != bytes_read) && (entry_offset > 0)) {
-//       // if we're here, then we did not. back off to the end of the last dirent
-//       sceKernelLseek(fd_src, read_start_position + entry_offset, 0);
-//     }
-//     // Log("End position:", entry_offset, "/", clone_buffer_size);
-//   } while (--_canary);
-
-//   // Log("Dump ended with status", bytes_read);
-//   sceKernelClose(fd_src);
-//   return 0;
-// }
-
-// s64 iterate_getdirentries(const char* source_path, const std::function<s64(oi::FolderDirent*)>& entry_cb = nullptr) {
-//   constexpr int clone_buffer_size = 1024;
-//   char          clone_buffer[clone_buffer_size] {0};
-
-//   int fd_src {0};
-//   s64 read_start_position {0};
-//   u32 entry_offset {0};
-//   s64 bytes_read {0};
-//   s64 basep {0};
-//   u16 _canary {0};
-
-//   oi::FolderDirent* dirent {0};
-
-//   memset(clone_buffer, 0, clone_buffer_size);
-
-//   fd_src = sceKernelOpen(source_path, O_RDONLY | O_DIRECTORY, 0777);
-//   if (fd_src < 0) return -1;
-
-//   do {
-//     read_start_position = sceKernelLseek(fd_src, 0, 1);
-//     bytes_read          = sceKernelGetdirentries(fd_src, clone_buffer, clone_buffer_size, &basep);
-//     // Log("Read:", bytes_read, read_start_position, "-", sceKernelLseek(fd_src, 0, 1));
-//     if (bytes_read <= 0) break;
-
-//     dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer);
-//     // Log("start:", read_start_position, "+", entry_offset, "fileno:", dirent->d_fileno, "name:", dirent->d_name,
-//     //     "type:", static_cast<u16>(dirent->d_type), "namelen:", static_cast<u16>(dirent->d_namlen), "reclen:", dirent->d_reclen);
-//     for (entry_offset = 0; (entry_offset < bytes_read) && (dirent->d_reclen > 0); entry_offset += dirent->d_reclen) {
-//       dirent = reinterpret_cast<oi::FolderDirent*>(clone_buffer + entry_offset);
-
-//       if (entry_cb) {
-//         if (s64 cb_result = entry_cb(dirent); cb_result <= 0) return cb_result;
-//       }
-//     }
-//     // Log("End position:", entry_offset, "/", clone_buffer_size);
-//   } while (--_canary);
-
-//   // Log("Dump ended with status", bytes_read);
-//   sceKernelClose(fd_src);
-//   return 0;
-// }
-
-// TEST(DirentTests, CompareDirentsAPP0) {
-//   LogTest("<<<< Compare PFS read&getdirentries, clone to /data >>>>");
-
-//   ///
-//   /// Setup dumping directory
-//   ///
-
-//   std::vector<std::string> entries_read {};
-//   std::vector<std::string> entries_getdirentries {};
-
-//   sceKernelMkdir(clone_destination_read, 0777);
-//   sceKernelMkdir(clone_destination_getdirentries, 0777);
-
-//   //
-
-//   LogTest("Read entries from /app0 (read) and clone to", clone_destination_read);
-//   iterate_pfs_read(clone_source_app0, [&entries_read, dest = &clone_destination_read, cb = dump_clone_pfs_read](oi::PfsDirent* dirent) -> s64 {
-//     if (is_directory_relatives(dirent->d_name)) return 0;
-//     entries_read.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-//     return cb(clone_destination_read, dirent);
-//   });
-
-//   LogTest("Read entries from /app0 (getdirentries) and clone to", clone_destination_getdirentries);
-//   iterate_getdirentries(clone_source_app0,
-//                         [&entries_getdirentries, dest = &clone_destination_getdirentries, cb = dump_clone_read](oi::FolderDirent* dirent) -> s64 {
-//                           if (is_directory_relatives(dirent->d_name)) return 0;
-//                           entries_getdirentries.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-//                           return cb(clone_destination_getdirentries, dirent);
-//                         });
-
-//   std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
-//   std::sort(entries_read.begin(), entries_read.end());
-
-//   CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not
-//   equal");
-// }
-
-// TEST(DirentTests, CompareDirentsData) {
-//   LogTest("<<<< Compare regular read&getdirentries >>>>");
-
-//   ///
-//   /// Setup dumping directory
-//   ///
-
-//   std::vector<std::string> entries_read {};
-//   std::vector<std::string> entries_getdirentries {};
-
-//   //
-
-//   LogTest("Read entries from /data (read)", clone_destination_read);
-//   iterate_normal_read(clone_destination_read, [&entries_read](oi::FolderDirent* dirent) {
-//     if (is_directory_relatives(dirent->d_name)) return 0;
-//     entries_read.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-//     return 0;
-//   });
-
-//   LogTest("Read entries from /data (getdirentries)", clone_destination_getdirentries);
-//   iterate_getdirentries(clone_destination_getdirentries, [&entries_getdirentries](oi::FolderDirent* dirent) {
-//     if (is_directory_relatives(dirent->d_name)) return 0;
-//     entries_getdirentries.emplace_back(std::string(dirent->d_name, dirent->d_namlen));
-//     return 0;
-//   });
-
-//   std::sort(entries_getdirentries.begin(), entries_getdirentries.end());
-//   std::sort(entries_read.begin(), entries_read.end());
-
-//   CHECK_TRUE_TEXT(std::equal(entries_getdirentries.begin(), entries_getdirentries.end(), entries_read.begin(), entries_read.end()), "File lists are not
-//   equal");
-// }
-
-// OK
-// TEST(DirentTests, DirentShortReadNormal) {
-//   LogTest("<<<< Short normal reads >>>>");
-
-//   const char* dir_test             = "/data/enderman/partialdirents";
-//   char        file_placeholder[92] = "/data/enderman/partialdirents/tomakethingseasierthisfilenameshouldbeover40characterslong_aa";
-//   char*       startchar            = file_placeholder + 90;
-//   RegenerateDir(dir_test);
-
-//   int           fd {};
-//   s32           tbr {};
-//   constexpr u32 buffer_size   = 4096;
-//   u32           view_size     = 24;
-//   u32           view_size_end = 24;
-//   u32           zero          = 0;
-//   char          buffer[buffer_size] {0};
-//   char          reflection[buffer_size] {0};
-
-//   auto quickprint = [&view_size, &view_size_end, bs = &buffer_size](std::string title, const void* array) -> void {
-//     std::string out {title};
-//     for (u32 idx = 0; idx < view_size; ++idx) {
-//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + idx));
-//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-//     }
-//     if (0 == view_size_end) {
-//       Log(out);
-//       return;
-//     }
-//     out += "\r\n\t\t\t\t\t\t----------";
-//     for (u32 idx = 0; idx < view_size_end; ++idx) {
-//       if (!(idx % 12)) out += "\r\n\t\t\t\t\t\t";
-//       auto hexed = to_hex<u16>(*(reinterpret_cast<const u8*>(array) + *bs - view_size_end + idx));
-//       out += (hexed.length() == 1 ? "0" : "") + hexed + " ";
-//     }
-//     Log(out);
-//   };
-
-//   auto rd = [](s32 fd, void* buffer, s64 size, s64 offset) -> s64 {
-//     auto buffer_ptr = static_cast<char*>(buffer);
-//     errno           = 0;
-//     CHECK_EQUAL(offset, sceKernelLseek(fd, offset, 0));
-//     CHECK_EQUAL_ZERO(errno);
-//     memset(buffer_ptr, 0xAA, size);
-//     errno = 0;
-//     return sceKernelGetdirentries(fd, buffer_ptr, size, nullptr);
-//   };
-
-//   // clang-format off
-//   errno = 0;  fd    = sceKernelOpen(dir_test, O_RDONLY, 0777);  CHECK_COMPARE(0, <, fd);
-
-//   LogTest("EINVAL when size+offset falls before first 512 bytes");
-//   for(u16 len=0; len < 512; len+=1){
-//     tbr = rd(fd,buffer, len, 511-len);
-//     if(tbr >= 0)
-//       LogError("Incorrect returns for read size", len, "with offset",511-len);
-//     CHECK_EQUAL(ORBIS_KERNEL_ERROR_EINVAL, tbr);
-//     CHECK_EQUAL(EINVAL, errno); CHECK_TRUE(fillcheck(buffer, 0xAA, len));
-//   }
-
-//   view_size  = 24;  view_size_end = 24;
-//   tbr = rd(fd, buffer, 512, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R512", buffer);
-//   tbr = rd(fd, reflection, 512, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R512", reflection);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 512, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   512, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R512", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
-//   tbr), "memory compare failed");
-
-//   view_size  = 24;  view_size_end = 24;
-//   tbr = rd(fd, buffer, 513, 0);       CHECK_EQUAL(512, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R513", buffer);
-//   tbr = rd(fd, reflection, 513, 5);   CHECK_EQUAL(507, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R513", reflection);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 513, 6);   CHECK_EQUAL(506, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   513, 7);   CHECK_EQUAL(505, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R513", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7, reflection,
-//   tbr), "memory compare failed");
-
-//   // create some dummy files
-//   for (*startchar = 'a'; *startchar < 'z'; *startchar += 1) {
-//     CHECK_EQUAL_ZERO(touch(file_placeholder));
-//   }
-
-//   view_size  = 24;  view_size_end = 24;
-//   // view_size  = 24;  view_size_end = 64;
-//   // for this test, only "shorter" tbr is taken into account. dirents return data for x sectors only when end of the read happens on the next sector
-//   // so 1023+0 is still 512, but 1023 + 5 offset is 507 + 512
-//   tbr = rd(fd, buffer, 1023, 0);      CHECK_EQUAL(512, tbr);    CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1023", buffer);
-//   tbr = rd(fd, reflection, 1023, 5);  CHECK_EQUAL(1019, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1023", reflection);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 5, reflection, 512 - 5), "memory compare failed"); tbr = rd(fd, reflection, 1023, 6);  CHECK_EQUAL(1018, tbr); CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, 512 - 6), "memory compare failed"); tbr = rd(fd,
-//   reflection, 1023, 7);  CHECK_EQUAL(1017, tbr);   CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1023", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer +
-//   7, reflection, 512 - 7), "memory compare failed");
-
-//   tbr = rd(fd, buffer, 1024, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1024", buffer);
-//   tbr = rd(fd, reflection, 1024, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1024", reflection);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1024, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1024", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   1024, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1024", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7,
-//   reflection, tbr), "memory compare failed");
-
-//   tbr = rd(fd, buffer, 1025, 0);      CHECK_EQUAL(1024, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+0   R1025", buffer);
-//   tbr = rd(fd, reflection, 1025, 5);  CHECK_EQUAL(1019, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+5   R1025", reflection);  CHECK_EQUAL_TEXT(-1,
-//   imemcmp(buffer + 5, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection, 1025, 6);  CHECK_EQUAL(1018, tbr);  CHECK_EQUAL_ZERO(errno);
-//   quickprint("\t+6   R1025", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 6, reflection, tbr), "memory compare failed"); tbr = rd(fd, reflection,
-//   1025, 7);  CHECK_EQUAL(1017, tbr);  CHECK_EQUAL_ZERO(errno);  quickprint("\t+7   R1025", reflection);  CHECK_EQUAL_TEXT(-1, imemcmp(buffer + 7,
-//   reflection, tbr), "memory compare failed");
-
-//   // clang-format on
-
-//   CHECK_EQUAL_ZERO(sceKernelClose(fd));
-// }
 
 // OK
 // TEST(DirentTests, LseekRegularTests) {

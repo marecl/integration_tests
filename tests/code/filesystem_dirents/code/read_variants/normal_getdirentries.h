@@ -3,13 +3,11 @@
 #include <vector>
 
 std::vector<OrbisInternals::spec_t> normal_dirent_variants = {
-    // {.size = 0, .offset = 0},        // 0       EINVAL  0       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    // {.size = 128, .offset = 128},    // 0       EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 512, .offset = 1024}, // 1024    512     1536    12d50c011c00081066696c656e616d65
-    // {.size = 128, .offset = 128},    // 1024    EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 0, .offset = 0},        // 0       EINVAL  0       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 128},    // 0       EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 512, .offset = 1024},   // 1024    512     1536    12d50c011c00081066696c656e616d65
+    {.size = 128, .offset = 128},    // 1024    EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 512, .offset = 0},      // 0       512     512     06d40c010c0004012e00000004d40c01
-    {.size = 512, .offset = -1},     // 0       512     512     06d40c010c0004012e00000004d40c01
-    {.size = 512, .offset = -1},     // 0       512     512     06d40c010c0004012e00000004d40c01
     {.size = 512, .offset = 16},     // 16      496     512     0c0004022e2e000008d40c010c000801
     {.size = 512, .offset = 24},     // 24      488     512     08d40c010c000801610000001ed40c01
     {.size = 512, .offset = 28},     // 28      484     512     0c000801610000001ed40c010c000802
@@ -31,8 +29,9 @@ std::vector<OrbisInternals::spec_t> normal_dirent_variants = {
     {.size = 512, .offset = 512},    // 512     512     1024    00d50c011c00081066696c656e616d65
     {.size = 513, .offset = 0},      // 0       512     512     06d40c010c0004012e00000004d40c01
     {.size = 536, .offset = 0},      // 0       512     512     06d40c010c0004012e00000004d40c01
-    {.size = 64, .offset = 1008},    //
-    {.size = 64, .offset = 1012},    //
+    {.size = 64, .offset = 1008},    // 1008    16      1024    78743331000000000000000000000000
+    {.size = 64, .offset = 1011},    // 1011    13      1024    31000000000000000000000000aaaaaa
+    {.size = 64, .offset = 1012},    // 1012    12      1024    000000000000000000000000aaaaaaaa
     {.size = 64, .offset = 1015},    // 1015    9       1024    000000000000000000aaaaaaaaaaaaaa
     {.size = 64, .offset = 1016},    // 1016    8       1024    0000000000000000aaaaaaaaaaaaaaaa
     {.size = 64, .offset = 1017},    // 1017    7       1024    00000000000000aaaaaaaaaaaaaaaaaa
@@ -40,17 +39,13 @@ std::vector<OrbisInternals::spec_t> normal_dirent_variants = {
     {.size = 80, .offset = 1016},    // 1016    8       1024    0000000000000000aaaaaaaaaaaaaaaa
     {.size = 80, .offset = 1017},    // 1017    7       1024    00000000000000aaaaaaaaaaaaaaaaaa
     {.size = 1023, .offset = 0},     // 0       512     512     06d40c010c0004012e00000004d40c01
-    {.size = 1023, .offset = -1},    // 0       512     512     06d40c010c0004012e00000004d40c01
-    {.size = 1023, .offset = -1},    // 0       512     512     06d40c010c0004012e00000004d40c01
     {.size = 1024, .offset = 0},     // 0       1024    1024    06d40c010c0004012e00000004d40c01
     {.size = 1024, .offset = 511},   // 511     513     1024    0000d50c011c00081066696c656e616d
     {.size = 1024, .offset = 512},   // 512     1024    1536    00d50c011c00081066696c656e616d65
     {.size = 1024, .offset = 513},   // 513     1023    1536    d50c011c00081066696c656e616d6564
     {.size = 1025, .offset = 513},   // 513     1023    1536    d50c011c00081066696c656e616d6564
     {.size = 1026, .offset = 513},   // 513     1023    1536    d50c011c00081066696c656e616d6564
-    {.size = 1026, .offset = -1},    // 513     1023    1536    d50c011c00081066696c656e616d6564
     {.size = 256, .offset = 256},    // 256     256     512     00000000f7d40c011c00081066696c65
-    {.size = 256, .offset = -1},     // 256     256     512     00000000f7d40c011c00081066696c65
     {.size = 23, .offset = 511},     // 511     1       512     00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 24, .offset = 511},     // 511     1       512     00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 25, .offset = 511},     // 511     1       512     00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -70,11 +65,10 @@ std::vector<OrbisInternals::spec_t> normal_dirent_variants = {
     {.size = 256, .offset = 4064},   // 4064    32      4096    676e616d653037000000000000000000
     {.size = 544, .offset = 4064},   // 4064    544     4608    676e616d653037000000000000000000
     {.size = 1024, .offset = 0},     // 0       1024    1024    06d40c010c0004012e00000004d40c01
-    {.size = 1024, .offset = -1},    // 0       1024    1024    06d40c010c0004012e00000004d40c01
     {.size = 32, .offset = 480},     // 480     32      512     00000000ffd40c011c00081066696c65
     {.size = 1024, .offset = 10000}, // 10000   0       10000   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 8192, .offset = 10000}, // 10000   0       10000   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 8192, .offset = 35565}, // 35565   0       35565   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                                     // {.size = 511, .offset = 1024},   // 35565   EINVAL  1024    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                                     // {.size = 128, .offset = 4096},   // 35565   EINVAL  4096    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 511, .offset = 1024},   // 35565   EINVAL  1024    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 4096},   // 35565   EINVAL  4096    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 };

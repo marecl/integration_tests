@@ -37,13 +37,11 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
 
     // apparent end = offset + length before checking dirents
 
-    // {.size = 0, .offset = 0},        // 0       EINVAL  0       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    // {.size = 128, .offset = 128},    // 0       EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 512, .offset = 1024}, // 1024    480     1504    280000002800081066696c656e616d65
-    // {.size = 128, .offset = 128},    // 1024    EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 0, .offset = 0},        // 0       EINVAL  0       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 128},    // 0       EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 512, .offset = 1024},   // 1024    480     1504    280000002800081066696c656e616d65
+    {.size = 128, .offset = 128},    // 1024    EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 512, .offset = 0},      // 0       496     496     07000000180004012e00000000000000
-    {.size = 512, .offset = -1},     // 0       496     496     07000000180004012e00000000000000
-    {.size = 512, .offset = -1},     // 0       496     496     07000000180004012e00000000000000
     {.size = 512, .offset = 16},     // 16      472     488     03000000180004022e2e000000000000
     {.size = 512, .offset = 24},     // 24      472     496     03000000180004022e2e000000000000
     {.size = 512, .offset = 28},     // 28      448     476     0c000000180008016100000000000000
@@ -65,8 +63,9 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
     {.size = 512, .offset = 512},    // 512     480     992     1b0000002800081066696c656e616d65
     {.size = 513, .offset = 0},      // 0       496     496     07000000180004012e00000000000000
     {.size = 536, .offset = 0},      // 0       496     496     07000000180004012e00000000000000
-    {.size = 64, .offset = 1008},    //
-    {.size = 64, .offset = 1012},    //
+    {.size = 64, .offset = 1008},    // 1008    0       1008    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 64, .offset = 1011},    // 1011    0       1011    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 64, .offset = 1012},    // 1012    0       1012    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 64, .offset = 1015},    // 1015    0       1015    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 64, .offset = 1016},    // 1016    0       1016    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 64, .offset = 1017},    // 1017    0       1017    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -74,17 +73,13 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
     {.size = 80, .offset = 1016},    // 1016    0       1016    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 80, .offset = 1017},    // 1017    0       1017    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 1023, .offset = 0},     // 0       496     496     07000000180004012e00000000000000
-    {.size = 1023, .offset = -1},    // 0       496     496     07000000180004012e00000000000000
-    {.size = 1023, .offset = -1},    // 0       496     496     07000000180004012e00000000000000
     {.size = 1024, .offset = 0},     // 0       1016    1016    07000000180004012e00000000000000
     {.size = 1024, .offset = 511},   // 511     480     991     1b0000002800081066696c656e616d65
     {.size = 1024, .offset = 512},   // 512     1000    1512    1b0000002800081066696c656e616d65
     {.size = 1024, .offset = 513},   // 513     1000    1513    1b0000002800081066696c656e616d65
     {.size = 1025, .offset = 513},   // 513     1000    1513    1b0000002800081066696c656e616d65
     {.size = 1026, .offset = 513},   // 513     1000    1513    1b0000002800081066696c656e616d65
-    {.size = 1026, .offset = -1},    // 513     1000    1513    1b0000002800081066696c656e616d65
     {.size = 256, .offset = 256},    // 256     240     496     140000002800081066696c656e616d65
-    {.size = 256, .offset = -1},     // 256     240     496     140000002800081066696c656e616d65
     {.size = 23, .offset = 511},     // 511     0       511     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 24, .offset = 511},     // 511     0       511     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 25, .offset = 511},     // 511     0       511     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
@@ -104,11 +99,10 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
     {.size = 256, .offset = 4064},   // 4064    0       4064    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 544, .offset = 4064},   // 4064    504     4568    670000003800082066696c6577697468
     {.size = 1024, .offset = 0},     // 0       1016    1016    07000000180004012e00000000000000
-    {.size = 1024, .offset = -1},    // 0       1016    1016    07000000180004012e00000000000000
     {.size = 32, .offset = 480},     // 480     0       480     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 1024, .offset = 10000}, // 10000   648     65536   d30000004800083466696c6577697468
     {.size = 8192, .offset = 10000}, // 10000   648     65536   d30000004800083466696c6577697468
     {.size = 8192, .offset = 35565}, // 35565   0       65536   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                                     // {.size = 511, .offset = 1024},   // 35565   EINVAL  1024    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-                                     // {.size = 128, .offset = 4096},   // 35565   EINVAL  4096    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 511, .offset = 1024},   // 35565   EINVAL  1024    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 4096},   // 35565   EINVAL  4096    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 };
