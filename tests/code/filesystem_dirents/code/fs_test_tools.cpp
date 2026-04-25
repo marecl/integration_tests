@@ -8,6 +8,28 @@
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
+std::string val_or_err(s64 value) {
+  switch (value) {
+    default: return std::to_string(value);
+    case einval_int: return "EINVAL";
+    case enotty_int: return "ENOTTY";
+  }
+  return "WHATTHEFUCK";
+}
+
+// 1 on equal, <=0 on diff idx
+s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, s64 offset) {
+  if (tbr == 0) return 1;
+  const char* master_data = reinterpret_cast<const char*>(master) + offset;
+  const char* test_data   = reinterpret_cast<const char*>(test);
+
+  if (s64 idx = imemcmp(master_data, test_data, tbr); idx <= 0) {
+    // differing idx is negative
+    return idx;
+  }
+  return 1;
+}
+
 // 1 = equal, <=0 = diff idx
 // does not adhere to memcmp spec, i want differing indexes, not values!
 s64 imemcmp(const void* object, const void* reflection, s64 bytes) {

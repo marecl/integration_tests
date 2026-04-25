@@ -14,6 +14,7 @@
 #define UNSIGNED_INT_EQUALS(expected, actual)            UNSIGNED_LONGS_EQUAL_LOCATION((uint32_t)expected, (uint32_t)actual, NULLPTR, __FILE__, __LINE__)
 #define UNSIGNED_INT_EQUALS_TEXT(expected, actual, text) UNSIGNED_LONGS_EQUAL_LOCATION((uint32_t)expected, (uint32_t)actual, text, __FILE__, __LINE__)
 constexpr int einval_int = ORBIS_KERNEL_ERROR_EINVAL;
+constexpr int enotty_int = ORBIS_KERNEL_ERROR_ENOTTY;
 
 using s8  = int8_t;
 using s16 = int16_t;
@@ -31,6 +32,11 @@ typedef struct {
   s64 size;
   s64 offset;
 } spec_t;
+
+typedef struct {
+  s64 offset;
+  int whence;
+} offset_spec_t;
 
 typedef struct {
   s64 read_size;   // user-defined
@@ -69,6 +75,9 @@ int32_t touch(const std::string& path);
 bool    is_directory_relatives(const char* data);
 s64     imemcmp(const void* object, const void* reflection, s64 bytes);
 s64     fillcheck(const void* data, const u8 value, const u64 bytes);
+
+std::string val_or_err(s64 value);
+s64         compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, s64 offset);
 
 s64 validate_normal_dirent(const OrbisInternals::FolderDirent* dirent);
 s64 validate_pfs_read_dirent(const OrbisInternals::PfsDirent* dirent);

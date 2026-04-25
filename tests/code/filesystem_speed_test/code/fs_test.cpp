@@ -29,7 +29,7 @@ void testWrite(u64 base, u64 order, u64 multiples, const char* path) {
   u64 write_test_total  = 0;
   u8* write_test_buffer = new u8[write_test_chunk] {255};
 
-  char* size_str = "xB";
+  char size_str[3] = {'x', 'B', 0};
   switch (order) {
     case 0: size_str[0] = 'b'; break;
     case 1: size_str[0] = 'k'; break;
