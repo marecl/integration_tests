@@ -113,9 +113,12 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   spec->expected_errno        = 0;
 
   spec->expected_lseek = calculate_lseek(size, 0, offset, 0);
-  if (spec->expected_lseek < 0) spec->expected_errno = EINVAL;
+  if (spec->expected_lseek < 0) {
+    spec->expected_errno = EINVAL;
+  }
+  spec->expected_end_position = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
 
-  if (count == 0) {
+  if (count <= 0) {
     spec->expected_result = einval_int;
     spec->expected_errno  = EINVAL;
     return;
@@ -126,8 +129,6 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   s64 file_offset_down  = ALDN(offset, 512);
   s64 directory_size    = ALUP(size, 0x10000);
 
-  offset = spec->expected_errno == EINVAL ? previous_basep : spec->expected_lseek;
-
   // within the same sector, no 512b alignment inbetween
   if (apparent_end_down <= file_offset_down) {
     spec->expected_result       = s64(einval_int);
@@ -136,8 +137,8 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
     return;
   }
 
-  spec->expected_basep = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
   previous_basep       = spec->expected_basep;
+  spec->expected_basep = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
 
   if (offset >= size) {
     spec->expected_result       = 0;
@@ -194,9 +195,13 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, con
   spec->expected_errno        = 0;
 
   spec->expected_lseek = calculate_lseek(size, 0, offset, 0);
-  if (spec->expected_lseek < 0) spec->expected_errno = EINVAL;
+  if (spec->expected_lseek < 0) {
+    spec->expected_errno = EINVAL;
+  }
 
-  if (count == 0) {
+  spec->expected_end_position = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+
+  if (count < 0) {
     spec->expected_result = einval_int;
     spec->expected_errno  = EINVAL;
     return;
@@ -207,26 +212,27 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, con
 
   // within the same sector, no 512b alignment inbetween
   if (apparent_end_down <= ALDN(offset, 512)) {
-    spec->expected_result       = s64(einval_int);
-    spec->expected_end_position = offset;
-    spec->expected_errno        = EINVAL;
+    spec->expected_result = s64(einval_int);
+    // spec->expected_end_position = offset;
+    spec->expected_errno = EINVAL;
     return;
   }
 
-  spec->expected_basep = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
   previous_basep       = spec->expected_basep;
+  spec->expected_basep = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
 
   if (offset >= size) {
     // spec->expected_basep        = offset;
-    spec->expected_result       = 0;
-    spec->expected_end_position = offset;
-    spec->expected_errno        = 0;
+    spec->expected_result = 0;
+    // spec->expected_end_position = offset;
+    spec->expected_errno = 0;
     return;
   }
   // we can now assume that offset always includes some data
   s64 allowed_count           = std::min(apparent_end_down - offset, count);
+  allowed_count               = std::min(allowed_count, size - offset);
   spec->expected_result       = allowed_count;
-  spec->expected_end_position = static_cast<s64>(offset + allowed_count);
+  spec->expected_end_position = static_cast<s64>(spec->expected_basep + allowed_count);
 }
 
 s64 calculate_lseek(s64 directory_size, s64 file_offset, s64 offset, int whence) {
