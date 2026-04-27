@@ -238,10 +238,11 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, con
 s64 calculate_lseek(s64 directory_size, s64 file_offset, s64 offset, int whence) {
   // there's also whence 3,4 but we're not implementing that (yet?)
   // 3 and 4 return ENOTTY on some kind of error though
-  if (whence < 0 || whence > 2) return einval_int;
-  if ((directory_size + offset < 0)) return einval_int;
+  if (whence < 0 || whence > 4) return einval_int;
+  // if ((directory_size + offset < 0)) return einval_int;
 
-  s64 file_offset_new = ((0 == whence) * offset) + ((1 == whence) * (file_offset + offset)) + ((2 == whence) * (directory_size + offset));
+  s64 file_offset_new = ((0 == whence) * offset) + ((1 == whence) * (file_offset + offset)) + ((2 == whence) * (directory_size + offset)) +
+                        ((3 == whence) * (offset < directory_size ? offset : enxio_int)) + ((4 == whence) * directory_size);
   if (file_offset_new < 0) return einval_int;
 
   return file_offset_new;

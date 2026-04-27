@@ -69,7 +69,7 @@ void ResetErrorCounter(void);
 
 #define Log(...)                                                                                                                                               \
   {                                                                                                                                                            \
-    LogCustom(__FUNCTION__, false, "  [INFO]", ##__VA_ARGS__);                                                                                                   \
+    LogCustom(__FUNCTION__, false, "  [INFO]", ##__VA_ARGS__);                                                                                                 \
   }
 
 #define LogTest(...)                                                                                                                                           \

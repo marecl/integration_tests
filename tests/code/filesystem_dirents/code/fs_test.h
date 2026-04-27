@@ -15,6 +15,7 @@
 #define UNSIGNED_INT_EQUALS_TEXT(expected, actual, text) UNSIGNED_LONGS_EQUAL_LOCATION((uint32_t)expected, (uint32_t)actual, text, __FILE__, __LINE__)
 constexpr int einval_int = ORBIS_KERNEL_ERROR_EINVAL;
 constexpr int enotty_int = ORBIS_KERNEL_ERROR_ENOTTY;
+constexpr int enxio_int = ORBIS_KERNEL_ERROR_ENXIO;
 
 using s8  = int8_t;
 using s16 = int16_t;
@@ -29,7 +30,7 @@ using u64 = uint64_t;
 namespace OrbisInternals {
 
 typedef struct {
-  s64 size;
+  u64 size;
   s64 offset;
 } spec_t;
 

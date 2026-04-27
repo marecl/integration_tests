@@ -503,7 +503,7 @@ TEST(DirentTests, PFSLSeekFuzz) {
 
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = rand() % master_length * 2 - master_length;
-    int spec_whence = rand() % 4 - 1; // -1 to 2
+    int spec_whence = rand() % 6 - 1; // -1 to 4
 
     expected_offset = calculate_lseek(master_length, current_offset, spec_offset, spec_whence);
 
@@ -515,7 +515,7 @@ TEST(DirentTests, PFSLSeekFuzz) {
     }
 
     LogError("Size:", master_length, "Spec off:", spec_offset, "Spec whence:", spec_whence, "Start off:", previous_offset, "Expected off:", expected_offset,
-             "HW off:", hardware_offset);
+             "DUT off:", hardware_offset);
     ++failed_samples;
   }
 
@@ -553,7 +553,7 @@ TEST(DirentTests, NormalLSeekFuzz) {
 
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = rand() % master_length * 2 - master_length;
-    int spec_whence = rand() % 4 - 1; // -1 to 2
+    int spec_whence = rand() % 6 - 1; // -1 to 4
 
     expected_offset = calculate_lseek(master_length, current_offset, spec_offset, spec_whence);
     hardware_offset = sceKernelLseek(fd, spec_offset, spec_whence);
@@ -565,7 +565,7 @@ TEST(DirentTests, NormalLSeekFuzz) {
     }
 
     LogError("Size:", master_length, "Spec off:", spec_offset, "Spec whence:", spec_whence, "Start off:", previous_offset, "Expected off:", expected_offset,
-             "HW off:", hardware_offset);
+             "DUT off:", hardware_offset);
     ++failed_samples;
   }
 
@@ -607,7 +607,7 @@ TEST(DirentTests, PFSLSeekTests) {
     }
 
     LogError("Size:", master_length, "Spec off:", spec.offset, "Spec whence:", spec.whence, "Start off:", previous_offset, "Expected off:", expected_offset,
-             "HW off:", hardware_offset);
+             "DUT off:", hardware_offset);
   }
 
   sceKernelClose(fd);
@@ -641,7 +641,7 @@ TEST(DirentTests, NormalLSeekTests) {
     }
 
     LogError("Size:", master_length, "Spec off:", spec.offset, "Spec whence:", spec.whence, "Start off:", previous_offset, "Expected off:", expected_offset,
-             "HW off:", hardware_offset);
+             "DUT off:", hardware_offset);
   }
 
   sceKernelClose(fd);

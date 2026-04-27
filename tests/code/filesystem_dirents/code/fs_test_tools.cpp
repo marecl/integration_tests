@@ -13,6 +13,7 @@ std::string val_or_err(s64 value) {
     default: return std::to_string(value);
     case einval_int: return "EINVAL";
     case enotty_int: return "ENOTTY";
+    case enxio_int: return "ENXIO";
   }
   return "WHATTHEFUCK";
 }
@@ -92,7 +93,6 @@ s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
   if (dirent->d_namlen == 0) return -12;
   if (dirent->d_type == 0) return -13;
   if (dirent->d_reclen == 0) return -14;
-  if ((dirent->d_reclen & 0x03) != 0) return -15;
   if (dirent->d_reclen < 12 || dirent->d_reclen > 496) return -16;
   if (dirent->d_type > 15) return -17;
   if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -18;
