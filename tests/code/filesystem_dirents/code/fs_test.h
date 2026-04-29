@@ -13,9 +13,10 @@
 
 #define UNSIGNED_INT_EQUALS(expected, actual)            UNSIGNED_LONGS_EQUAL_LOCATION((uint32_t)expected, (uint32_t)actual, NULLPTR, __FILE__, __LINE__)
 #define UNSIGNED_INT_EQUALS_TEXT(expected, actual, text) UNSIGNED_LONGS_EQUAL_LOCATION((uint32_t)expected, (uint32_t)actual, text, __FILE__, __LINE__)
-constexpr int einval_int = ORBIS_KERNEL_ERROR_EINVAL;
-constexpr int enotty_int = ORBIS_KERNEL_ERROR_ENOTTY;
-constexpr int enxio_int = ORBIS_KERNEL_ERROR_ENXIO;
+constexpr int einval_int    = ORBIS_KERNEL_ERROR_EINVAL;
+constexpr int enotty_int    = ORBIS_KERNEL_ERROR_ENOTTY;
+constexpr int enxio_int     = ORBIS_KERNEL_ERROR_ENXIO;
+constexpr int eoverflow_int = ORBIS_KERNEL_ERROR_EOVERFLOW;
 
 using s8  = int8_t;
 using s16 = int16_t;
@@ -67,6 +68,8 @@ typedef struct {
   char d_name[256];
 } FolderDirent;
 } // namespace OrbisInternals
+
+s64 get_fuzz();
 
 bool    PrepareTests();
 void    RegenerateDir(const char* path);

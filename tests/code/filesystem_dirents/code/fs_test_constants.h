@@ -3,8 +3,8 @@
 
 #pragma once
 
-#define FUZZ_MAX_ITERATIONS 20
-#define FUZZ_MAX_FAILURES   10
+#define FUZZ_MAX_ITERATIONS 100000
+#define FUZZ_MAX_FAILURES   20
 
 constexpr s64 pfs_read_file_size_target   = 65536;
 constexpr s64 pfs_read_target             = 10656;

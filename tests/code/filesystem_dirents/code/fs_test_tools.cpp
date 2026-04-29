@@ -8,12 +8,17 @@
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
+s64 get_fuzz() {
+  return ((s64(rand()) << 32) | rand()) >> (rand() % 64);
+}
+
 std::string val_or_err(s64 value) {
   switch (value) {
     default: return std::to_string(value);
     case einval_int: return "EINVAL";
     case enotty_int: return "ENOTTY";
     case enxio_int: return "ENXIO";
+    case eoverflow_int: return "EOVERFLOW";
   }
   return "WHATTHEFUCK";
 }

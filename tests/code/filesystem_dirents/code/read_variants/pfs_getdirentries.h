@@ -37,10 +37,10 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
 
     // apparent end = offset + length before checking dirents
 
-    {.size = 0, .offset = 0},        // 0       EINVAL  0       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 128, .offset = 128},    // 0       EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 0, .offset = 0},        // 170     EINVAL  0       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 128},    // 170     EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 512, .offset = 1024},   // 1024    480     1504    280000002800081066696c656e616d65
-    {.size = 128, .offset = 128},    // 1024    EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 128},    // 170     EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 512, .offset = 0},      // 0       496     496     07000000180004012e00000000000000
     {.size = 512, .offset = 16},     // 16      472     488     03000000180004022e2e000000000000
     {.size = 512, .offset = 24},     // 24      472     496     03000000180004022e2e000000000000
@@ -103,6 +103,45 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
     {.size = 1024, .offset = 10000}, // 10000   648     65536   d30000004800083466696c6577697468
     {.size = 8192, .offset = 10000}, // 10000   648     65536   d30000004800083466696c6577697468
     {.size = 8192, .offset = 35565}, // 35565   0       65536   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 511, .offset = 1024},   // 35565   EINVAL  1024    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 128, .offset = 4096},   // 35565   EINVAL  4096    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 511, .offset = 1024},   // 170     EINVAL  1024    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 4096},   // 170     EINVAL  4096    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    //
+    {.size = 0xFFFFFFFFFFFFFFFF, .offset = 0}, //
+    {.size = 0xFFFFFFFFFFFFFFFE, .offset = 0}, //
+    {.size = 0xFFFFFFFFFFFFFF, .offset = 0},   //
+    {.size = 0xFFFFFFFFFFFFFE, .offset = 0},   //
+    {.size = 0xFFFFFFFFFFFF, .offset = 0},     //
+    {.size = 0xFFFFFFFFFFFE, .offset = 0},     //
+    {.size = 0xFFFFFFFFFF, .offset = 0},       //
+    {.size = 0xFFFFFFFFFE, .offset = 0},       //
+    {.size = 0xFFFFFFFF, .offset = 0},         //
+    {.size = 0xFFFFFFFE, .offset = 0},         //
+    {.size = 0xEFFFFFFF, .offset = 0},         //
+    {.size = 0xEFFFFFFE, .offset = 0},         //
+    {.size = 0xDFFFFFFF, .offset = 0},         //
+    {.size = 0xDFFFFFFE, .offset = 0},         //
+    {.size = 0xCFFFFFFF, .offset = 0},         //
+    {.size = 0xCFFFFFFE, .offset = 0},         //
+    {.size = 0xBFFFFFFF, .offset = 0},         //
+    {.size = 0xBFFFFFFE, .offset = 0},         //
+    {.size = 0xAFFFFFFF, .offset = 0},         //
+    {.size = 0xAFFFFFFE, .offset = 0},         //
+    {.size = 0xA0000000, .offset = 0},         //
+    {.size = 0x9FFFFFFF, .offset = 0},         //
+    {.size = 0x9FFFFFFE, .offset = 0},         //
+    {.size = 0x90000000, .offset = 0},         //
+    {.size = 0x8FFFFFFF, .offset = 0},         //
+    {.size = 0x8FFFFFFE, .offset = 0},         //
+    {.size = 0x80000000, .offset = 0},         //
+    {.size = 0x7FFFFFFF, .offset = 0},         //
+    {.size = 0x7FFFFFFE, .offset = 0},         //
+    {.size = 0x70000000, .offset = 0},         //
+    {.size = 0x6FFFFFFF, .offset = 0},         //
+    {.size = 0x6FFFFFFE, .offset = 0},         //
+    {.size = 0xFFFFFF, .offset = 0},           //
+    {.size = 0xFFFFFE, .offset = 0},           //
+    {.size = 0xFFFF, .offset = 0},             //
+    {.size = 0xFFFE, .offset = 0},             //
+    {.size = 0xFF, .offset = 0},               //
+    {.size = 0xFE, .offset = 0},               //
 };
