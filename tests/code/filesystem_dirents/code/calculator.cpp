@@ -101,10 +101,9 @@ s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
 }
 
 void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const char* buffer, s64 size, s64 offset, u64 count) {
-  static s64 previous_basep {0};
-
-  spec->read_size             = count;
-  spec->read_offset           = offset;
+  spec->read_size   = count;
+  spec->read_offset = offset;
+  //
   spec->expected_basep        = -1;
   spec->meta_dirent_start     = offset;
   spec->expected_result       = 0;
@@ -112,33 +111,32 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   spec->expected_errno        = 0;
 
   spec->expected_lseek        = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
-  spec->expected_end_position = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
-  offset                      = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
+  spec->expected_end_position = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  s64 new_offset              = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
 
   if (spec->read_size > __INT32_MAX__) {
     spec->expected_result       = s64(einval_int);
-    spec->expected_end_position = offset;
+    spec->expected_end_position = new_offset;
     spec->expected_errno        = EINVAL;
     return;
   }
 
-  s64 apparent_end      = offset + count;
+  s64 apparent_end      = new_offset + count;
   s64 apparent_end_down = ALDN(apparent_end, 512);
-  s64 file_offset_down  = ALDN(offset, 512);
+  s64 file_offset_down  = ALDN(new_offset, 512);
   s64 directory_size    = ALUP(size, 0x10000);
 
   // within the same sector, no 512b alignment inbetween
   if (apparent_end_down <= file_offset_down) {
     spec->expected_result       = s64(einval_int);
-    spec->expected_end_position = offset;
+    spec->expected_end_position = new_offset;
     spec->expected_errno        = EINVAL;
     return;
   }
 
-  previous_basep       = spec->expected_basep;
   spec->expected_basep = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
 
-  if (offset >= size) {
+  if (new_offset >= size) {
     spec->expected_result       = 0;
     spec->expected_end_position = directory_size;
     spec->expected_errno        = 0;
@@ -146,21 +144,21 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   }
   // we can now assume that offset always includes some data
 
-  s64 dirent_offset = nearest_dirent(buffer, size, offset);
+  s64 dirent_offset = nearest_dirent(buffer, size, new_offset);
 
   if (dirent_offset < 0) {
     // highly unlikely but you never know
-    spec->expected_basep        = previous_basep;
+    spec->expected_basep        = new_offset;
     spec->expected_result       = s64(einval_int);
-    spec->expected_end_position = spec->expected_lseek;
+    spec->expected_end_position = new_offset;
     spec->expected_errno        = EINVAL;
     return;
   };
   // LogError("True starting offset is at", dirent_offset);
 
   s64 bytes_written   = 0;
-  s64 buffer_position = offset;
-  s64 allowed_count   = std::min(u64(apparent_end_down - offset), count);
+  s64 buffer_position = new_offset;
+  s64 allowed_count   = std::min(u64(apparent_end_down - new_offset), count);
 
   while (bytes_written < allowed_count) {
     const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position + dirent_offset);
@@ -176,13 +174,11 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   spec->expected_errno        = 0;
   spec->meta_dirent_start     = offset + dirent_offset;
   spec->expected_result       = bytes_written;
-  spec->expected_end_position = ((buffer_position + dirent_offset) >= size) ? directory_size : static_cast<s64>(offset + bytes_written);
-  previous_basep              = spec->expected_lseek;
+  spec->expected_end_position = ((buffer_position + dirent_offset) >= size) ? directory_size : static_cast<s64>(new_offset + bytes_written);
+  spec->expected_errno        = 0;
 }
 
 void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, const char* buffer, s64 size, s64 offset, u64 count) {
-  static s64 previous_basep = 0;
-
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_basep        = -1; // DON'T TOUCH. getdirentries sets it after non-0 amount of data to read
@@ -193,41 +189,40 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, con
 
   spec->expected_lseek        = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
   spec->expected_end_position = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
-  offset                      = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  s64 new_offset              = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
 
   if (spec->read_size > __INT32_MAX__) {
     spec->expected_result       = s64(einval_int);
-    spec->expected_end_position = offset;
+    spec->expected_end_position = new_offset;
     spec->expected_errno        = EINVAL;
     return;
   }
 
-  s64 apparent_end      = offset + count;
+  s64 apparent_end      = new_offset + count;
   s64 apparent_end_down = ALDN(apparent_end, 512);
 
   // within the same sector, no 512b alignment inbetween
-  if (apparent_end_down <= ALDN(offset, 512)) {
+  if (apparent_end_down <= ALDN(new_offset, 512)) {
     spec->expected_result = s64(einval_int);
     // spec->expected_end_position = offset;
     spec->expected_errno = EINVAL;
     return;
   }
 
-  previous_basep       = spec->expected_basep;
-  spec->expected_basep = spec->expected_lseek >= 0 ? spec->expected_lseek : previous_basep;
+  spec->expected_basep = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
 
-  if (offset >= size) {
-    // spec->expected_basep        = offset;
-    spec->expected_result = 0;
-    // spec->expected_end_position = offset;
-    spec->expected_errno = 0;
+  if (new_offset >= size) {
+    spec->expected_result       = 0;
+    spec->expected_end_position = new_offset;
+    spec->expected_errno        = 0;
     return;
   }
   // we can now assume that offset always includes some data
-  s64 allowed_count           = std::min(u64(apparent_end_down - offset), count);
-  allowed_count               = std::min(allowed_count, size - offset);
+  s64 allowed_count           = std::min(u64(apparent_end_down - new_offset), count);
+  allowed_count               = std::min(allowed_count, size - new_offset);
   spec->expected_result       = allowed_count;
   spec->expected_end_position = static_cast<s64>(spec->expected_basep + allowed_count);
+  spec->expected_errno        = 0;
 }
 
 s64 calculate_lseek(s64 directory_size, s64 file_offset, s64 offset, int whence, int* errno_ret) {

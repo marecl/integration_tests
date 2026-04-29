@@ -133,8 +133,8 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
 
     if (calc.expected_basep != basep || calc.expected_result != tbr || calc.expected_end_position != end_ptr_position || calc.expected_errno != errno) {
-      LogError(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
-               val_or_err(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
+      LogError(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "\t->\t", basep, val_or_err(tbr), end_ptr_position, errno, "\t", to_hex_string(buffer, 16, ""));
       if (++failed_samples == FUZZ_MAX_FAILURES) {
         LogError("Failure limit reached");
         break;
@@ -193,8 +193,8 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
 
     if (calc.expected_basep != basep || calc.expected_result != tbr || calc.expected_end_position != end_ptr_position || calc.expected_errno != errno) {
-      LogError(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
-               val_or_err(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
+      LogError(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "\t->\t", basep, val_or_err(tbr), end_ptr_position, errno, "\t", to_hex_string(buffer, 16, ""));
       if (++failed_samples == FUZZ_MAX_FAILURES) {
         LogError("Failure limit reached");
         break;
@@ -212,90 +212,90 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
   Log("Failure rate%:", fail_rate, "(", failed_samples, "/", sample_num, "failed )");
 }
 
-// TEST(DirentTests, PFSGetdirentries) {
-//   LogTest("<<<< PFS getdirentries tests >>>>");
-//   // - on basep means "no change"
-//   int                   fd {};
-//   s64                   tbr {};
-//   char                  buffer[65536];
-//   char                  master_buffer[65536];
-//   const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
-//   oi::DirentCombination calc {};
-//   s64                   basep {};
-//   s64                   basep_canary {};
-//   s64                   end_ptr_position {};
+TEST(DirentTests, PFSGetdirentries) {
+  LogTest("<<<< PFS getdirentries tests >>>>");
+  // - on basep means "no change"
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   basep {};
+  s64                   basep_canary {};
+  s64                   end_ptr_position {};
 
-//   CHECK_EQUAL(pfs_getdirentries_target, master_length);
-//   LogTest("Master PFS getdirentries length is", master_length);
+  CHECK_EQUAL(pfs_getdirentries_target, master_length);
+  LogTest("Master PFS getdirentries length is", master_length);
 
-//   for (const auto& spec: pfs_dirent_variants) {
-//     memset(buffer, DEFAULT_8, 65536);
-//     basep        = DEFAULT_64;
-//     basep_canary = basep;
+  for (const auto& spec: pfs_dirent_variants) {
+    memset(buffer, DEFAULT_8, 65536);
+    basep        = DEFAULT_64;
+    basep_canary = basep;
 
-//     calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
+    calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
 
-//     fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
-//     sceKernelLseek(fd, calc.read_offset, 0);
-//     errno            = 0;
-//     tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
-//     end_ptr_position = sceKernelLseek(fd, 0, 1);
-//     sceKernelClose(fd);
+    fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
+    sceKernelLseek(fd, calc.read_offset, 0);
+    errno            = 0;
+    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
 
-//     LogTest(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
-//             val_or_err(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
+            val_or_err(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
 
-//     compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start);
+    compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start);
 
-//     CHECK_EQUAL_TEXT(calc.expected_basep == -1 ? basep_canary : calc.expected_basep, basep, "Bad starting position");
-//     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
-//     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
-//     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
-//   }
-// }
+    CHECK_EQUAL_TEXT(calc.expected_basep == -1 ? basep_canary : calc.expected_basep, basep, "Bad starting position");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
+  }
+}
 
-// TEST(DirentTests, NormalGetdirentries) {
-//   LogTest("<<<< Normal getdirentries tests >>>>");
+TEST(DirentTests, NormalGetdirentries) {
+  LogTest("<<<< Normal getdirentries tests >>>>");
 
-//   int                   fd {};
-//   s64                   tbr {};
-//   char                  buffer[65536];
-//   char                  master_buffer[65536];
-//   const s64             master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
-//   oi::DirentCombination calc {};
-//   s64                   basep {};
-//   s64                   basep_canary {};
-//   s64                   end_ptr_position {};
+  int                   fd {};
+  s64                   tbr {};
+  char                  buffer[65536];
+  char                  master_buffer[65536];
+  const s64             master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
+  oi::DirentCombination calc {};
+  s64                   basep {};
+  s64                   basep_canary {};
+  s64                   end_ptr_position {};
 
-//   CHECK_EQUAL(normal_getdirentries_target, master_length);
-//   LogTest("Master Normal getdirentries length is", master_length);
+  CHECK_EQUAL(normal_getdirentries_target, master_length);
+  LogTest("Master Normal getdirentries length is", master_length);
 
-//   for (const auto& spec: normal_dirent_variants) {
-//     memset(buffer, DEFAULT_8, 65536);
-//     basep        = DEFAULT_64;
-//     basep_canary = basep;
+  for (const auto& spec: normal_dirent_variants) {
+    memset(buffer, DEFAULT_8, 65536);
+    basep        = DEFAULT_64;
+    basep_canary = basep;
 
-//     calculate_normal_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
+    calculate_normal_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
 
-//     fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
-//     sceKernelLseek(fd, calc.read_offset, 0);
-//     errno            = 0;
-//     tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
-//     end_ptr_position = sceKernelLseek(fd, 0, 1);
-//     sceKernelClose(fd);
+    fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
+    sceKernelLseek(fd, calc.read_offset, 0);
+    errno            = 0;
+    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    end_ptr_position = sceKernelLseek(fd, 0, 1);
+    sceKernelClose(fd);
 
-//     LogTest(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
-//             val_or_err(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, "\t", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, "\t->\t", basep,
+            val_or_err(tbr), end_ptr_position, "\t", to_hex_string(buffer, 16, ""));
 
-//     compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start);
+    compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start);
 
-//     // "don't change basep". yes, getdirentries indeed can not write to basep
-//     CHECK_EQUAL_TEXT(calc.expected_basep == -1 ? basep_canary : calc.expected_basep, basep, "Bad starting position");
-//     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
-//     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
-//     CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
-//   }
-// }
+    // "don't change basep". yes, getdirentries indeed can not write to basep
+    CHECK_EQUAL_TEXT(calc.expected_basep == -1 ? basep_canary : calc.expected_basep, basep, "Bad starting position");
+    CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
+    CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
+    CHECK_EQUAL_TEXT(calc.expected_errno, errno, "Bad errno");
+  }
+}
 
 TEST(DirentTests, PFSReadFuzz) {
   LogTest("<<<< PFS read fuzzing test >>>>");
