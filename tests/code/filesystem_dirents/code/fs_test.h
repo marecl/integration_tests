@@ -41,7 +41,7 @@ typedef struct {
 } offset_spec_t;
 
 typedef struct {
-  s64 read_size;   // user-defined
+  u64 read_size;   // user-defined
   s64 read_offset; // user-defined
   // results, calculated:
   s64 expected_lseek;        // lseek result
