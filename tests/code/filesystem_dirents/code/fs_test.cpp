@@ -119,7 +119,7 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
   add_fd(fd);
 
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
-    s64 spec_offset = get_fuzz();
+    s64 spec_offset = get_fuzz() % (65536 + 1); // not too far or we might crash the console
     s64 spec_size   = rand() % (65536 + 1);
 
     memset(buffer, DEFAULT_8, 65536);

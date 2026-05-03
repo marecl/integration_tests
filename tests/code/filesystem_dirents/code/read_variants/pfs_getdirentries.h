@@ -105,22 +105,21 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
     {.size = 8192, .offset = 35565}, // 8192    35565   ->  35565   (35565) 0       65536   0   ->  35565   0       65536   0   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 511, .offset = 1024},   // 511     1024    ->  1       (1024)  EINVAL  1024    22  ->  170     EINVAL  1024    22  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 128, .offset = 4096},   // 128     4096    ->  1       (4096)  EINVAL  4096    22  ->  170     EINVAL  4096    22  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    // 1024 255 	-> 255 ( 256 ) 760 1015 0 	->	 255 760 1015 0 140000002800081066696c656e616d65
-    {.size = 1024, .offset = 0x00000000000000FF},
-    // 1024 65280 ->	 65280 ( 65280 ) 0 65536 0 	->	 65280 0 65536 0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 1024, .offset = 0x000000000000FF00},
-    // 1024 16711680 ->	 16711680 ( 16711680 ) 0 16711680 0 	->	 16711680 0 16711680 0 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 1024, .offset = 0x0000000000FF0000},
-    // 1024 4278190080 	-> 4278190080 ( 4278190080 ) 0 4278190080 0 	->	 4278190080 0 4278190080 0 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 1024, .offset = 0x00000000FF000000},
-    // 1024 1095216660480 	-> 1095216660480 ( 1095216660480 ) 0 1095216660480 0 	->	 1095216660480 0 1095216660480 0
+
+    // there is literally no point in testing those
+    // some of those cause something somewhere which may (or may not) crash the console
+    // for some reason only PFS has issues with these tests
+    // {.size = 1024, .offset = (s64(0xFF) << 0)},  // 1024 255 -> 255 (256) 760 1015 0 -> 255 760 1015 0 140000002800081066696c656e616d65
+    // {.size = 1024, .offset = (s64(0xFF) << 8)},  // 1024 65280 -> 65280 (65280) 0 65536 0 -> 65280 0 65536 0 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    // {.size = 1024, .offset = (s64(0xFF) << 16)}, // 1024 16711680 -> 16711680 (16711680) 0 16711680 0 -> 16711680 0 16711680 0
     // aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 1024, .offset = 0x000000FF00000000},
-    // 1024 280375465082880 ->	 280375465082880 ( 280375465082880 ) 0 280375465082880 0 	-> 280375465082880 0 280375465082880 0
-    // aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 1024, .offset = 0x0000FF0000000000},
-    // 1024 -72057594037927936 	 0 ( 0 ) 1016 1016 0 	->	 0 1016 1016 0 	 07000000180004012e00000000000000
-    {.size = 1024, .offset = 0x00FF000000000000},
-    // 1024 -72057594037927936 	 0 ( 0 ) 1016 1016 0 	->	 0 1016 1016 0 	 07000000180004012e00000000000000
-    {.size = 1024, .offset = s64(0xFF00000000000000)},
+    // {.size = 1024, .offset = (s64(0xFF) << 24)}, // 1024    4278190080          -> 4278190080 (4278190080)    0   4278190080  0 ->
+    //                                              // 4278190080          0 4278190080        0   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    // {.size = 1024, .offset = (s64(0xFF) << 32)}, // 1024    1095216660480       -> 1095216660480 (1095216660480) 0 1095216660480 0 ->
+    //                                              // 1095216660480       0 1095216660480     0   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    // {.size = 1024, .offset = (s64(0xFF) << 40)}, // 1024    280375465082880     -> 280375465082880 (280375465082880) 0 280375465082880 0 ->
+    //                                              // 280375465082880     0 280375465082880   0   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    // {.size = 1024, .offset = (s64(0xFF) << 48)}, // 1024    71776119061217280   -> 71776119061217280 (71776119061217280) 0 71776119061217280 0 ->
+    //                                              // 71776119061217280   0 71776119061217280 0   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    // {.size = 1024, .offset = (s64(0xFF) << 56)}, // 1024    -72057594037927936  -> 0 (0) 1016 1016 0 -> 0 1016 1016 0 07000000180004012e00000000000000
 };
