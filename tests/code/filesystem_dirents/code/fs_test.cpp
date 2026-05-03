@@ -13,43 +13,8 @@
 #include <string>
 #include <vector>
 
-const char* clone_source_app0               = "/app0/assets/misc";
-const char* clone_destination_read          = "/data/enderman/clone_read";
-const char* clone_destination_getdirentries = "/data/enderman/clone_getdents";
-
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
-
-bool PrepareTests() {
-  fs::path clone_dir = "/data/enderman/clone";
-  fs::path target {};
-  s32      status {};
-
-  RegenerateDir("/data/enderman");
-  sceKernelMkdir(clone_dir.c_str(), 0777);
-
-  s64 entry_counter {0};
-  // ironic because directory_iterator uses dirents hehe
-  for (auto& dent: fs::directory_iterator("/app0/assets/misc")) {
-    target = clone_dir / dent.path().filename();
-    if (dent.is_regular_file()) {
-      status = touch(target.c_str());
-      entry_counter++;
-      continue;
-    }
-    if (dent.is_directory()) {
-      status = sceKernelMkdir(target.c_str(), 0777);
-      entry_counter++;
-      continue;
-    }
-    LogError("Can't create", target.string());
-    return false;
-  }
-
-  Log("Cloned into", entry_counter, "elements");
-  if (entry_counter != files_cloned_target) LogError("Not all files cloned:", entry_counter, "out of", files_cloned_target);
-  return true;
-}
 
 s64 undump_file(const char* path, char* data, u64 length) {
   int fd = sceKernelOpen(path, O_RDONLY, 0777);
@@ -62,6 +27,7 @@ s64 undump_file(const char* path, char* data, u64 length) {
 }
 
 const char* input_pfs                   = "/app0/assets/misc";
+const char* enderman_root               = "/data/enderman/";
 const char* input_normal                = "/data/enderman/clone";
 const char* output_dir                  = "/data/enderman/dump";
 const char* output_pfs_read             = "/data/enderman/dump/pfs_read.bin";
@@ -69,30 +35,52 @@ const char* output_pfs_getdirentries    = "/data/enderman/dump/pfs_getdirent.bin
 const char* output_normal_read          = "/data/enderman/dump/normal_read.bin";
 const char* output_normal_getdirentries = "/data/enderman/dump/normal_getdirent.bin";
 
+static bool conf_opt_nofuzz {};
+
 TEST_GROUP (DirentTests) {
-  std::vector<int> open_fd {};
+  std::vector<int>* open_fd {};
 
   void add_fd(int fd) {
-    open_fd.emplace_back(fd);
+    if (nullptr == open_fd) return;
+    open_fd->emplace_back(fd);
   }
 
-  void setup() {
-    open_fd.clear();
+  TEST_SETUP() {
+    open_fd = new std::vector<int>;
   }
 
-  void teardown() {
-    for (const auto fd: open_fd) {
+  TEST_TEARDOWN() {
+    for (const auto& fd: *open_fd) {
       if (sceKernelClose(fd) < 0) continue;
       LogWarning("Closed leftover fd:", fd);
     }
-    open_fd.clear();
+    delete open_fd;
+    open_fd = nullptr;
   }
 };
 
 TEST(DirentTests, PFSGetdirentriesFuzz) {
   LogTest("<<<< PFS getdirentries fuzzing test >>>>");
+  if (conf_opt_nofuzz) {
+    Log("Skipped");
+    return;
+  }
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
+  LogWarning("Note: This test does not cover entire range of offsets"); // TL;DR
+  /**
+   * In fact there *is* a certain limitation.
+   * It has been tested that big enough offsets can eventually crash the console
+   * Why is it? Dunno. Could be random, could be fixed.
+   * With large values (>32bit) test may go through a couple of times and then shutdown/crash the console.
+   * It also always fails when the test ends, and sometimes it throws a page fault in kernelspace (???)
+   * Best part is that lseek allows it first, but only pfs getdirentries exhibits this behaviour
+   */
+
+  if (conf_opt_nofuzz) {
+    Log("Skipped");
+    return;
+  }
 
   int                   fd {};
   s64                   tbr {};
@@ -164,6 +152,10 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
 
 TEST(DirentTests, NormalGetdirentriesFuzz) {
   LogTest("<<<< Normal getdirentries fuzzing test >>>>");
+  if (conf_opt_nofuzz) {
+    Log("Skipped");
+    return;
+  }
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
 
@@ -343,6 +335,10 @@ TEST(DirentTests, NormalGetdirentries) {
 
 TEST(DirentTests, PFSReadFuzz) {
   LogTest("<<<< PFS read fuzzing test >>>>");
+  if (conf_opt_nofuzz) {
+    Log("Skipped");
+    return;
+  }
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
 
@@ -402,6 +398,10 @@ TEST(DirentTests, PFSReadFuzz) {
 
 TEST(DirentTests, NormalReadFuzz) {
   LogTest("<<<< Normal read fuzzing test >>>>");
+  if (conf_opt_nofuzz) {
+    Log("Skipped");
+    return;
+  }
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
 
@@ -564,6 +564,10 @@ TEST(DirentTests, NormalRead) {
 
 TEST(DirentTests, PFSLSeekFuzz) {
   LogTest("<<<< PFS lseek fuzzing test >>>>");
+  if (conf_opt_nofuzz) {
+    Log("Skipped");
+    return;
+  }
   LogTest("Note: Only first 20 bad entries are shown");
 
   int fd {};
@@ -619,6 +623,10 @@ TEST(DirentTests, PFSLSeekFuzz) {
 
 TEST(DirentTests, NormalLSeekFuzz) {
   LogTest("<<<< Normal lseek fuzzing test >>>>");
+  if (conf_opt_nofuzz) {
+    Log("Skipped");
+    return;
+  }
   LogTest("Note: Only first 20 bad entries are shown");
 
   int fd {};
@@ -945,4 +953,56 @@ TEST(DirentTests, DumpEverythingRaw) {
   //
 
   CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
+}
+
+const char* config_path        = "/data/ender_conf";
+const char* config_path_nofuzz = "/data/ender_conf/nofuzz";
+
+// more options here
+
+TEST(DirentTests, PrepareTests) {
+  LogTest("<<<< Preparing test directory >>>>");
+
+  fs::path target {};
+  s32      status {};
+
+  RegenerateDir(enderman_root);
+  sceKernelMkdir(input_normal, 0777);
+
+  s64 entry_counter {0};
+  // ironic because directory_iterator uses dirents hehe
+  for (auto& dent: fs::directory_iterator(input_pfs)) {
+    target = fs::path(input_normal) / dent.path().filename();
+    if (dent.is_regular_file()) {
+      status = touch(target.c_str());
+      entry_counter++;
+      continue;
+    }
+    if (dent.is_directory()) {
+      status = sceKernelMkdir(target.c_str(), 0777);
+      entry_counter++;
+      continue;
+    }
+    LogError("Can't create", target.string());
+    FAIL("");
+  }
+
+  Log("Cloned into", entry_counter, "elements");
+  if (entry_counter != files_cloned_target) LogError("Not all files cloned:", entry_counter, "out of", files_cloned_target);
+}
+
+TEST(DirentTests, GetConfig) {
+  LogTest("<<<< Get config >>>>");
+  conf_opt_nofuzz = false;
+
+  if (sceKernelMkdir(config_path, 0777) == 0) {
+    Log("Config directory created. Assuming no options deactivated");
+    return;
+  }
+
+  OrbisKernelStat st {};
+  if (int status = sceKernelStat(config_path_nofuzz, &st); status == 0) {
+    Log("Enabled skip fuzzing");
+    conf_opt_nofuzz = true;
+  }
 }

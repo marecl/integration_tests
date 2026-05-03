@@ -15,13 +15,6 @@ int main(int ac, char** av) {
   Log("<<<< TESTS START >>>>");
   Log();
 
-  // prepare files
-  if (!PrepareTests()) {
-    LogError("Can't setup tests");
-    sceSystemServiceLoadExec("EXIT", nullptr);
-    return 0;
-  }
-
   // Run file system tests
   int result = RUN_ALL_TESTS(ac, av);
 

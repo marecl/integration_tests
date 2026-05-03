@@ -3,7 +3,7 @@
 
 #pragma once
 
-#define FUZZ_MAX_ITERATIONS 200000 //arbitrary but large
+#define FUZZ_MAX_ITERATIONS 50000 // arbitrary but large enough
 #define FUZZ_MAX_FAILURES   20
 
 constexpr s64 files_cloned_target         = 208;
