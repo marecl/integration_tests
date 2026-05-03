@@ -15,6 +15,11 @@ int main(int ac, char** av) {
   Log("<<<< TESTS START >>>>");
   Log();
 
+  Log("<<<< Available config options >>>>");
+  Log("<<<< nofuzz - skip fuzzing tests");
+  Log("Create an entry in /data/ender_conf to activate");
+  Log();
+
   // Run file system tests
   int result = RUN_ALL_TESTS(ac, av);
 

@@ -26,6 +26,10 @@ s64 undump_file(const char* path, char* data, u64 length) {
   return tbr;
 }
 
+// config
+const char* config_path        = "/data/ender_conf";
+const char* config_path_nofuzz = "/data/ender_conf/nofuzz";
+// paths
 const char* input_pfs                   = "/app0/assets/misc";
 const char* enderman_root               = "/data/enderman/";
 const char* input_normal                = "/data/enderman/clone";
@@ -954,11 +958,6 @@ TEST(DirentTests, DumpEverythingRaw) {
 
   CHECK_EQUAL_ZERO(sceKernelClose(fd_read));
 }
-
-const char* config_path        = "/data/ender_conf";
-const char* config_path_nofuzz = "/data/ender_conf/nofuzz";
-
-// more options here
 
 TEST(DirentTests, PrepareTests) {
   LogTest("<<<< Preparing test directory >>>>");
