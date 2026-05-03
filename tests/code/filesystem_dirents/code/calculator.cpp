@@ -11,22 +11,24 @@ void calculate_pfs_read(OrbisInternals::DirentCombination* spec, const char* buf
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_lseek        = offset;
-  spec->expected_basep        = offset;
-  spec->meta_dirent_start     = offset; // unused here
+  spec->expected_basep        = -1;
+  spec->meta_dirent_start     = 0; // unused, always equal to lseek-calculated offset
   spec->expected_result       = 0;
   spec->expected_end_position = offset;
   spec->expected_errno        = 0;
 
-  spec->expected_lseek = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
-  s64 new_offset       = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  spec->expected_lseek    = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
+  s64 new_offset          = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  spec->expected_basep    = new_offset;
+  spec->meta_dirent_start = new_offset;
 
-  if (count > 0x7ffff000) {
-    spec->expected_basep        = new_offset;
-    spec->expected_result       = einval_int;
-    spec->expected_end_position = (new_offset >= 0) ? new_offset : 0;
-    spec->expected_errno        = EINVAL;
-    return;
-  }
+  // if (count > 0x7ffff000) {
+  //   spec->expected_basep        = new_offset;
+  //   spec->expected_result       = einval_int;
+  //   spec->expected_end_position = (new_offset >= 0) ? new_offset : 0;
+  //   spec->expected_errno        = EINVAL;
+  //   return;
+  // }
 
   spec->expected_errno = 0;
 
@@ -41,22 +43,24 @@ void calculate_normal_read(OrbisInternals::DirentCombination* spec, const char* 
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_lseek        = offset;
-  spec->expected_basep        = offset;
-  spec->meta_dirent_start     = offset; // unused here
+  spec->expected_basep        = -1;
+  spec->meta_dirent_start     = 0; // unused, always equal to lseek-calculated offset
   spec->expected_result       = 0;
   spec->expected_end_position = offset;
   spec->expected_errno        = 0;
 
-  spec->expected_lseek = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
-  s64 new_offset       = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  spec->expected_lseek    = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
+  s64 new_offset          = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  spec->expected_basep    = new_offset;
+  spec->meta_dirent_start = new_offset;
 
-  if (count > 0x7ffff000) {
-    spec->expected_basep        = new_offset;
-    spec->expected_result       = einval_int;
-    spec->expected_end_position = (new_offset >= 0) ? new_offset : 0;
-    spec->expected_errno        = EINVAL;
-    return;
-  }
+  // if (count > 0x7ffff000) {
+  //   spec->expected_basep        = new_offset;
+  //   spec->expected_result       = einval_int;
+  //   spec->expected_end_position = (new_offset >= 0) ? new_offset : 0;
+  //   spec->expected_errno        = EINVAL;
+  //   return;
+  // }
 
   if (offset > size) {
     spec->expected_lseek = new_offset;
@@ -95,13 +99,14 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_basep        = -1;
-  spec->meta_dirent_start     = offset;
+  spec->meta_dirent_start     = 0; // unused, always equal to lseek-calculated offset
   spec->expected_result       = 0;
   spec->expected_end_position = 0;
   spec->expected_errno        = 0;
 
-  spec->expected_lseek = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
-  s64 new_offset       = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  spec->expected_lseek    = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
+  s64 new_offset          = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  spec->meta_dirent_start = new_offset;
 
   s64 apparent_end      = new_offset + count;
   s64 apparent_end_down = ALDN(apparent_end, 512);
@@ -144,10 +149,8 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
     spec->expected_result       = 0;
     spec->expected_end_position = directory_size;
     spec->expected_errno        = 0;
-    // LogError("Dent notfnd");
     return;
   };
-  // LogError("True starting offset is at", dirent_offset);
 
   s64 bytes_written   = 0;
   s64 buffer_position = new_offset;
@@ -159,7 +162,6 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
     spec->expected_result       = 0;
     spec->expected_end_position = new_offset;
     spec->expected_errno        = 0;
-    // LogError("XCVAA");
     return;
   }
 
@@ -179,7 +181,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   }
 
   spec->expected_basep        = new_offset;
-  spec->meta_dirent_start     = offset + dirent_offset;
+  spec->meta_dirent_start     = new_offset + dirent_offset;
   spec->expected_result       = bytes_written;
   spec->expected_end_position = ((buffer_position + dirent_offset) >= size) ? directory_size : static_cast<s64>(new_offset + bytes_written);
   spec->expected_errno        = 0;
@@ -189,13 +191,14 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, con
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_basep        = -1; // DON'T TOUCH. getdirentries sets it after non-0 amount of data to read
-  spec->meta_dirent_start     = offset;
+  spec->meta_dirent_start     = 0;  // unused, always equal to lseek-calculated offset
   spec->expected_result       = 0;
   spec->expected_end_position = 0;
   spec->expected_errno        = 0;
 
   spec->expected_lseek        = calculate_lseek(size, 0, offset, 0, &spec->expected_errno);
   s64 new_offset              = spec->expected_lseek >= 0 ? spec->expected_lseek : 0;
+  spec->meta_dirent_start     = new_offset;
   spec->expected_end_position = new_offset;
 
   s64 apparent_end      = new_offset + count;
@@ -226,6 +229,8 @@ void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, con
 }
 
 s64 calculate_lseek(s64 directory_size, s64 file_offset, s64 offset, int whence, int* errno_ret) {
+  *errno_ret = 0;
+
   if (whence < 0 || whence > 4) {
     if (nullptr != errno_ret) *errno_ret = EINVAL;
     return einval_int;
@@ -233,9 +238,7 @@ s64 calculate_lseek(s64 directory_size, s64 file_offset, s64 offset, int whence,
   if (whence == 3 || whence == 4) {
     if (nullptr != errno_ret) *errno_ret = ENOTTY;
     return enotty_int;
-  } // N/A for directories
-    // if ((directory_size + offset < 0)) return einval_int;
-    // sometimes returns WHAT? (ORBIS_KERNEL_ERROR_EOVERFLOW)
+  }
 
   s64 target_offset {};
   s64 offset_modificator =            //((0 == whence)) * 0 +    // there are no other options really lol

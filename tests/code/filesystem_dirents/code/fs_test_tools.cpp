@@ -25,7 +25,15 @@ std::string val_or_err(s64 value) {
 
 // 1 on equal, <=0 on diff idx
 s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, s64 offset) {
-  if (tbr == 0) return 1;
+  if (buffer_size <= 0) return 1;
+  if (tbr <= 0) return 1;
+  if (offset < 0) return 1;
+  if (offset >= buffer_size) return 1;
+  if (offset + tbr > buffer_size) {
+    LogError("Partial comparsion possible:", buffer_size - offset, "/", tbr, "can be compared");
+    tbr = buffer_size - offset;
+  }
+
   const char* master_data = reinterpret_cast<const char*>(master) + offset;
   const char* test_data   = reinterpret_cast<const char*>(test);
 

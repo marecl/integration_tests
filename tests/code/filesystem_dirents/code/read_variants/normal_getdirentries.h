@@ -3,72 +3,80 @@
 #include <vector>
 
 std::vector<OrbisInternals::spec_t> normal_dirent_variants = {
-    {.size = 0, .offset = 0},        // 170     EINVAL  0       aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 128, .offset = 128},    // 170     EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 512, .offset = 1024},   // 1024    512     1536    48d40c011c00081066696c656e616d65
-    {.size = 128, .offset = 128},    // 170     EINVAL  128     aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 512, .offset = 0},      // 0       512     512     1cd40c010c0004012e00000019d40c01
-    {.size = 512, .offset = 16},     // 16      496     512     0c0004022e2e000020d40c010c000801
-    {.size = 512, .offset = 24},     // 24      488     512     20d40c010c0008016100000022d40c01
-    {.size = 512, .offset = 28},     // 28      484     512     0c0008016100000022d40c010c000802
-    {.size = 512, .offset = 32},     // 32      480     512     6100000022d40c010c00080261610000
-    {.size = 512, .offset = 40},     // 40      472     512     0c0008026161000023d40c010c000803
-    {.size = 512, .offset = 47},     // 47      465     512     0023d40c010c0008036161610024d40c
-    {.size = 512, .offset = 48},     // 48      464     512     23d40c010c0008036161610024d40c01
-    {.size = 512, .offset = 49},     // 49      463     512     d40c010c0008036161610024d40c0110
-    {.size = 512, .offset = 50},     // 50      462     512     0c010c0008036161610024d40c011000
-    {.size = 512, .offset = 51},     // 51      461     512     010c0008036161610024d40c01100008
-    {.size = 512, .offset = 52},     // 52      460     512     0c0008036161610024d40c0110000804
-    {.size = 512, .offset = 53},     // 53      459     512     0008036161610024d40c011000080461
-    {.size = 512, .offset = 54},     // 54      458     512     08036161610024d40c01100008046161
-    {.size = 512, .offset = 55},     // 55      457     512     036161610024d40c0110000804616161
-    {.size = 512, .offset = 56},     // 56      456     512     6161610024d40c011000080461616161
-    {.size = 512, .offset = 57},     // 57      455     512     61610024d40c01100008046161616100
-    {.size = 512, .offset = 64},     // 64      448     512     10000804616161610000000025d40c01
-    {.size = 512, .offset = 128},    // 128     384     512     28d40c011400080a6161616161616161
-    {.size = 512, .offset = 512},    // 512     512     1024    36d40c011c00081066696c656e616d65
-    {.size = 513, .offset = 0},      // 0       512     512     1cd40c010c0004012e00000019d40c01
-    {.size = 536, .offset = 0},      // 0       512     512     1cd40c010c0004012e00000019d40c01
-    {.size = 64, .offset = 1008},    // 1008    16      1024    78743331000000000000000000000000
-    {.size = 64, .offset = 1011},    // 1011    13      1024    31000000000000000000000000aaaaaa
-    {.size = 64, .offset = 1012},    // 1012    12      1024    000000000000000000000000aaaaaaaa
-    {.size = 64, .offset = 1015},    // 1015    9       1024    000000000000000000aaaaaaaaaaaaaa
-    {.size = 64, .offset = 1016},    // 1016    8       1024    0000000000000000aaaaaaaaaaaaaaaa
-    {.size = 64, .offset = 1017},    // 1017    7       1024    00000000000000aaaaaaaaaaaaaaaaaa
-    {.size = 80, .offset = 1015},    // 1015    9       1024    000000000000000000aaaaaaaaaaaaaa
-    {.size = 80, .offset = 1016},    // 1016    8       1024    0000000000000000aaaaaaaaaaaaaaaa
-    {.size = 80, .offset = 1017},    // 1017    7       1024    00000000000000aaaaaaaaaaaaaaaaaa
-    {.size = 1023, .offset = 0},     // 0       512     512     1cd40c010c0004012e00000019d40c01
-    {.size = 1024, .offset = 0},     // 0       1024    1024    1cd40c010c0004012e00000019d40c01
-    {.size = 1024, .offset = 511},   // 511     513     1024    0036d40c011c00081066696c656e616d
-    {.size = 1024, .offset = 512},   // 512     1024    1536    36d40c011c00081066696c656e616d65
-    {.size = 1024, .offset = 513},   // 513     1023    1536    d40c011c00081066696c656e616d6564
-    {.size = 1025, .offset = 513},   // 513     1023    1536    d40c011c00081066696c656e616d6564
-    {.size = 1026, .offset = 513},   // 513     1023    1536    d40c011c00081066696c656e616d6564
-    {.size = 256, .offset = 256},    // 256     256     512     000000002dd40c011c00081066696c65
-    {.size = 23, .offset = 511},     // 511     1       512     00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 24, .offset = 511},     // 511     1       512     00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 25, .offset = 511},     // 511     1       512     00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 8, .offset = 504},      // 504     8       512     7874313300000000aaaaaaaaaaaaaaaa
-    {.size = 16, .offset = 496},     // 496     16      512     6e616d65646f74657874313300000000
-    {.size = 24, .offset = 488},     // 488     24      512     1c00081066696c656e616d65646f7465
-    {.size = 48, .offset = 464},     // 464     48      512     66696c656e616d65646f746578743132
-    {.size = 64, .offset = 448},     // 448     64      512     787431310000000034d40c011c000810
-    {.size = 128, .offset = 384},    // 384     128     512     6e616d65646f74657874303900000000
-    {.size = 256, .offset = 256},    // 256     256     512     000000002dd40c011c00081066696c65
-    {.size = 511, .offset = 1},      // 1       511     512     d40c010c0004012e00000019d40c010c
-    {.size = 32, .offset = 4064},    // 4064    32      4096    676e616d653037000000000000000000
-    {.size = 64, .offset = 4064},    // 4064    32      4096    676e616d653037000000000000000000
-    {.size = 80, .offset = 4064},    // 4064    32      4096    676e616d653037000000000000000000
-    {.size = 112, .offset = 4064},   // 4064    32      4096    676e616d653037000000000000000000
-    {.size = 128, .offset = 4064},   // 4064    32      4096    676e616d653037000000000000000000
-    {.size = 256, .offset = 4064},   // 4064    32      4096    676e616d653037000000000000000000
-    {.size = 544, .offset = 4064},   // 4064    544     4608    676e616d653037000000000000000000
-    {.size = 1024, .offset = 0},     // 0       1024    1024    1cd40c010c0004012e00000019d40c01
-    {.size = 32, .offset = 480},     // 480     32      512     0000000035d40c011c00081066696c65
-    {.size = 1024, .offset = 10000}, // 10000   0       10000   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 8192, .offset = 10000}, // 10000   0       10000   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 8192, .offset = 35565}, // 35565   0       35565   aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 511, .offset = 1024},   // 170     EINVAL  1024    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-    {.size = 128, .offset = 4096},   // 170     EINVAL  4096    aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 0, .offset = 0},                          // 170               EINVAL  0                   22 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 128},                      // 170               EINVAL  128                 22 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 512, .offset = 1024},                     // 1024              512     1536                0 	 05d60c011c00081066696c656e616d65
+    {.size = 128, .offset = 128},                      // 170               EINVAL  128                 22 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 512, .offset = 0},                        // 0                 512     512                 0 	 ddd50c010c0004012e000000dad50c01
+    {.size = 512, .offset = 16},                       // 16                496     512                 0 	 0c0004022e2e0000ded50c010c000801
+    {.size = 512, .offset = 24},                       // 24                488     512                 0 	 ded50c010c00080161000000dfd50c01
+    {.size = 512, .offset = 28},                       // 28                484     512                 0 	 0c00080161000000dfd50c010c000802
+    {.size = 512, .offset = 32},                       // 32                480     512                 0 	 61000000dfd50c010c00080261610000
+    {.size = 512, .offset = 40},                       // 40                472     512                 0 	 0c00080261610000e0d50c010c000803
+    {.size = 512, .offset = 47},                       // 47                465     512                 0 	 00e0d50c010c00080361616100e1d50c
+    {.size = 512, .offset = 48},                       // 48                464     512                 0 	 e0d50c010c00080361616100e1d50c01
+    {.size = 512, .offset = 49},                       // 49                463     512                 0 	 d50c010c00080361616100e1d50c0110
+    {.size = 512, .offset = 50},                       // 50                462     512                 0 	 0c010c00080361616100e1d50c011000
+    {.size = 512, .offset = 51},                       // 51                461     512                 0 	 010c00080361616100e1d50c01100008
+    {.size = 512, .offset = 52},                       // 52                460     512                 0 	 0c00080361616100e1d50c0110000804
+    {.size = 512, .offset = 53},                       // 53                459     512                 0 	 00080361616100e1d50c011000080461
+    {.size = 512, .offset = 54},                       // 54                458     512                 0 	 080361616100e1d50c01100008046161
+    {.size = 512, .offset = 55},                       // 55                457     512                 0 	 0361616100e1d50c0110000804616161
+    {.size = 512, .offset = 56},                       // 56                456     512                 0 	 61616100e1d50c011000080461616161
+    {.size = 512, .offset = 57},                       // 57                455     512                 0 	 616100e1d50c01100008046161616100
+    {.size = 512, .offset = 64},                       // 64                448     512                 0 	 100008046161616100000000e2d50c01
+    {.size = 512, .offset = 128},                      // 128               384     512                 0 	 e5d50c011400080a6161616161616161
+    {.size = 512, .offset = 512},                      // 512               512     1024                0 	 f3d50c011c00081066696c656e616d65
+    {.size = 513, .offset = 0},                        // 0                 512     512                 0 	 ddd50c010c0004012e000000dad50c01
+    {.size = 536, .offset = 0},                        // 0                 512     512                 0 	 ddd50c010c0004012e000000dad50c01
+    {.size = 64, .offset = 1008},                      // 1008              16      1024                0 	 78743331000000000000000000000000
+    {.size = 64, .offset = 1011},                      // 1011              13      1024                0 	 31000000000000000000000000aaaaaa
+    {.size = 64, .offset = 1012},                      // 1012              12      1024                0 	 000000000000000000000000aaaaaaaa
+    {.size = 64, .offset = 1015},                      // 1015              9       1024                0 	 000000000000000000aaaaaaaaaaaaaa
+    {.size = 64, .offset = 1016},                      // 1016              8       1024                0 	 0000000000000000aaaaaaaaaaaaaaaa
+    {.size = 64, .offset = 1017},                      // 1017              7       1024                0 	 00000000000000aaaaaaaaaaaaaaaaaa
+    {.size = 80, .offset = 1015},                      // 1015              9       1024                0 	 000000000000000000aaaaaaaaaaaaaa
+    {.size = 80, .offset = 1016},                      // 1016              8       1024                0 	 0000000000000000aaaaaaaaaaaaaaaa
+    {.size = 80, .offset = 1017},                      // 1017              7       1024                0 	 00000000000000aaaaaaaaaaaaaaaaaa
+    {.size = 1023, .offset = 0},                       // 0                 512     512                 0 	 ddd50c010c0004012e000000dad50c01
+    {.size = 1024, .offset = 0},                       // 0                 1024    1024                0 	 ddd50c010c0004012e000000dad50c01
+    {.size = 1024, .offset = 511},                     // 511               513     1024                0 	 00f3d50c011c00081066696c656e616d
+    {.size = 1024, .offset = 512},                     // 512               1024    1536                0 	 f3d50c011c00081066696c656e616d65
+    {.size = 1024, .offset = 513},                     // 513               1023    1536                0 	 d50c011c00081066696c656e616d6564
+    {.size = 1025, .offset = 513},                     // 513               1023    1536                0 	 d50c011c00081066696c656e616d6564
+    {.size = 1026, .offset = 513},                     // 513               1023    1536                0 	 d50c011c00081066696c656e616d6564
+    {.size = 256, .offset = 256},                      // 256               256     512                 0 	 00000000ead50c011c00081066696c65
+    {.size = 23, .offset = 511},                       // 511               1       512                 0 	 00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 24, .offset = 511},                       // 511               1       512                 0 	 00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 25, .offset = 511},                       // 511               1       512                 0 	 00aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 8, .offset = 504},                        // 504               8       512                 0 	 7874313300000000aaaaaaaaaaaaaaaa
+    {.size = 16, .offset = 496},                       // 496               16      512                 0 	 6e616d65646f74657874313300000000
+    {.size = 24, .offset = 488},                       // 488               24      512                 0 	 1c00081066696c656e616d65646f7465
+    {.size = 48, .offset = 464},                       // 464               48      512                 0 	 66696c656e616d65646f746578743132
+    {.size = 64, .offset = 448},                       // 448               64      512                 0 	 7874313100000000f1d50c011c000810
+    {.size = 128, .offset = 384},                      // 384               128     512                 0 	 6e616d65646f74657874303900000000
+    {.size = 256, .offset = 256},                      // 256               256     512                 0 	 00000000ead50c011c00081066696c65
+    {.size = 511, .offset = 1},                        // 1                 511     512                 0 	 d50c010c0004012e000000dad50c010c
+    {.size = 32, .offset = 4064},                      // 4064              32      4096                0 	 676e616d653037000000000000000000
+    {.size = 64, .offset = 4064},                      // 4064              32      4096                0 	 676e616d653037000000000000000000
+    {.size = 80, .offset = 4064},                      // 4064              32      4096                0 	 676e616d653037000000000000000000
+    {.size = 112, .offset = 4064},                     // 4064              32      4096                0 	 676e616d653037000000000000000000
+    {.size = 128, .offset = 4064},                     // 4064              32      4096                0 	 676e616d653037000000000000000000
+    {.size = 256, .offset = 4064},                     // 4064              32      4096                0 	 676e616d653037000000000000000000
+    {.size = 544, .offset = 4064},                     // 4064              544     4608                0 	 676e616d653037000000000000000000
+    {.size = 1024, .offset = 0},                       // 0                 1024    1024                0 	 ddd50c010c0004012e000000dad50c01
+    {.size = 32, .offset = 480},                       // 480               32      512                 0 	 00000000f2d50c011c00081066696c65
+    {.size = 1024, .offset = 10000},                   // 10000             0       10000               0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 8192, .offset = 10000},                   // 10000             0       10000               0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 8192, .offset = 35565},                   // 35565             0       35565               0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 511, .offset = 1024},                     // 170               EINVAL  1024                22 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 128, .offset = 4096},                     // 170               EINVAL  4096                22 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 1024, .offset = 0x00000000000000FF},      // 255               769     1024                0 	 3400000000ead50c011c00081066696c
+    {.size = 1024, .offset = 0x000000000000FF00},      // 65280             0       65280               0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 1024, .offset = 0x0000000000FF0000},      // 16711680          0       16711680            0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 1024, .offset = 0x00000000FF000000},      // 4278190080        0       4278190080          0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 1024, .offset = 0x000000FF00000000},      // 1095216660480     0       1095216660480       0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 1024, .offset = 0x0000FF0000000000},      // 280375465082880   0       280375465082880     0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 1024, .offset = 0x00FF000000000000},      // 71776119061217280 0       71776119061217280   0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+    {.size = 1024, .offset = s64(0xFF00000000000000)}, // 0                 1024    1024                0 	 ddd50c010c0004012e000000dad50c01
 };
