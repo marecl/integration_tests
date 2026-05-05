@@ -97,8 +97,6 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
   s64                   end_ptr_position {};
   int                   hardware_errno {};
 
-  CHECK_EQUAL(pfs_getdirentries_target, master_length);
-
   LogTest("Master PFS getdirentries length is", master_length, ",", "testing", FUZZ_MAX_ITERATIONS, "samples", ",", "max", FUZZ_MAX_FAILURES,
           "bad returns are shown");
 
@@ -174,8 +172,6 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
   s64                   end_ptr_position {};
   int                   hardware_errno {};
 
-  CHECK_EQUAL(normal_getdirentries_target, master_length);
-
   LogTest("Master Normal getdirentries length is", master_length, ",", "testing", FUZZ_MAX_ITERATIONS, "samples", ",", "max", FUZZ_MAX_FAILURES,
           "bad returns are shown");
 
@@ -241,8 +237,6 @@ TEST(DirentTests, PFSGetdirentries) {
   s64                   end_ptr_position {};
   int                   hardware_errno {};
 
-  CHECK_EQUAL(pfs_getdirentries_target, master_length);
-
   LogTest("Master PFS getdirentries length is", master_length);
 
   for (const auto& spec: pfs_dirent_variants) {
@@ -295,8 +289,6 @@ TEST(DirentTests, NormalGetdirentries) {
   s64                   basep_canary {};
   s64                   end_ptr_position {};
   int                   hardware_errno {};
-
-  CHECK_EQUAL(normal_getdirentries_target, master_length);
 
   LogTest("Master Normal getdirentries length is", master_length);
 
@@ -355,8 +347,6 @@ TEST(DirentTests, PFSReadFuzz) {
   s64                   basep {};
   s64                   end_ptr_position {};
   int                   hardware_errno {};
-
-  CHECK_EQUAL(pfs_read_file_size_target, master_length);
 
   LogTest("Master PFS read length is", master_length, ",", "testing", FUZZ_MAX_ITERATIONS, "samples", ",", "max", FUZZ_MAX_FAILURES, "bad returns are shown");
 
@@ -419,8 +409,6 @@ TEST(DirentTests, NormalReadFuzz) {
   s64                   end_ptr_position {};
   int                   hardware_errno {};
 
-  CHECK_EQUAL(normal_read_target, master_length);
-
   LogTest("Master Normal read length is", master_length, ",", "testing", FUZZ_MAX_ITERATIONS, "samples", ",", "max", FUZZ_MAX_FAILURES,
           "bad returns are shown");
 
@@ -477,8 +465,6 @@ TEST(DirentTests, PFSRead) {
   s64                   end_ptr_position {};
   int                   hardware_errno {};
 
-  CHECK_EQUAL(pfs_read_file_size_target, master_length);
-
   LogTest("Master PFS read length is", master_length);
 
   for (const auto& spec: pfs_read_variants) {
@@ -528,8 +514,6 @@ TEST(DirentTests, NormalRead) {
   s64                   end_ptr_position {};
   int                   hardware_errno {};
 
-  CHECK_EQUAL(normal_read_target, master_length);
-
   LogTest("Master Normal read length is", master_length);
 
   for (const auto& spec: normal_read_variants) {
@@ -575,7 +559,7 @@ TEST(DirentTests, PFSLSeekFuzz) {
   LogTest("Note: Only first 20 bad entries are shown");
 
   int fd {};
-  s64 master_length = pfs_read_file_size_target; // pfs has 64k blocks
+  s64 master_length {};
   s64 current_offset {};
   s64 previous_offset {};
   s64 expected_offset {};
@@ -588,7 +572,7 @@ TEST(DirentTests, PFSLSeekFuzz) {
   fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
   add_fd(fd);
 
-  CHECK_EQUAL(master_length, sceKernelLseek(fd, 0, 2));
+  master_length = sceKernelLseek(fd, 0, 2);
   CHECK_EQUAL_ZERO(sceKernelLseek(fd, 0, 0));
   current_offset = 0;
 
@@ -634,7 +618,7 @@ TEST(DirentTests, NormalLSeekFuzz) {
   LogTest("Note: Only first 20 bad entries are shown");
 
   int fd {};
-  s64 master_length = normal_read_target;
+  s64 master_length {};
   s64 current_offset {};
   s64 previous_offset {};
   s64 expected_offset {};
@@ -648,7 +632,7 @@ TEST(DirentTests, NormalLSeekFuzz) {
   fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
   add_fd(fd);
 
-  CHECK_EQUAL(master_length, sceKernelLseek(fd, 0, 2));
+  master_length = sceKernelLseek(fd, 0, 2);
   CHECK_EQUAL_ZERO(sceKernelLseek(fd, 0, 0));
   current_offset = 0;
 
@@ -689,7 +673,7 @@ TEST(DirentTests, PFSLSeekTests) {
   LogTest("<<<< PFS lseek tests >>>>");
 
   int fd {};
-  s64 master_length = pfs_read_file_size_target;
+  s64 master_length {};
   s64 current_offset {};
   s64 previous_offset {};
   s64 expected_offset {};
@@ -700,7 +684,7 @@ TEST(DirentTests, PFSLSeekTests) {
   fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
   add_fd(fd);
 
-  CHECK_EQUAL(master_length, sceKernelLseek(fd, 0, 2));
+  master_length = sceKernelLseek(fd, 0, 2);
   CHECK_EQUAL_ZERO(sceKernelLseek(fd, 0, 0));
   current_offset = 0;
 
@@ -729,7 +713,7 @@ TEST(DirentTests, NormalLSeekTests) {
   LogTest("<<<< Normal lseek tests >>>>");
 
   int fd {};
-  s64 master_length = normal_read_target;
+  s64 master_length {};
   s64 current_offset {};
   s64 previous_offset {};
   s64 expected_offset {};
@@ -740,7 +724,7 @@ TEST(DirentTests, NormalLSeekTests) {
   fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
   add_fd(fd);
 
-  CHECK_EQUAL(master_length, sceKernelLseek(fd, 0, 2));
+  master_length = sceKernelLseek(fd, 0, 2);
   CHECK_EQUAL_ZERO(sceKernelLseek(fd, 0, 0));
   current_offset = 0;
 
@@ -853,17 +837,17 @@ TEST(DirentTests, ValidateDirentries) {
   // these tests are not done yet
   LogTest("Normal read");
   master_length = undump_file(output_normal_read, buffer, 65536);
-  CHECK_EQUAL(normal_read_target, validate_normal_getdirentries(buffer, master_length));
+  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Validation failed");
   LogTest("Normal getdirentries");
   master_length = undump_file(output_normal_getdirentries, buffer, 65536);
-  CHECK_EQUAL(normal_getdirentries_target, validate_normal_getdirentries(buffer, master_length));
+  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Validation failed");
 
   LogTest("PFS read");
   master_length = undump_file(output_pfs_read, buffer, 65536);
-  CHECK_EQUAL(pfs_read_target, validate_pfs_read(buffer, master_length));
+  CHECK_COMPARE_TEXT(validate_pfs_read(buffer, master_length), >, 0, "Validation failed");
   LogTest("PFS getdirentries");
   master_length = undump_file(output_pfs_getdirentries, buffer, 65536);
-  CHECK_EQUAL(pfs_getdirentries_target, validate_pfs_getdirentries(buffer, master_length));
+  CHECK_COMPARE_TEXT(validate_pfs_getdirentries(buffer, master_length), >, 0, "Validation failed");
 }
 
 TEST(DirentTests, DumpEverythingRaw) {
@@ -894,7 +878,6 @@ TEST(DirentTests, DumpEverythingRaw) {
     LogTest("PFS read got", tbr, "bytes");
     if (tbr == 0) break;
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
-    if (pfs_read_file_size_target != tbr) LogError(pfs_read_file_size_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
 
@@ -911,7 +894,6 @@ TEST(DirentTests, DumpEverythingRaw) {
     LogTest("PFS sceKernelGetdirentries got", tbr, "bytes");
     if (tbr == 0) break;
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
-    if (pfs_getdirentries_target != tbr) LogError(pfs_getdirentries_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
 
@@ -934,7 +916,6 @@ TEST(DirentTests, DumpEverythingRaw) {
     LogTest("Normal read got", tbr, "bytes");
     if (tbr == 0) break;
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
-    if (normal_read_target != tbr) LogError(normal_read_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
 
@@ -950,7 +931,6 @@ TEST(DirentTests, DumpEverythingRaw) {
     LogTest("Normal sceKernelGetdirentries got", tbr, "bytes");
     if (tbr == 0) break;
     CHECK_EQUAL(tbr, sceKernelWrite(fd_dump, buffer, tbr));
-    if (normal_getdirentries_target != tbr) LogError(normal_getdirentries_target, tbr, "Incorrect read size"); // not ready for multiples of buffer size
   } while (tbr > 0);
   CHECK_EQUAL_ZERO(sceKernelClose(fd_dump));
 

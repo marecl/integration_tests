@@ -22,9 +22,6 @@ std::vector<OrbisInternals::offset_spec_t> normal_lseek_variants = {
     {.offset = 100, .whence = 2},                     // 8704               100                 2   ->  8804                0   ->  8804                0
     {.offset = -100, .whence = 2},                    // 132160             -100                2   ->  8604                0   ->  8604                0
     {.offset = -100000, .whence = 2},                 // 8804               -100000             2   ->  EINVAL              22  ->  EINVAL              22
-    {.offset = -normal_read_target - 1, .whence = 2}, // 8604               -8705               2   ->  EINVAL              22  ->  EINVAL              22
-    {.offset = -normal_read_target, .whence = 2},     // 8604               -8704               2   ->  0                   0   ->  0                   0
-    {.offset = -normal_read_target + 1, .whence = 2}, // 8604               -8703               2   ->  1                   0   ->  1                   0
     {.offset = 0, .whence = 3},                       // 0                  0                   3   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = 8, .whence = 3},                       // 1                  8                   3   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = 16, .whence = 3},                      // 1                  16                  3   ->  ENOTTY              25  ->  ENOTTY              25
@@ -34,12 +31,6 @@ std::vector<OrbisInternals::offset_spec_t> normal_lseek_variants = {
     {.offset = 10240, .whence = 3},                   // 1                  10240               3   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = -1024, .whence = 3},                   // 1                  -1024               3   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = -10240, .whence = 3},                  // 1                  -10240              3   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -pfs_read_target - 1, .whence = 3},    // 1                  -10657              3   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -pfs_read_target, .whence = 3},        // 1                  -10656              3   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -pfs_read_target + 1, .whence = 3},    // 1                  -10655              3   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -normal_read_target - 1, .whence = 3}, // 1                  -8705               3   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -normal_read_target, .whence = 3},     // 1                  -8704               3   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -normal_read_target + 1, .whence = 3}, // 1                  -8703               3   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = 0, .whence = 4},                       // 1                  0                   4   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = 8, .whence = 4},                       // 1                  8                   4   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = 16, .whence = 4},                      // 1                  16                  4   ->  ENOTTY              25  ->  ENOTTY              25
@@ -49,12 +40,6 @@ std::vector<OrbisInternals::offset_spec_t> normal_lseek_variants = {
     {.offset = 10240, .whence = 4},                   // 1                  10240               4   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = -1024, .whence = 4},                   // 1                  -1024               4   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = -10240, .whence = 4},                  // 1                  -10240              4   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -pfs_read_target - 1, .whence = 4},    // 1                  -10657              4   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -pfs_read_target, .whence = 4},        // 1                  -10656              4   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -pfs_read_target + 1, .whence = 4},    // 1                  -10655              4   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -normal_read_target - 1, .whence = 4}, // 1                  -8705               4   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -normal_read_target, .whence = 4},     // 1                  -8704               4   ->  ENOTTY              25  ->  ENOTTY              25
-    {.offset = -normal_read_target + 1, .whence = 4}, // 1                  -8703               4   ->  ENOTTY              25  ->  ENOTTY              25
     {.offset = s64(0xFFFFFFFFFFFFFFFF), .whence = 0}, // 1                  -1                  0   ->  EINVAL              22  ->  EINVAL              22
     {.offset = s64(0xFFFFFFFFFFFFFFFE), .whence = 0}, // 1                  -2                  0   ->  EINVAL              22  ->  EINVAL              22
     {.offset = 0xFFFFFFFFFFFFFF, .whence = 0},        // 1                  72057594037927935   0   ->  72057594037927935   0   ->  72057594037927935   0

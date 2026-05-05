@@ -178,6 +178,7 @@ s64 validate_pfs_getdirentries_experimental(const oi::PfsDirent* dirent) {
 
 s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
   if (bytes < 0) return bytes;
+  if (data == nullptr) return -1;
 
   s64 offset       = 0;
   u32 current_size = 0;
@@ -187,13 +188,13 @@ s64 validate_normal_getdirentries(const char* data, const s64 bytes) {
     auto                    vstat  = validate_normal_dirent(dirent);
     if (vstat < 0) {
       LogError("VSTAT", "=", vstat);
-      break;
+      return vstat;
     }
 
     s64 next_alignment = ALUP(offset, 512);
     if ((offset + dirent->d_reclen) > next_alignment) {
       LogError("Dirent not aligned to 512 byte sector at", offset, "leaking", offset + dirent->d_reclen - next_alignment, "bytes");
-      break;
+      return -2;
     }
     offset += dirent->d_reclen;
   }
