@@ -66,7 +66,8 @@ s64 imemcmp(const void* object, const void* reflection, s64 bytes) {
   // longlong->byte conversion
   // worst case scenario 8 iterations
   for (idx <<= 3; idx < bytes; idx++) {
-    if (*(object_ptr8 + idx) != *(reflection_ptr8 + idx)) return -idx;
+    if (*(object_ptr8 + idx) == *(reflection_ptr8 + idx)) continue;
+    return -idx;
   }
 
   return 1;
@@ -106,7 +107,7 @@ s64 validate_normal_dirent(const oi::FolderDirent* dirent) {
   if (dirent->d_namlen == 0) return -12;
   if (dirent->d_type == 0) return -13;
   if (dirent->d_reclen == 0) return -14;
-  if (dirent->d_reclen < 12 || dirent->d_reclen > 496) return -16;
+  if (dirent->d_reclen < 12 || dirent->d_reclen > 512) return -16;
   if (dirent->d_type > 15) return -17;
   if (strnlen(dirent->d_name, 255) != dirent->d_namlen) return -18;
 

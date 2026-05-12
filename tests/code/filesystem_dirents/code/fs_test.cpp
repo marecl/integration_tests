@@ -137,7 +137,7 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
       LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
     }
   }
@@ -312,7 +312,7 @@ TEST(DirentTests, NormalGetdirentries) {
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
       LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
     }
 
@@ -371,7 +371,7 @@ TEST(DirentTests, PFSReadFuzz) {
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
       LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
     }
 
@@ -433,7 +433,7 @@ TEST(DirentTests, NormalReadFuzz) {
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
       LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
     }
 
@@ -485,7 +485,7 @@ TEST(DirentTests, PFSRead) {
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
       LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
     }
 
@@ -534,7 +534,7 @@ TEST(DirentTests, NormalRead) {
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
       LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
     }
 
@@ -837,17 +837,17 @@ TEST(DirentTests, ValidateDirentries) {
   // these tests are not done yet
   LogTest("Normal read");
   master_length = undump_file(output_normal_read, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Validation failed");
+  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Normal Read validation failed");
   LogTest("Normal getdirentries");
   master_length = undump_file(output_normal_getdirentries, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Validation failed");
+  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Normal getdirentries validation failed");
 
   LogTest("PFS read");
   master_length = undump_file(output_pfs_read, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_pfs_read(buffer, master_length), >, 0, "Validation failed");
+  CHECK_COMPARE_TEXT(validate_pfs_read(buffer, master_length), >, 0, "PFS read validation failed");
   LogTest("PFS getdirentries");
   master_length = undump_file(output_pfs_getdirentries, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_pfs_getdirentries(buffer, master_length), >, 0, "Validation failed");
+  CHECK_COMPARE_TEXT(validate_pfs_getdirentries(buffer, master_length), >, 0, "PFS getdirentries validation failed");
 }
 
 TEST(DirentTests, DumpEverythingRaw) {
