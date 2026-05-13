@@ -23,7 +23,11 @@ s64 undump_file(const char* path, std::vector<char>& data) {
   auto size = f.tellg();
   f.seekg(0, std::ios::beg);
   data.resize(size);
-  if (!f.read(data.data(), size)) return -1;
+  if (!f.read(data.data(), size)) {
+    f.close();
+    return -1;
+  }
+  f.close();
   return size;
 }
 
@@ -73,6 +77,9 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
   LogWarning("Note: This test does not cover entire range of offsets"); // TL;DR
+  LogWarning("Note: TL;DR console hard-crashes if offset is too high.");
+  LogWarning("Note: the exact value is yet to be found");
+
   /**
    * In fact there *is* a certain limitation.
    * It has been tested that big enough offsets can eventually crash the console
@@ -110,7 +117,7 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
   add_fd(fd);
 
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
-    s64 spec_offset = get_fuzz() % (master_length + 1); // not too far or we might crash the console
+    s64 spec_offset = get_fuzz() % (master_length + 1024); // not too far or we might crash the console
     s64 spec_size   = rand() % (master_length + 1);
 
     basep        = DEFAULT_64;
@@ -131,10 +138,13 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
-      if (failed_samples < FUZZ_MAX_FAILURES) continue;
+      if (++failed_samples > FUZZ_MAX_FAILURES) continue;
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
     if (calc.expected_basep != basep || calc.expected_result != tbr || calc.expected_end_position != end_ptr_position ||
         calc.expected_errno != hardware_errno) {
@@ -205,9 +215,13 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
-      if (failed_samples < FUZZ_MAX_FAILURES) LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (++failed_samples > FUZZ_MAX_FAILURES) continue;
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
+      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
 
     if (calc.expected_basep != basep || calc.expected_result != tbr || calc.expected_end_position != end_ptr_position ||
@@ -263,9 +277,12 @@ TEST(DirentTests, PFSGetdirentries) {
     //         calc.expected_end_position, calc.expected_errno, "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
 
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
@@ -317,9 +334,12 @@ TEST(DirentTests, NormalGetdirentries) {
     //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
 
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
@@ -378,12 +398,13 @@ TEST(DirentTests, PFSReadFuzz) {
     sceKernelClose(fd);
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
-      if (failed_samples < FUZZ_MAX_FAILURES) continue;
-      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (++failed_samples > FUZZ_MAX_FAILURES) continue;
       LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
                "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
+      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
@@ -445,12 +466,13 @@ TEST(DirentTests, NormalReadFuzz) {
     sceKernelClose(fd);
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
-      if (failed_samples < FUZZ_MAX_FAILURES) continue;
-      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (++failed_samples > FUZZ_MAX_FAILURES) continue;
       LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
                "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
+      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
@@ -502,9 +524,12 @@ TEST(DirentTests, PFSRead) {
     //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
@@ -553,9 +578,12 @@ TEST(DirentTests, NormalRead) {
     //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      if (s64 diff = master_length - calc.meta_dirent_start; diff > 0)
+        LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, diff < 32 ? diff : 32, ""));
+      if (tbr > 0) LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, tbr < 32 ? tbr : 32, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
@@ -776,6 +804,8 @@ s64 NormalComparator(const char* read, const char* getdirentries, u64 length) {
     const oi::FolderDirent* dirent_read          = reinterpret_cast<const oi::FolderDirent*>(read + offset);
     const oi::FolderDirent* dirent_getdirentries = reinterpret_cast<const oi::FolderDirent*>(getdirentries + offset);
 
+    if (validate_normal_dirent(dirent_read) < 0) break;
+    if (validate_normal_dirent(dirent_getdirentries) < 0) break;
     if (dirent_read->d_namlen != dirent_getdirentries->d_namlen) break;
     if (dirent_read->d_reclen != dirent_getdirentries->d_reclen) break;
     if (dirent_read->d_type != dirent_getdirentries->d_type) break;
@@ -786,7 +816,7 @@ s64 NormalComparator(const char* read, const char* getdirentries, u64 length) {
     entry_counter++;
   }
 
-  Log("Compared", entry_counter, "entries");
+  Log("Compared", entry_counter, "entries , length =", offset);
   return offset;
 }
 
@@ -815,6 +845,8 @@ s64 PFSComparator(const char* read, const char* getdirentries, u64 length) {
     const oi::PfsDirent*    dirent_read          = reinterpret_cast<const oi::PfsDirent*>(read + offset);
     const oi::FolderDirent* dirent_getdirentries = reinterpret_cast<const oi::FolderDirent*>(getdirentries + offset);
 
+    if (validate_pfs_read_dirent(dirent_read) < 0) break;
+    if (validate_pfs_getdirentries_dirent(dirent_getdirentries) < 0) break;
     if (dirent_read->d_namlen != dirent_getdirentries->d_namlen) break;
     if (dirent_read->d_reclen != dirent_getdirentries->d_reclen) break;
     // if (dirent_read->d_type != dirent_getdirentries->d_type) break;
@@ -825,7 +857,7 @@ s64 PFSComparator(const char* read, const char* getdirentries, u64 length) {
     entry_counter++;
   }
 
-  Log("Compared", entry_counter, "entries");
+  Log("Compared", entry_counter, "entries , length =", offset);
   return offset;
 }
 

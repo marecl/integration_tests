@@ -27,14 +27,13 @@ std::string val_or_err(s64 value) {
 s64 compare_data_dump(const fuck& master, const fuck& test, s64 tbr, s64 offset) {
   s64 buffer_size = master.size();
 
-  if (buffer_size <= 0) return 1;
   if (tbr <= 0) return 1;
-  if (offset < 0) return 1;
-  if (offset >= buffer_size) return 1;
+  if (offset < 0) return 0;
+  if (offset >= buffer_size) return 0;
   if (offset + tbr > buffer_size) {
-
-    LogError("Partial comparsion possible:", buffer_size - offset, "/", tbr, "can be compared");
-    tbr = buffer_size - offset;
+    return 0;
+    // LogError("Partial comparsion possible:", buffer_size - offset, "/", tbr, "can be compared");
+    // tbr = buffer_size - offset;
   }
 
   if (s64 idx = imemcmp(master.data() + offset, test.data(), tbr); idx <= 0) {
