@@ -30,6 +30,8 @@ using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
 
+using fuck = std::vector<char>;
+
 namespace OrbisInternals {
 
 typedef struct {
@@ -73,7 +75,6 @@ typedef struct {
 
 s64 get_fuzz();
 
-bool    PrepareTests();
 void    RegenerateDir(const char* path);
 void    Obliterate(const char* path);
 int32_t touch(const char* path);
@@ -82,8 +83,10 @@ bool    is_directory_relatives(const char* data);
 s64     imemcmp(const void* object, const void* reflection, s64 bytes);
 s64     fillcheck(const void* data, const u8 value, const u64 bytes);
 
+s64 get_stat_size(const char* path);
+
 std::string val_or_err(s64 value);
-s64         compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, s64 offset);
+s64         compare_data_dump(const fuck& master, const fuck& test, s64 tbr, s64 offset);
 
 s64 validate_normal_dirent(const OrbisInternals::FolderDirent* dirent);
 s64 validate_pfs_read_dirent(const OrbisInternals::PfsDirent* dirent);

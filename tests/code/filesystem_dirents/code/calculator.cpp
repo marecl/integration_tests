@@ -7,7 +7,7 @@
  * Those should simulate how PS4 handles maths
  */
 
-void calculate_pfs_read(OrbisInternals::DirentCombination* spec, const char* buffer, s64 size, s64 offset, u64 count) {
+void calculate_pfs_read(OrbisInternals::DirentCombination* spec, s64 size, s64 offset, u64 count) {
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_lseek        = offset;
@@ -39,7 +39,7 @@ void calculate_pfs_read(OrbisInternals::DirentCombination* spec, const char* buf
   spec->expected_end_position = spec->expected_basep + spec->expected_result;
 }
 
-void calculate_normal_read(OrbisInternals::DirentCombination* spec, const char* buffer, s64 size, s64 offset, u64 count) {
+void calculate_normal_read(OrbisInternals::DirentCombination* spec, s64 size, s64 offset, u64 count) {
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_lseek        = offset;
@@ -187,7 +187,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   spec->expected_errno        = 0;
 }
 
-void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, const char* buffer, s64 size, s64 offset, u64 count) {
+void calculate_normal_getdirentries(OrbisInternals::DirentCombination* spec, s64 size, s64 offset, u64 count) {
   spec->read_size             = count;
   spec->read_offset           = offset;
   spec->expected_basep        = -1; // DON'T TOUCH. getdirentries sets it after non-0 amount of data to read

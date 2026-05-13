@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -16,14 +17,14 @@
 namespace fs = std::filesystem;
 namespace oi = OrbisInternals;
 
-s64 undump_file(const char* path, char* data, u64 length) {
-  int fd = sceKernelOpen(path, O_RDONLY, 0777);
-  if (fd < 0) return fd;
-  memset(data, DEFAULT_8, length);
-  int tbr = sceKernelRead(fd, data, length);
-  if (tbr < 0) return tbr;
-  if (auto res = sceKernelClose(fd); res < 0) return res;
-  return tbr;
+s64 undump_file(const char* path, std::vector<char>& data) {
+  std::ifstream f(path, std::ios::binary);
+  f.seekg(0, std::ios::end);
+  auto size = f.tellg();
+  f.seekg(0, std::ios::beg);
+  data.resize(size);
+  if (!f.read(data.data(), size)) return -1;
+  return size;
 }
 
 // config
@@ -88,9 +89,9 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
 
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   basep_canary {};
@@ -109,36 +110,37 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
   add_fd(fd);
 
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
-    s64 spec_offset = get_fuzz() % (65536 + 1); // not too far or we might crash the console
-    s64 spec_size   = rand() % (65536 + 1);
+    s64 spec_offset = get_fuzz() % (master_length + 1); // not too far or we might crash the console
+    s64 spec_size   = rand() % (master_length + 1);
 
-    memset(buffer, DEFAULT_8, 65536);
     basep        = DEFAULT_64;
     basep_canary = basep;
 
-    calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec_offset, spec_size);
-    CHECK_COMPARE_TEXT(65536, >=, calc.expected_result, "Calculation attempted to overflow the buffer");
+    calculate_pfs_getdirentries(&calc, master_buffer.data(), master_length, spec_offset, spec_size);
+
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     sceKernelLseek(fd, calc.read_offset, 0);
     errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    tbr              = sceKernelGetdirentries(fd, buffer.data(), calc.read_size, &basep);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
 
     // -1 means no change
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
 
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      if (failed_samples < FUZZ_MAX_FAILURES) continue;
+      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
+      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+    }
     if (calc.expected_basep != basep || calc.expected_result != tbr || calc.expected_end_position != end_ptr_position ||
         calc.expected_errno != hardware_errno) {
       if (++failed_samples >= FUZZ_MAX_FAILURES) continue;
       LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
-    }
-
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
-      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     }
   }
 
@@ -163,9 +165,9 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
 
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_normal_getdirentries, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   basep_canary {};
@@ -181,19 +183,20 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
   s64 failed_samples {};
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = get_fuzz();
-    s64 spec_size   = rand() % (65536 + 1);
+    s64 spec_size   = rand() % (master_length + 1);
 
-    memset(buffer, DEFAULT_8, 65536);
     basep        = DEFAULT_64;
     basep_canary = basep;
 
-    calculate_normal_getdirentries(&calc, master_buffer, master_length, spec_offset, spec_size);
-    CHECK_COMPARE_TEXT(65536, >=, calc.expected_result, "Calculation attempted to overflow the buffer");
+    calculate_normal_getdirentries(&calc, master_length, spec_offset, spec_size);
+
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
     sceKernelLseek(fd, calc.read_offset, 0);
     errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    tbr              = sceKernelGetdirentries(fd, buffer.data(), calc.read_size, &basep);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
@@ -201,17 +204,17 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
     // -1 means no change
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
 
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      if (failed_samples < FUZZ_MAX_FAILURES) LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
+      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+    }
+
     if (calc.expected_basep != basep || calc.expected_result != tbr || calc.expected_end_position != end_ptr_position ||
         calc.expected_errno != hardware_errno) {
       if (++failed_samples >= FUZZ_MAX_FAILURES) continue;
       LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
-    }
-
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
-      LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     }
   }
 
@@ -228,9 +231,9 @@ TEST(DirentTests, PFSGetdirentries) {
   // -1 basep means "no change"
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_pfs_getdirentries, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   basep_canary {};
@@ -240,16 +243,18 @@ TEST(DirentTests, PFSGetdirentries) {
   LogTest("Master PFS getdirentries length is", master_length);
 
   for (const auto& spec: pfs_dirent_variants) {
-    memset(buffer, DEFAULT_8, 65536);
     basep        = DEFAULT_64;
     basep_canary = basep;
 
-    calculate_pfs_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
+    calculate_pfs_getdirentries(&calc, master_buffer.data(), master_length, spec.offset, spec.size);
+
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
     sceKernelLseek(fd, calc.read_offset, 0);
     errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    tbr              = sceKernelGetdirentries(fd, buffer.data(), calc.read_size, &basep);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
@@ -257,10 +262,10 @@ TEST(DirentTests, PFSGetdirentries) {
     // LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, "(", calc.meta_dirent_start, ")", val_or_err(calc.expected_result),
     //         calc.expected_end_position, calc.expected_errno, "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
 
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer.data() - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
     }
 
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
@@ -268,7 +273,7 @@ TEST(DirentTests, PFSGetdirentries) {
       continue;
 
     LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     CHECK_EQUAL_TEXT(calc.expected_basep == -1 ? basep_canary : calc.expected_basep, basep, "Bad starting position");
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
@@ -281,9 +286,9 @@ TEST(DirentTests, NormalGetdirentries) {
 
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_normal_getdirentries, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_normal_getdirentries, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   basep_canary {};
@@ -293,27 +298,28 @@ TEST(DirentTests, NormalGetdirentries) {
   LogTest("Master Normal getdirentries length is", master_length);
 
   for (const auto& spec: normal_dirent_variants) {
-    memset(buffer, DEFAULT_8, 65536);
     basep        = DEFAULT_64;
     basep_canary = basep;
 
-    calculate_normal_getdirentries(&calc, master_buffer, master_length, spec.offset, spec.size);
+    calculate_normal_getdirentries(&calc, master_length, spec.offset, spec.size);
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
     sceKernelLseek(fd, calc.read_offset, 0);
     errno            = 0;
-    tbr              = sceKernelGetdirentries(fd, buffer, calc.read_size, &basep);
+    tbr              = sceKernelGetdirentries(fd, buffer.data(), calc.read_size, &basep);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
     // LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-    //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+    //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
 
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
     }
 
     if (calc.expected_basep == -1) calc.expected_basep = basep_canary;
@@ -321,7 +327,7 @@ TEST(DirentTests, NormalGetdirentries) {
       continue;
 
     LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     CHECK_EQUAL_TEXT(calc.expected_basep == -1 ? basep_canary : calc.expected_basep, basep, "Bad starting position");
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
@@ -340,9 +346,9 @@ TEST(DirentTests, PFSReadFuzz) {
 
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_pfs_read, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_pfs_read, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   end_ptr_position {};
@@ -356,30 +362,35 @@ TEST(DirentTests, PFSReadFuzz) {
   s64 failed_samples {};
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = get_fuzz();
-    s64 spec_size   = rand() % (65536 + 1);
+    s64 spec_size   = rand() % (master_length + 1);
 
-    memset(buffer, DEFAULT_8, 65536);
-    calculate_pfs_read(&calc, master_buffer, master_length, spec_offset, spec_size);
+    calculate_pfs_read(&calc, master_length, spec_offset, spec_size);
+
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd               = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
     basep            = sceKernelLseek(fd, calc.read_offset, 0);
     errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    tbr              = sceKernelRead(fd, buffer.data(), calc.read_size);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      if (failed_samples < FUZZ_MAX_FAILURES) continue;
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
       continue;
     if (++failed_samples >= FUZZ_MAX_FAILURES) continue;
     LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
   }
 
   double fail_rate = 100.0f * failed_samples / sample_num;
@@ -401,9 +412,9 @@ TEST(DirentTests, NormalReadFuzz) {
 
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_normal_read, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_normal_read, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   end_ptr_position {};
@@ -418,30 +429,35 @@ TEST(DirentTests, NormalReadFuzz) {
   s64 failed_samples {};
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = get_fuzz();
-    s64 spec_size   = rand() % (65536 + 1);
+    s64 spec_size   = rand() % (master_length + 1);
 
-    memset(buffer, DEFAULT_8, 65536);
-    calculate_pfs_read(&calc, master_buffer, master_length, spec_offset, spec_size);
+    calculate_pfs_read(&calc, master_length, spec_offset, spec_size);
+
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd               = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
     basep            = sceKernelLseek(fd, calc.read_offset, 0);
     errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    tbr              = sceKernelRead(fd, buffer.data(), calc.read_size);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+      if (failed_samples < FUZZ_MAX_FAILURES) continue;
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
+      LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+               "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
       continue;
     if (++failed_samples >= FUZZ_MAX_FAILURES) continue;
     LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
   }
 
   double fail_rate = 100.0f * failed_samples / sample_num;
@@ -457,9 +473,9 @@ TEST(DirentTests, PFSRead) {
 
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_pfs_read, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_pfs_read, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   end_ptr_position {};
@@ -468,14 +484,16 @@ TEST(DirentTests, PFSRead) {
   LogTest("Master PFS read length is", master_length);
 
   for (const auto& spec: pfs_read_variants) {
-    memset(buffer, DEFAULT_8, 65536);
-    calculate_pfs_read(&calc, master_buffer, master_length, spec.offset, spec.size);
+    calculate_pfs_read(&calc, master_length, spec.offset, spec.size);
+
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
     sceKernelLseek(fd, calc.read_offset, 0);
     basep            = sceKernelLseek(fd, 0, 1);
     errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    tbr              = sceKernelRead(fd, buffer.data(), calc.read_size);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
@@ -483,17 +501,17 @@ TEST(DirentTests, PFSRead) {
     // LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
     //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
 
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
       continue;
 
     LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     CHECK_EQUAL_TEXT(calc.expected_basep, basep, "Bad starting position");
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
@@ -506,9 +524,9 @@ TEST(DirentTests, NormalRead) {
 
   int                   fd {};
   s64                   tbr {};
-  char                  buffer[65536];
-  char                  master_buffer[65536];
-  const s64             master_length = undump_file(output_normal_read, master_buffer, 65536);
+  fuck                  buffer;
+  fuck                  master_buffer;
+  const s64             master_length = undump_file(output_normal_read, master_buffer);
   oi::DirentCombination calc {};
   s64                   basep {};
   s64                   end_ptr_position {};
@@ -517,14 +535,16 @@ TEST(DirentTests, NormalRead) {
   LogTest("Master Normal read length is", master_length);
 
   for (const auto& spec: normal_read_variants) {
-    memset(buffer, DEFAULT_8, 65536);
-    calculate_normal_read(&calc, master_buffer, master_length, spec.offset, spec.size);
+    calculate_normal_read(&calc, master_length, spec.offset, spec.size);
+
+    buffer.resize(master_length);
+    std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
     sceKernelLseek(fd, calc.read_offset, 0);
     basep            = sceKernelLseek(fd, 0, 1);
     errno            = 0;
-    tbr              = sceKernelRead(fd, buffer, calc.read_size);
+    tbr              = sceKernelRead(fd, buffer.data(), calc.read_size);
     hardware_errno   = errno;
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
@@ -532,17 +552,17 @@ TEST(DirentTests, NormalRead) {
     // LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
     //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
 
-    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, master_length, tbr, calc.meta_dirent_start); diff_idx <= 0) {
+    if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError("Inconsistent read at/idx", calc.read_offset - diff_idx, -diff_idx);
-      LogError("Global dump:", to_hex_string(master_buffer + calc.meta_dirent_start - diff_idx, 32, ""));
-      LogError("Recent dump:", to_hex_string(buffer - diff_idx, 32, ""));
+      LogError("Global dump:", to_hex_string(master_buffer.data() + calc.meta_dirent_start - diff_idx, 32, ""));
+      LogError("Recent dump:", to_hex_string(buffer.data() - diff_idx, 32, ""));
     }
 
     if (calc.expected_basep == basep && calc.expected_result == tbr && calc.expected_end_position == end_ptr_position && calc.expected_errno == hardware_errno)
       continue;
 
     LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+             "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
     CHECK_EQUAL_TEXT(calc.expected_basep, basep, "Bad starting position");
     CHECK_EQUAL_TEXT(calc.expected_result, tbr, "Bad read size");
     CHECK_EQUAL_TEXT(calc.expected_end_position, end_ptr_position, "Bad pointer position after read");
@@ -772,18 +792,18 @@ s64 NormalComparator(const char* read, const char* getdirentries, u64 length) {
 
 TEST(DirentTests, Normal_Consistency) {
   LogTest("<<<< Normal read and getdirentries consistency >>>>");
-  Log("Note:", files_cloned_at_destination, "files are supposed to be compared");
+  Log("Note:", files_cloned_target + 2, "files are supposed to be compared");
 
-  char master_read[65536] {DEFAULT_CHR};
-  char master_getdirentries[65536] {DEFAULT_CHR};
+  fuck master_read;
+  fuck master_getdirentries;
 
-  auto master_read_size          = undump_file(output_normal_read, master_read, 65536);
-  auto master_getdirentries_size = undump_file(output_normal_getdirentries, master_getdirentries, 65536);
+  auto master_read_size          = undump_file(output_normal_read, master_read);
+  auto master_getdirentries_size = undump_file(output_normal_getdirentries, master_getdirentries);
 
-  if (auto res = NormalComparator(master_read, master_getdirentries, master_read_size); master_getdirentries_size != res) {
+  if (auto res = NormalComparator(master_read.data(), master_getdirentries.data(), master_read_size); master_getdirentries_size != res) {
     LogError("Normal read and getdirentries have a different dirent at", res, ":");
-    LogError("Normal Read:\t   ", to_hex_string(master_read + res, 24));
-    LogError("Normal Getdirentries: ", to_hex_string(master_read + res, 24));
+    LogError("Normal Read:\t   ", to_hex_string(master_read.data() + res, 24));
+    LogError("Normal Getdirentries: ", to_hex_string(master_read.data() + res, 24));
     FAIL("Normal read and getdirentries returned different amount of data");
   }
 }
@@ -811,43 +831,43 @@ s64 PFSComparator(const char* read, const char* getdirentries, u64 length) {
 
 TEST(DirentTests, PFS_Consistency) {
   LogTest("<<<< PFS read and getdirentries consistency >>>>");
-  Log("Note:", files_cloned_at_destination, "files are supposed to be compared");
+  Log("Note:", files_cloned_target + 2, "files are supposed to be compared");
   LogWarning("Note: This function does not translate d_type between PFS and user filesystems");
 
-  char master_read[65536] {DEFAULT_CHR};
-  char master_getdirentries[65536] {DEFAULT_CHR};
+  fuck master_read {DEFAULT_CHR};
+  fuck master_getdirentries {DEFAULT_CHR};
 
-  auto master_read_size          = undump_file(output_pfs_read, master_read, 65536);
-  auto master_getdirentries_size = undump_file(output_pfs_getdirentries, master_getdirentries, 65536);
+  auto master_read_size          = undump_file(output_pfs_read, master_read);
+  auto master_getdirentries_size = undump_file(output_pfs_getdirentries, master_getdirentries);
 
-  if (auto res = PFSComparator(master_read, master_getdirentries, 65536); master_getdirentries_size != res) {
+  if (auto res = PFSComparator(master_read.data(), master_getdirentries.data(), master_read_size); master_getdirentries_size != res) {
     LogError("PFS read and getdirentries have a different dirent at", res, ":");
-    LogError("PFS Read:\t   ", to_hex_string(master_read + res, 24));
-    LogError("PFS Getdirentries: ", to_hex_string(master_read + res, 24));
+    LogError("PFS Read:\t   ", to_hex_string(master_read.data() + res, 24));
+    LogError("PFS Getdirentries: ", to_hex_string(master_read.data() + res, 24));
     FAIL("PFS read and getdirentries returned different amount of data");
   }
 }
 
 TEST(DirentTests, ValidateDirentries) {
   LogTest("<<<< Dirent structure validation >>>>");
-  char buffer[65536];
+  fuck buffer;
   s64  master_length {};
   s64  offset {};
 
   // these tests are not done yet
   LogTest("Normal read");
-  master_length = undump_file(output_normal_read, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Normal Read validation failed");
+  master_length = undump_file(output_normal_read, buffer);
+  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer.data(), master_length), >, 0, "Normal Read validation failed");
   LogTest("Normal getdirentries");
-  master_length = undump_file(output_normal_getdirentries, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer, master_length), >, 0, "Normal getdirentries validation failed");
+  master_length = undump_file(output_normal_getdirentries, buffer);
+  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer.data(), master_length), >, 0, "Normal getdirentries validation failed");
 
   LogTest("PFS read");
-  master_length = undump_file(output_pfs_read, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_pfs_read(buffer, master_length), >, 0, "PFS read validation failed");
+  master_length = undump_file(output_pfs_read, buffer);
+  CHECK_COMPARE_TEXT(validate_pfs_read(buffer.data(), master_length), >, 0, "PFS read validation failed");
   LogTest("PFS getdirentries");
-  master_length = undump_file(output_pfs_getdirentries, buffer, 65536);
-  CHECK_COMPARE_TEXT(validate_pfs_getdirentries(buffer, master_length), >, 0, "PFS getdirentries validation failed");
+  master_length = undump_file(output_pfs_getdirentries, buffer);
+  CHECK_COMPARE_TEXT(validate_pfs_getdirentries(buffer.data(), master_length), >, 0, "PFS getdirentries validation failed");
 }
 
 TEST(DirentTests, DumpEverythingRaw) {

@@ -24,20 +24,20 @@ std::string val_or_err(s64 value) {
 }
 
 // 1 on equal, <=0 on diff idx
-s64 compare_data_dump(const void* master, const void* test, s64 buffer_size, s64 tbr, s64 offset) {
+s64 compare_data_dump(const fuck& master, const fuck& test, s64 tbr, s64 offset) {
+  s64 buffer_size = master.size();
+
   if (buffer_size <= 0) return 1;
   if (tbr <= 0) return 1;
   if (offset < 0) return 1;
   if (offset >= buffer_size) return 1;
   if (offset + tbr > buffer_size) {
+
     LogError("Partial comparsion possible:", buffer_size - offset, "/", tbr, "can be compared");
     tbr = buffer_size - offset;
   }
 
-  const char* master_data = reinterpret_cast<const char*>(master) + offset;
-  const char* test_data   = reinterpret_cast<const char*>(test);
-
-  if (s64 idx = imemcmp(master_data, test_data, tbr); idx <= 0) {
+  if (s64 idx = imemcmp(master.data() + offset, test.data(), tbr); idx <= 0) {
     // differing idx is negative
     return idx;
   }
@@ -271,6 +271,12 @@ void Obliterate(const char* path) {
 
   LogSuccess(">> rm -rf [", path, "] <<");
   return;
+}
+
+s64 get_stat_size(const char* path) {
+  OrbisKernelStat st {};
+  if (auto tmp = sceKernelStat(path, &st); tmp != 0) return tmp;
+  return st.st_size;
 }
 
 void RegenerateDir(const char* path) {

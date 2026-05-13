@@ -6,8 +6,9 @@
 #define FUZZ_MAX_ITERATIONS 50000 // arbitrary but large enough
 #define FUZZ_MAX_FAILURES   20
 
-constexpr s64 files_cloned_target         = 210;
-constexpr s64 files_cloned_at_destination = 212;
+constexpr s64 files_cloned_target = 530;
+
+constexpr u64 buffer_size = 65536 * 3;
 
 constexpr char DEFAULT_CHR = 'A';
 constexpr u8   DEFAULT_8   = 0xAA;
