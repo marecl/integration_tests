@@ -118,7 +118,7 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
 
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = get_fuzz() % (master_length + 1024); // not too far or we might crash the console
-    s64 spec_size   = rand() % (master_length + 1);
+    s64 spec_size   = rand() % (master_length + 1024);
 
     basep        = DEFAULT_64;
     basep_canary = basep;
@@ -193,14 +193,14 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
   s64 failed_samples {};
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = get_fuzz();
-    s64 spec_size   = rand() % (master_length + 1);
+    s64 spec_size   = rand() % (master_length + 1024);
 
     basep        = DEFAULT_64;
     basep_canary = basep;
 
     calculate_normal_getdirentries(&calc, master_length, spec_offset, spec_size);
 
-    buffer.resize(master_length);
+    buffer.resize(spec_size);
     std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
@@ -319,6 +319,7 @@ TEST(DirentTests, NormalGetdirentries) {
     basep_canary = basep;
 
     calculate_normal_getdirentries(&calc, master_length, spec.offset, spec.size);
+
     buffer.resize(master_length);
     std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
@@ -382,11 +383,11 @@ TEST(DirentTests, PFSReadFuzz) {
   s64 failed_samples {};
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = get_fuzz();
-    s64 spec_size   = rand() % (master_length + 1);
+    s64 spec_size   = rand() % (master_length + 1024);
 
     calculate_pfs_read(&calc, master_length, spec_offset, spec_size);
 
-    buffer.resize(master_length);
+    buffer.resize(spec_size);
     std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd               = sceKernelOpen(input_pfs, O_DIRECTORY, 0777);
@@ -450,11 +451,11 @@ TEST(DirentTests, NormalReadFuzz) {
   s64 failed_samples {};
   for (sample_num = 0; sample_num < FUZZ_MAX_ITERATIONS; sample_num++) {
     s64 spec_offset = get_fuzz();
-    s64 spec_size   = rand() % (master_length + 1);
+    s64 spec_size   = rand() % (master_length + 1024);
 
     calculate_pfs_read(&calc, master_length, spec_offset, spec_size);
 
-    buffer.resize(master_length);
+    buffer.resize(spec_size);
     std::fill(buffer.begin(), buffer.end(), DEFAULT_8);
 
     fd               = sceKernelOpen(input_normal, O_DIRECTORY, 0777);
