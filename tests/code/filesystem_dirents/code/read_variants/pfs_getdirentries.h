@@ -106,6 +106,14 @@ std::vector<OrbisInternals::spec_t> pfs_dirent_variants = {
     {.size = 511, .offset = 1024},   // 511     1024    ->  1       (1024)  EINVAL  1024    22  ->  170     EINVAL  1024    22  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 128, .offset = 4096},   // 128     4096    ->  1       (4096)  EINVAL  4096    22  ->  170     EINVAL  4096    22  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
+    {.size = 1024, .offset = 65000}, //
+    {.size = 1024, .offset = 65023}, //
+    {.size = 1024, .offset = 65024}, //
+    {.size = 1024, .offset = 65025}, //
+    {.size = 1024, .offset = 70123}, //
+    {.size = 1024, .offset = 92616}, //
+    {.size = 1024, .offset = 92544}, //
+
     // there is literally no point in testing those
     // some of those cause something somewhere which may (or may not) crash the console
     // for some reason only PFS has issues with these tests

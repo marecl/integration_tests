@@ -79,4 +79,12 @@ std::vector<OrbisInternals::spec_t> normal_dirent_variants = {
     {.size = 1024, .offset = 0x0000FF0000000000},      // 280375465082880   0       280375465082880     0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 1024, .offset = 0x00FF000000000000},      // 71776119061217280 0       71776119061217280   0 	 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 1024, .offset = s64(0xFF00000000000000)}, // 0                 1024    1024                0 	 ddd50c010c0004012e000000dad50c01
+
+    {.size = 1024, .offset = 65000}, //
+    {.size = 1024, .offset = 65023}, //
+    {.size = 1024, .offset = 65024}, //
+    {.size = 1024, .offset = 65025}, //
+    {.size = 1024, .offset = 70123}, //
+    {.size = 1024, .offset = 92616}, //
+    {.size = 1024, .offset = 92544}, //
 };

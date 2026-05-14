@@ -273,8 +273,9 @@ TEST(DirentTests, PFSGetdirentries) {
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    // LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, "(", calc.meta_dirent_start, ")", val_or_err(calc.expected_result),
-    //         calc.expected_end_position, calc.expected_errno, "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, "(", calc.meta_dirent_start, ")", val_or_err(calc.expected_result),
+            calc.expected_end_position, calc.expected_errno, "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno,
+            to_hex_string(buffer.data(), 16, ""));
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
@@ -521,8 +522,8 @@ TEST(DirentTests, PFSRead) {
     end_ptr_position = sceKernelLseek(fd, 0, 1);
     sceKernelClose(fd);
 
-    // LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
-    //         "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer, 16, ""));
+    LogTest(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,
+            "->", basep, val_or_err(tbr), end_ptr_position, hardware_errno, to_hex_string(buffer.data(), 16, ""));
 
     if (s64 diff_idx = compare_data_dump(master_buffer, buffer, tbr, calc.meta_dirent_start); diff_idx <= 0) {
       LogError(calc.read_size, calc.read_offset, "->", calc.expected_basep, val_or_err(calc.expected_result), calc.expected_end_position, calc.expected_errno,

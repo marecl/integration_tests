@@ -153,7 +153,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   };
 
   s64 bytes_written   = 0;
-  s64 buffer_position = new_offset;
+  s64 buffer_position = dirent_offset; // this is independent from descriptor offset
   s64 allowed_count   = std::min(apparent_end_down - new_offset, s64(count));
   allowed_count       = std::min(allowed_count, size - new_offset);
 
@@ -165,13 +165,17 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
     return;
   }
 
-  while (bytes_written < allowed_count) {
-    const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position + dirent_offset);
+  while (buffer_position < size) {
+    const OrbisInternals::FolderDirent* pfs_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + buffer_position);
+
     if ((bytes_written + pfs_dirent->d_reclen) > allowed_count) {
       break;
     }
+
     if (pfs_dirent->d_reclen == 0) {
-      break;
+      // we're probably in the transition zone between sectors
+      buffer_position = nearest_dirent(buffer, size, buffer_position);
+      continue;
     }
 
     // reclen for both is the same despite difference in var sizes, extra 0s are padded after

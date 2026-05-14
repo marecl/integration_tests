@@ -25,4 +25,12 @@ std::vector<OrbisInternals::spec_t> normal_read_variants = {
     {.size = 1024, .offset = 8000},  // 1024    8000    ->  8000    704     8704    ->  8000    704     8704    ->  78d70c014000083466696c6577697468
     {.size = 1024, .offset = 10000}, // 1024    10000   ->  10000   0       10000   ->  10000   0       10000   ->  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     {.size = 4096, .offset = 10000}, // 4096    10000   ->  10000   0       10000   ->  10000   0       10000   ->  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+    {.size = 1024, .offset = 65000}, //
+    {.size = 1024, .offset = 65023}, //
+    {.size = 1024, .offset = 65024}, //
+    {.size = 1024, .offset = 65025}, //
+    {.size = 1024, .offset = 70123}, //
+    {.size = 1024, .offset = 92616}, //
+    {.size = 1024, .offset = 92544}, //
 };
