@@ -1,0 +1,77 @@
+[0m[        main        ]   [INFO][0m
+[0m[        main        ]   [INFO] <<<< TESTS START >>>>[0m
+[0m[        main        ]   [INFO][0m
+[0m[        main        ]   [INFO] <<<< Available config options >>>>[0m
+[0m[        main        ]   [INFO] <<<< nofuzz            skip fuzzing tests[0m
+[0m[        main        ]   [INFO] <<<< noread            skip read[0m
+[0m[        main        ]   [INFO] <<<< nogetdirentries   skip getdirentries[0m
+[0m[        main        ]   [INFO] <<<< nonormal          skip normal FS[0m
+[0m[        main        ]   [INFO] <<<< nopfs             skip PFS[0m
+[0m[        main        ]   [INFO] <<<< nolseek           skip lseek[0m
+[0m[        main        ]   [INFO] Create an entry in /data/ender_conf to activate[0m
+[0m[        main        ]   [INFO][0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Get config >>>>[0m
+[0m[      testBody      ]   [INFO] Enabled skip fuzzing[0m
+[0m[      testBody      ]   [INFO] Enabled skip read[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Preparing test directory >>>>[0m
+[0m[     Obliterate     ]   [INFO] << rm -rf [ /data/enderman/ ] >>[0m
+[0m[     Obliterate     ] [1m [32m [SUCC] [0m >> rm -rf [ /data/enderman/ ] <<[0m
+[0m[      testBody      ]   [INFO] Cloned into 530 elements[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Dump everything >>>>[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS read got 65536 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS read got 65536 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS read got 0 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS sceKernelGetdirentries got 65456 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS sceKernelGetdirentries got 16960 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS sceKernelGetdirentries got 0 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal read got 65536 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal read got 16384 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal read got 0 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal sceKernelGetdirentries got 65536 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal sceKernelGetdirentries got 16384 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal sceKernelGetdirentries got 0 bytes[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Dirent structure validation >>>>[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal read[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Normal getdirentries[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS read[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m PFS getdirentries[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< PFS read and getdirentries consistency >>>>[0m
+[0m[      testBody      ]   [INFO] Note: 532 files are supposed to be compared[0m
+[0m[      testBody      ] [1m [33m [WARN] [0m Note: This function does not translate d_type between PFS and user filesystems[0m ( /home/user/github/integration_tests/tests/code/filesystem_dirents/code/log.h:71 )
+[0m[   PFSComparator    ]   [INFO] Compared 532 entries , length read = 82496 , getdirentries = 82416[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Normal read and getdirentries consistency >>>>[0m
+[0m[      testBody      ]   [INFO] Note: 532 files are supposed to be compared[0m
+[0m[  NormalComparator  ]   [INFO] Compared 532 entries , length = 81920[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Normal lseek tests >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< PFS lseek tests >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Normal lseek fuzzing test >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< PFS lseek fuzzing test >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Normal read tests >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< PFS read tests >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Normal read fuzzing test >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< PFS read fuzzing test >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Normal getdirentries tests >>>>[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Master Normal getdirentries length is 81920[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< PFS getdirentries tests >>>>[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m Master PFS getdirentries length is 82416[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m 0 0 -> -1 ( 0 ) EINVAL 0 22 -> 170 EINVAL 0 22 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m 128 128 -> -1 ( 128 ) EINVAL 128 22 -> 170 EINVAL 128 22 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m 512 1024 -> 1024 ( 1168 ) 0 1024 0 -> 1024 448 1472 0 11000000e00008cd5468697346696c65[0m
+[0m[      testBody      ] [1m [31m [FAIL] [0m 512 1024 -> 1024 0 1024 0 -> 1024 448 1472 0 11000000e00008cd5468697346696c65[0m ( /home/user/github/integration_tests/tests/code/filesystem_dirents/code/log.h:71 )
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< Normal getdirentries fuzzing test >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[      testBody      ] [1m [34m [TEST] [0m <<<< PFS getdirentries fuzzing test >>>>[0m
+[0m[      testBody      ]   [INFO] Skipped[0m
+[0m[        main        ]   [INFO][0m
+[0m[        main        ]   [INFO] <<<< TESTS END >>>>[0m
+[0m[        main        ]   [INFO][0m

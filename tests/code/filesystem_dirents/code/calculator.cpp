@@ -86,7 +86,7 @@ s64 nearest_dirent(const char* buffer, s64 size, s64 offset) {
   for (s64 out_offset = offset_adj; out_offset <= offset_adj + max_advance; out_offset += 8) {
     const OrbisInternals::FolderDirent* tested_dirent = reinterpret_cast<const OrbisInternals::FolderDirent*>(buffer + out_offset);
     status                                            = validate_pfs_getdirentries_dirent(tested_dirent);
-
+    if (status == 0) continue;
     if (status < 0) continue;
 
     return out_offset - offset;
@@ -143,7 +143,7 @@ void calculate_pfs_getdirentries(OrbisInternals::DirentCombination* spec, const 
   // we can now assume that offset is always smaller than size
   s64 dirent_offset = nearest_dirent(buffer, size, new_offset);
 
-  if (dirent_offset < 0) {
+  if (dirent_offset == directory_size) {
     // highly unlikely but you never know
     spec->expected_basep        = new_offset;
     spec->expected_result       = 0;

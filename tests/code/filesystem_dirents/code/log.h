@@ -3,9 +3,12 @@
 
 #pragma once
 
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <utility>
 
 #define STR(x) std::to_string(x)
 
@@ -50,16 +53,28 @@ std::string to_hex(T value) {
 
 std::string to_hex_string(const void* data, long long length, std::string sep = " ");
 
+void LogInit(std::filesystem::path);
+void LogEnd();
+
+extern std::fstream g_log;
+
 template <typename... Args>
 void LogCustom(const char* fn, bool show_line, const char* msg, Args&&... args) {
-  std::cout << GetSt(Style::RESET) << "[" << center(fn, 20) << "] " << msg;
-  ((std::cout << " " << args), ...);
-  std::cout << GetSt(Style::RESET);
-  if (show_line) {
-    std::cout << " ( " << __FILE__ << ":" << __LINE__ << " )";
-  }
+  if (!g_log.is_open()) return;
 
-  std::cout << std::endl;
+  std::ostringstream tmp;
+  tmp << GetSt(Style::RESET) << '[' << center(fn, 20) << "] " << msg;
+  ((tmp << ' ' << args), ...);
+  tmp << GetSt(Style::RESET);
+
+  if (show_line) {
+    tmp << " ( " << __FILE__ << ':' << __LINE__ << " )";
+  }
+  tmp << std::endl;
+
+  const auto& stmp = tmp.str();
+  g_log << stmp;
+  std::cout << stmp;
 }
 
 extern int error_counter;

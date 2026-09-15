@@ -32,8 +32,13 @@ s64 undump_file(const char* path, std::vector<char>& data) {
 }
 
 // config
-const char* config_path        = "/data/ender_conf";
-const char* config_path_nofuzz = "/data/ender_conf/nofuzz";
+const char* config_path                 = "/data/ender_conf";
+const char* config_path_nofuzz          = "/data/ender_conf/nofuzz";
+const char* config_path_noread          = "/data/ender_conf/noread";
+const char* config_path_nogetdirentries = "/data/ender_conf/nogetdirentries";
+const char* config_path_nononormal      = "/data/ender_conf/nononormal";
+const char* config_path_nonopfs         = "/data/ender_conf/nonopfs";
+const char* config_path_nolseek         = "/data/ender_conf/nolseek";
 // paths
 const char* input_pfs                   = "/app0/assets/misc";
 const char* enderman_root               = "/data/enderman/";
@@ -45,6 +50,11 @@ const char* output_normal_read          = "/data/enderman/dump/normal_read.bin";
 const char* output_normal_getdirentries = "/data/enderman/dump/normal_getdirent.bin";
 
 static bool conf_opt_nofuzz {};
+static bool conf_opt_noread {};
+static bool conf_opt_nogetdirentries {};
+static bool conf_opt_nonormal {};
+static bool conf_opt_nopfs {};
+static bool conf_opt_nolseek {};
 
 TEST_GROUP (DirentTests) {
   std::vector<int>* open_fd {};
@@ -70,10 +80,12 @@ TEST_GROUP (DirentTests) {
 
 TEST(DirentTests, PFSGetdirentriesFuzz) {
   LogTest("<<<< PFS getdirentries fuzzing test >>>>");
-  if (conf_opt_nofuzz) {
+
+  if (conf_opt_nofuzz || conf_opt_nopfs) {
     Log("Skipped");
     return;
   }
+
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
   LogWarning("Note: This test does not cover entire range of offsets"); // TL;DR
@@ -88,11 +100,6 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
    * It also always fails when the test ends, and sometimes it throws a page fault in kernelspace (???)
    * Best part is that lseek allows it first, but only pfs getdirentries exhibits this behaviour
    */
-
-  if (conf_opt_nofuzz) {
-    Log("Skipped");
-    return;
-  }
 
   int                   fd {};
   s64                   tbr {};
@@ -166,10 +173,12 @@ TEST(DirentTests, PFSGetdirentriesFuzz) {
 
 TEST(DirentTests, NormalGetdirentriesFuzz) {
   LogTest("<<<< Normal getdirentries fuzzing test >>>>");
-  if (conf_opt_nofuzz) {
+
+  if (conf_opt_nofuzz || conf_opt_nonormal) {
     Log("Skipped");
     return;
   }
+
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
 
@@ -242,6 +251,12 @@ TEST(DirentTests, NormalGetdirentriesFuzz) {
 
 TEST(DirentTests, PFSGetdirentries) {
   LogTest("<<<< PFS getdirentries tests >>>>");
+
+  if (conf_opt_nopfs || conf_opt_nogetdirentries) {
+    Log("Skipped");
+    return;
+  }
+
   // -1 basep means "no change"
   int                   fd {};
   s64                   tbr {};
@@ -302,6 +317,11 @@ TEST(DirentTests, PFSGetdirentries) {
 TEST(DirentTests, NormalGetdirentries) {
   LogTest("<<<< Normal getdirentries tests >>>>");
 
+  if (conf_opt_nonormal || conf_opt_nogetdirentries) {
+    Log("Skipped");
+    return;
+  }
+
   int                   fd {};
   s64                   tbr {};
   fuck                  buffer;
@@ -359,10 +379,12 @@ TEST(DirentTests, NormalGetdirentries) {
 
 TEST(DirentTests, PFSReadFuzz) {
   LogTest("<<<< PFS read fuzzing test >>>>");
-  if (conf_opt_nofuzz) {
+
+  if (conf_opt_nofuzz || conf_opt_nopfs) {
     Log("Skipped");
     return;
   }
+
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
 
@@ -426,10 +448,12 @@ TEST(DirentTests, PFSReadFuzz) {
 
 TEST(DirentTests, NormalReadFuzz) {
   LogTest("<<<< Normal read fuzzing test >>>>");
-  if (conf_opt_nofuzz) {
+
+  if (conf_opt_nofuzz || conf_opt_nonormal) {
     Log("Skipped");
     return;
   }
+
   LogTest("Note: Only first 20 bad entries are shown");
   LogTest("Note: This may take a while");
 
@@ -495,6 +519,11 @@ TEST(DirentTests, NormalReadFuzz) {
 TEST(DirentTests, PFSRead) {
   LogTest("<<<< PFS read tests >>>>");
 
+  if (conf_opt_nopfs || conf_opt_noread) {
+    Log("Skipped");
+    return;
+  }
+
   int                   fd {};
   s64                   tbr {};
   fuck                  buffer;
@@ -549,6 +578,11 @@ TEST(DirentTests, PFSRead) {
 TEST(DirentTests, NormalRead) {
   LogTest("<<<< Normal read tests >>>>");
 
+  if (conf_opt_nonormal || conf_opt_noread) {
+    Log("Skipped");
+    return;
+  }
+
   int                   fd {};
   s64                   tbr {};
   fuck                  buffer;
@@ -602,10 +636,12 @@ TEST(DirentTests, NormalRead) {
 
 TEST(DirentTests, PFSLSeekFuzz) {
   LogTest("<<<< PFS lseek fuzzing test >>>>");
-  if (conf_opt_nofuzz) {
+
+  if (conf_opt_nofuzz || conf_opt_nopfs) {
     Log("Skipped");
     return;
   }
+
   LogTest("Note: Only first 20 bad entries are shown");
 
   int fd {};
@@ -661,10 +697,12 @@ TEST(DirentTests, PFSLSeekFuzz) {
 
 TEST(DirentTests, NormalLSeekFuzz) {
   LogTest("<<<< Normal lseek fuzzing test >>>>");
-  if (conf_opt_nofuzz) {
+
+  if (conf_opt_nofuzz || conf_opt_nonormal) {
     Log("Skipped");
     return;
   }
+
   LogTest("Note: Only first 20 bad entries are shown");
 
   int fd {};
@@ -722,6 +760,11 @@ TEST(DirentTests, NormalLSeekFuzz) {
 TEST(DirentTests, PFSLSeekTests) {
   LogTest("<<<< PFS lseek tests >>>>");
 
+  if (conf_opt_nopfs || config_path_nolseek) {
+    Log("Skipped");
+    return;
+  }
+
   int fd {};
   s64 master_length {};
   s64 current_offset {};
@@ -761,6 +804,11 @@ TEST(DirentTests, PFSLSeekTests) {
 
 TEST(DirentTests, NormalLSeekTests) {
   LogTest("<<<< Normal lseek tests >>>>");
+
+  if (conf_opt_nonormal || config_path_nolseek) {
+    Log("Skipped");
+    return;
+  }
 
   int fd {};
   s64 master_length {};
@@ -840,27 +888,40 @@ TEST(DirentTests, Normal_Consistency) {
   }
 }
 
-s64 PFSComparator(const char* read, const char* getdirentries, u64 length) {
-  s64 offset {0};
+s64 PFSComparator(const char* read, s64 len_read, const char* getdirentries, s64 len_getdirentries, s64* out_read, s64* out_getdirentries) {
+  *out_read          = 0;
+  *out_getdirentries = 0;
   u64 entry_counter {0};
-  while (offset < length) {
-    const oi::PfsDirent*    dirent_read          = reinterpret_cast<const oi::PfsDirent*>(read + offset);
-    const oi::FolderDirent* dirent_getdirentries = reinterpret_cast<const oi::FolderDirent*>(getdirentries + offset);
 
-    if (validate_pfs_read_dirent(dirent_read) < 0) break;
-    if (validate_pfs_getdirentries_dirent(dirent_getdirentries) < 0) break;
+  while (*out_read < len_read && *out_getdirentries < len_getdirentries) {
+    const oi::PfsDirent*    dirent_read          = reinterpret_cast<const oi::PfsDirent*>(read + *out_read);
+    const oi::FolderDirent* dirent_getdirentries = reinterpret_cast<const oi::FolderDirent*>(getdirentries + *out_getdirentries);
+
+    if (auto val = validate_pfs_read_dirent(dirent_read); val < 0)
+      break;
+    else if (val == 0) {
+      *out_read += 8;
+      continue;
+    }
+    if (auto val = validate_pfs_getdirentries_dirent(dirent_getdirentries); val < 0)
+      break;
+    else if (val == 0) {
+      *out_getdirentries += 8;
+      continue;
+    }
     if (dirent_read->d_namlen != dirent_getdirentries->d_namlen) break;
     if (dirent_read->d_reclen != dirent_getdirentries->d_reclen) break;
     // if (dirent_read->d_type != dirent_getdirentries->d_type) break;
     if (memcmp(dirent_read->d_name, dirent_getdirentries->d_name, dirent_read->d_namlen)) break; // namlen is the same
-    if (dirent_read->d_reclen == 0) break;                                                       // reclen is the same
-    if (offset + dirent_read->d_reclen > length) break;
-    offset += dirent_read->d_reclen;
+    if (*out_read + dirent_read->d_reclen > len_read) break;
+    if (*out_getdirentries + dirent_getdirentries->d_reclen > len_getdirentries) break;
+    *out_read += dirent_read->d_reclen;
+    *out_getdirentries += dirent_read->d_reclen;
     entry_counter++;
   }
 
-  Log("Compared", entry_counter, "entries , length =", offset);
-  return offset;
+  Log("Compared", entry_counter, "entries , length read =", *out_read, ", getdirentries =", *out_getdirentries);
+  return entry_counter;
 }
 
 TEST(DirentTests, PFS_Consistency) {
@@ -874,10 +935,16 @@ TEST(DirentTests, PFS_Consistency) {
   auto master_read_size          = undump_file(output_pfs_read, master_read);
   auto master_getdirentries_size = undump_file(output_pfs_getdirentries, master_getdirentries);
 
-  if (auto res = PFSComparator(master_read.data(), master_getdirentries.data(), master_read_size); master_getdirentries_size != res) {
-    LogError("PFS read and getdirentries have a different dirent at", res, ":");
-    LogError("PFS Read:\t   ", to_hex_string(master_read.data() + res, 24));
-    LogError("PFS Getdirentries: ", to_hex_string(master_read.data() + res, 24));
+  s64 calc_read_length {0};
+  s64 calc_getdirentries_length {0};
+
+  auto res = PFSComparator(master_read.data(), master_read_size, master_getdirentries.data(), master_getdirentries_size, &calc_read_length,
+                           &calc_getdirentries_length);
+
+  if (res != (files_cloned_target + 2)) {
+    LogError("PFS read and getdirentries have a different dirent at offset", "read =", calc_read_length, ", getdirentries =", calc_getdirentries_length);
+    LogError("PFS Read:\t   ", to_hex_string(master_read.data() + calc_read_length, std::min(s64(24), calc_read_length)));
+    LogError("PFS Getdirentries: ", to_hex_string(master_read.data() + calc_getdirentries_length, std::min(s64(24), calc_getdirentries_length)));
     FAIL("PFS read and getdirentries returned different amount of data");
   }
 }
@@ -890,18 +957,30 @@ TEST(DirentTests, ValidateDirentries) {
 
   // these tests are not done yet
   LogTest("Normal read");
-  master_length = undump_file(output_normal_read, buffer);
-  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer.data(), master_length), >, 0, "Normal Read validation failed");
+  if (!(conf_opt_noread || conf_opt_nonormal)) {
+    master_length = undump_file(output_normal_read, buffer);
+    CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer.data(), master_length), >, 0, "Normal Read validation failed");
+  } else
+    Log("Skipped");
   LogTest("Normal getdirentries");
-  master_length = undump_file(output_normal_getdirentries, buffer);
-  CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer.data(), master_length), >, 0, "Normal getdirentries validation failed");
+  if (!(conf_opt_nogetdirentries || conf_opt_nonormal)) {
+    master_length = undump_file(output_normal_getdirentries, buffer);
+    CHECK_COMPARE_TEXT(validate_normal_getdirentries(buffer.data(), master_length), >, 0, "Normal getdirentries validation failed");
+  } else
+    Log("Skipped");
 
   LogTest("PFS read");
-  master_length = undump_file(output_pfs_read, buffer);
-  CHECK_COMPARE_TEXT(validate_pfs_read(buffer.data(), master_length), >, 0, "PFS read validation failed");
+  if (!(conf_opt_noread || conf_opt_nopfs)) {
+    master_length = undump_file(output_pfs_read, buffer);
+    CHECK_COMPARE_TEXT(validate_pfs_read(buffer.data(), master_length), >, 0, "PFS read validation failed");
+  } else
+    Log("Skipped");
   LogTest("PFS getdirentries");
-  master_length = undump_file(output_pfs_getdirentries, buffer);
-  CHECK_COMPARE_TEXT(validate_pfs_getdirentries(buffer.data(), master_length), >, 0, "PFS getdirentries validation failed");
+  if (!(conf_opt_nogetdirentries || conf_opt_nopfs)) {
+    master_length = undump_file(output_pfs_getdirentries, buffer);
+    CHECK_COMPARE_TEXT(validate_pfs_getdirentries(buffer.data(), master_length), >, 0, "PFS getdirentries validation failed");
+  } else
+    Log("Skipped");
 }
 
 TEST(DirentTests, DumpEverythingRaw) {
@@ -1026,7 +1105,12 @@ TEST(DirentTests, PrepareTests) {
 
 TEST(DirentTests, GetConfig) {
   LogTest("<<<< Get config >>>>");
-  conf_opt_nofuzz = false;
+  conf_opt_nofuzz          = false;
+  conf_opt_noread          = false;
+  conf_opt_nogetdirentries = false;
+  conf_opt_nonormal        = false;
+  conf_opt_nopfs           = false;
+  conf_opt_nolseek         = false;
 
   if (sceKernelMkdir(config_path, 0777) == 0) {
     Log("Config directory created. Assuming no options deactivated");
@@ -1034,8 +1118,34 @@ TEST(DirentTests, GetConfig) {
   }
 
   OrbisKernelStat st {};
+
   if (int status = sceKernelStat(config_path_nofuzz, &st); status == 0) {
     Log("Enabled skip fuzzing");
     conf_opt_nofuzz = true;
+  }
+
+  if (int status = sceKernelStat(config_path_noread, &st); status == 0) {
+    Log("Enabled skip read");
+    conf_opt_noread = true;
+  }
+
+  if (int status = sceKernelStat(config_path_nogetdirentries, &st); status == 0) {
+    Log("Enabled skip getdirentries");
+    conf_opt_nogetdirentries = true;
+  }
+
+  if (int status = sceKernelStat(config_path_nononormal, &st); status == 0) {
+    Log("Enabled skip normal FS");
+    conf_opt_nonormal = true;
+  }
+
+  if (int status = sceKernelStat(config_path_nonopfs, &st); status == 0) {
+    Log("Enabled skip PFS");
+    conf_opt_nopfs = true;
+  }
+
+  if (int status = sceKernelStat(config_path_nolseek, &st); status == 0) {
+    Log("Enabled skip PFS");
+    conf_opt_nolseek = true;
   }
 }

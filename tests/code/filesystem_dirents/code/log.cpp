@@ -1,7 +1,22 @@
 #include "log.h"
 
+#include <fstream>
 #include <iomanip>
 #include <sstream>
+
+std::fstream g_log;
+
+void LogInit(std::filesystem::path path) {
+  if (g_log.is_open()) g_log.close();
+  g_log.open(path, std::ios::trunc | std::ios::out | std::ios::binary);
+  g_log.rdbuf()->pubsetbuf(nullptr, 0);
+  g_log << std::unitbuf;
+}
+
+void LogEnd() {
+  if (!g_log.is_open()) return;
+  g_log.close();
+}
 
 namespace Style {
 static const unsigned style_size = __enum_end + 1;
